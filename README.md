@@ -222,7 +222,8 @@ lookahead. It may affect quality when a topic changes within a context; measure
 that with causal evaluation rather than assuming the old scores carry over.
 For batches, each sequence gets an independent `resident // batch_size` budget;
 identical expert requests can share physical weights, but other samples cannot
-change a sequence's availability.
+change a sequence's availability. Batch size must not exceed the resident slot
+count; larger independent working sets require more physical slots.
 
 At positive selection temperature, random draws are keyed by sequence, absolute
 position, router site and recurrent depth, so execution chunking does not change
@@ -266,6 +267,12 @@ later positions cannot alter that mask or overwrite a prefix-selected expert.
 The guarantee assumes fixed weights, the same context boundaries and depth
 schedule, and controlled randomness. It does not assert equivalence across
 optimizer updates or across different sampled training-depth schedules.
+
+For a CUDA speed/memory smoke test at the reference width and context, run
+`.venv/bin/python replication/causality_benchmark.py --out /tmp/speed.json`.
+Use `--root /path/to/another/checkout` to compare revisions with the same script,
+or `--depth 24` to exercise the configured ceiling. This uses random weights and
+bytes with a warm RAM cache; it is not a quality or disk-I/O benchmark.
 
 ## How growth and pruning work
 

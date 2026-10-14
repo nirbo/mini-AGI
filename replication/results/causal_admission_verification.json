@@ -1,0 +1,126 @@
+{
+  "baseline_commit": "34f80a36b6486b29c22454e2cc2faca11701cd59",
+  "original_reproduction": {
+    "resident": 32,
+    "experts": 64,
+    "before_max_prefix_logit_change": 0.002979964017868042,
+    "after_max_prefix_logit_change": 0.0,
+    "note": "The transferred reduced random-model script; not a published checkpoint."
+  },
+  "speed_baseline": {
+    "root": "/tmp/minagi-baseline-4ytow97g",
+    "torch": "2.14.1+cu130",
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "precision": "bf16",
+    "width": 512,
+    "expert_width": 2048,
+    "experts": 64,
+    "resident": 32,
+    "top_k": 8,
+    "context": 4096,
+    "fixed_depth": 13,
+    "capacity_factor": 0,
+    "training_step_seconds": [
+      0.22612506199993732,
+      0.19132003499998973,
+      0.2491219739999906,
+      0.2013726659997701,
+      0.20454268599996794,
+      0.20677444000011747
+    ],
+    "training_median_seconds": 0.2056585630000427,
+    "training_chars_per_second": 19916.505980833626,
+    "peak_allocated_gib": 4.4236836433410645,
+    "generation_256_prompt_16_chars_seconds": [
+      0.22832767600039006,
+      0.22805749600001946
+    ],
+    "note": "Random weights and bytes, warm RAM cache; timing includes backward and Adam. Generation timing includes prompt prefill. No quality claim or disk-I/O benchmark."
+  },
+  "speed_fixed": {
+    "root": "/home/nir/ml-tools/mini-AGI",
+    "torch": "2.14.1+cu130",
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "precision": "bf16",
+    "width": 512,
+    "expert_width": 2048,
+    "experts": 64,
+    "resident": 32,
+    "top_k": 8,
+    "context": 4096,
+    "fixed_depth": 13,
+    "capacity_factor": 0,
+    "training_step_seconds": [
+      0.18937290100029713,
+      0.18967065000015282,
+      0.25505142199972397,
+      0.19759566099992298,
+      0.19245703299975503,
+      0.18949117099964496
+    ],
+    "training_median_seconds": 0.19106384149995392,
+    "training_chars_per_second": 21437.86060116973,
+    "peak_allocated_gib": 4.429293632507324,
+    "generation_256_prompt_16_chars_seconds": [
+      0.22426403700001174,
+      0.22345961800010627
+    ],
+    "note": "Random weights and bytes, warm RAM cache; timing includes backward and Adam. Generation timing includes prompt prefill. No quality claim or disk-I/O benchmark."
+  },
+  "depth24_smoke": {
+    "root": "/home/nir/ml-tools/mini-AGI",
+    "torch": "2.14.1+cu130",
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "precision": "bf16",
+    "width": 512,
+    "expert_width": 2048,
+    "experts": 64,
+    "resident": 32,
+    "top_k": 8,
+    "context": 4096,
+    "fixed_depth": 24,
+    "capacity_factor": 0,
+    "training_step_seconds": [
+      0.2793305860000146,
+      0.33350238599996374,
+      0.26315858299994943,
+      0.27093716999979733,
+      0.26554622599996947,
+      0.3235867549997238
+    ],
+    "training_median_seconds": 0.27513387799990596,
+    "training_chars_per_second": 14887.297884855168,
+    "peak_allocated_gib": 5.450562000274658,
+    "generation_256_prompt_16_chars_seconds": [
+      0.33175563099985084,
+      0.3323583490000601
+    ],
+    "note": "Random weights and bytes, warm RAM cache; timing includes backward and Adam. Generation timing includes prompt prefill. No quality claim or disk-I/O benchmark."
+  },
+  "cli_smoke": {
+    "temporary_directory": "/tmp/minagi-cli-causal-4gmokxq6",
+    "cli_train_save_reload": "passed",
+    "checkpoint_step": 16,
+    "checkpoint_marked_paged": true,
+    "reloaded_prefix_error": 4.470348358154297e-08,
+    "python": "/home/nir/ml-tools/mini-AGI/.venv/bin/python"
+  },
+  "limits": [
+    "Random weights/bytes in the speed benchmark; no general speed or model-quality claim.",
+    "Fixed weights, architecture, context boundaries and depth schedule for causality comparisons; floating-point tolerances apply.",
+    "The deployed-generation NLL versus PonderNet training-objective mismatch is unchanged.",
+    "Working sets lock once full until context reset; assess the resulting quality with fresh causal evaluation."
+  ],
+  "tests": {
+    "command": ".venv/bin/python -m unittest discover -s tests -v",
+    "result": "24 tests passed; no skips on this machine",
+    "log": "test_cached_training_gradients_match_full_window (test_causality.CausalityTests.test_cached_training_gradients_match_full_window) ... ok\ntest_capacity_ledger_handles_changed_expert_count (test_causality.CausalityTests.test_capacity_ledger_handles_changed_expert_count) ... ok\ntest_capacity_limit_is_causal (test_causality.CausalityTests.test_capacity_limit_is_causal) ... ok\ntest_capacity_matches_independent_sequential_oracle (test_causality.CausalityTests.test_capacity_matches_independent_sequential_oracle) ... ok\ntest_chunked_and_tokenwise_predictions_agree (test_causality.CausalityTests.test_chunked_and_tokenwise_predictions_agree) ... ok\ntest_configured_24_step_ceiling_is_causal (test_causality.CausalityTests.test_configured_24_step_ceiling_is_causal) ... ok\ntest_cuda_bf16_predictions_and_backward (test_causality.CausalityTests.test_cuda_bf16_predictions_and_backward) ... ok\ntest_cuda_predictions_and_gradients_are_causal (test_causality.CausalityTests.test_cuda_predictions_and_gradients_are_causal) ... ok\ntest_each_sequence_in_a_batch_is_causal (test_causality.CausalityTests.test_each_sequence_in_a_batch_is_causal) ... ok\ntest_existing_checkpoint_shapes_load_without_migration (test_causality.CausalityTests.test_existing_checkpoint_shapes_load_without_migration) ... ok\ntest_existing_directory_checkpoint_loads_into_causal_paging (test_causality.CausalityTests.test_existing_directory_checkpoint_loads_into_causal_paging) ... ok\ntest_fixed_pool_replication_control_prepares_new_masks (test_causality.CausalityTests.test_fixed_pool_replication_control_prepares_new_masks) ... ok\ntest_fully_resident_pool_capacity_is_causal (test_causality.CausalityTests.test_fully_resident_pool_capacity_is_causal) ... ok\ntest_future_text_does_not_change_prefix (test_causality.CausalityTests.test_future_text_does_not_change_prefix) ... ok\ntest_mixed_adaptive_halting_is_causal (test_causality.CausalityTests.test_mixed_adaptive_halting_is_causal) ... ok\ntest_multiple_recurrent_sites_and_small_resident_pools (test_causality.CausalityTests.test_multiple_recurrent_sites_and_small_resident_pools) ... ok\ntest_new_text_resets_admission_and_cached_text_keeps_slots (test_causality.CausalityTests.test_new_text_resets_admission_and_cached_text_keeps_slots) ... ok\ntest_other_batch_sequences_do_not_change_predictions (test_causality.CausalityTests.test_other_batch_sequences_do_not_change_predictions) ... ok\ntest_padded_dispatch_and_checkpointing_are_causal (test_causality.CausalityTests.test_padded_dispatch_and_checkpointing_are_causal) ... ok\ntest_paged_optimizer_restores_incoming_experts_moments (test_causality.CausalityTests.test_paged_optimizer_restores_incoming_experts_moments) ... ok\ntest_prefix_gradient_does_not_depend_on_future_text (test_causality.CausalityTests.test_prefix_gradient_does_not_depend_on_future_text) ... ok\ntest_random_pages_do_not_depend_on_chunk_boundaries (test_causality.CausalityTests.test_random_pages_do_not_depend_on_chunk_boundaries) ... ok\ntest_stochastic_routing_is_causal_with_fixed_seed (test_causality.CausalityTests.test_stochastic_routing_is_causal_with_fixed_seed) ... ok\ntest_training_predictions_are_causal (test_causality.CausalityTests.test_training_predictions_are_causal) ... ok\n\n----------------------------------------------------------------------\nRan 24 tests in 1.951s\n\nOK\n"
+  },
+  "implementation_sha256": {
+    "minagi/pool.py": "3b3afbc9edf1dfb45182ccd4f541105f2ebb3b551764b012928f485aa500fff9",
+    "minagi/paged.py": "454e61c422ad8b828915fd630f67eecf49b28e0e4b1d40e347af9144eea2be64",
+    "minagi/recur.py": "b22391b114a1a9c0cab29e784c1183f634467bea607ea491e786ec755eae6106",
+    "tests/test_causality.py": "2807ce23c412768d3cd2732e194acb837693c19c179eeb4cabcf5ae52f1dd2c4",
+    "replication/causality_benchmark.py": "4e936b6a50f2ef2af537904e6054e94d60b0bf3a6f6ba3ab604dbfb67f27e95a"
+  }
+}

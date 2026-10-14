@@ -4,6 +4,7 @@ All weights and paging files are temporary; no corpus or checkpoint is needed.
 """
 
 import math
+import itertools
 import os
 import tempfile
 import unittest
@@ -101,14 +102,14 @@ class CausalityTests(unittest.TestCase):
         requests = torch.stack([torch.randperm(n, generator=g)[:k]
                                 for _ in range(B * T)]).view(B, T, k)
         active = torch.rand(B, T, generator=g) > 0.3
-        for factor in (0.3, 1.5, 4):
+        for factor, budget_n in itertools.product((0.3, 1.5, 4), (n, n // B)):
             accepted = torch.zeros(B, n, dtype=torch.long)
             expected = torch.zeros(B, T, k, dtype=torch.bool)
             for b in range(B):
                 for t in range(T):
                     if not active[b, t]:
                         continue
-                    limit = max(1, math.ceil(factor * k / n * (t + 1)))
+                    limit = max(1, math.ceil(factor * k / budget_n * (t + 1)))
                     for j, expert in enumerate(requests[b, t]):
                         if accepted[b, expert] < limit:
                             expected[b, t, j] = True
@@ -123,16 +124,22 @@ class CausalityTests(unittest.TestCase):
                     site.begin_forward(B, chunk.shape[1], start, start == 0)
                     if positions.numel():
                         keep = site._capacity_keep(chunk.flatten(0, 1)[positions],
-                                                   positions, n, k)
+                                                   positions, n, k, budget_n=budget_n)
                         actual[:, start:start + width][mask] = keep
-                with self.subTest(factor=factor, width=width):
+                with self.subTest(factor=factor, width=width, budget_n=budget_n):
                     self.assertTrue(torch.equal(actual, expected))
 
     def test_training_predictions_are_causal(self):
         self.assert_prefix(self.model(capacity=1.5), training=True)
 
     def test_each_sequence_in_a_batch_is_causal(self):
-        self.assert_prefix(self.model(resident=8), batch=2)
+        for capacity in (0, 1.5):
+            for temperature in (0, 0.7):
+                self.assert_prefix(self.model(resident=8, capacity=capacity,
+                                               temperature=temperature), batch=2)
+                self.assert_prefix(self.model(resident=8, capacity=capacity,
+                                               temperature=temperature),
+                                   batch=2, training=True)
 
     def test_stochastic_routing_is_causal_with_fixed_seed(self):
         self.assert_prefix(self.model(temperature=0.7))
@@ -156,9 +163,29 @@ class CausalityTests(unittest.TestCase):
             self.assert_prefix(self.model(resident=resident, freeze=False,
                                           recur=2, coda=1, temperature=0.7))
 
+    def test_configured_24_step_ceiling_is_causal(self):
+        self.assert_prefix(self.model(steps=24, capacity=1.5))
+        self.assert_prefix(self.model(steps=24, capacity=1.5), training=True)
+
+    def test_fully_resident_pool_capacity_is_causal(self):
+        cfg = self.model(capacity=1.5).cfg
+        self.assert_prefix(RecurCoder(cfg).eval())
+
+    def test_capacity_ledger_handles_changed_expert_count(self):
+        site = self.model().recur[0].mlp
+        site.capacity_factor = 1.5
+        site.begin_forward(1, 2, 0, True)
+        site._capacity_keep(torch.tensor([[0, 1], [1, 2]]), torch.arange(2), 4, 2)
+        site.begin_forward(1, 2, 2, False)
+        for n in (5, 3):
+            keep = site._capacity_keep(torch.tensor([[0, 1], [1, 2]]),
+                                       torch.arange(2), n, 2)
+            self.assertEqual(keep.shape, (2, 2))
+            self.assertEqual(site._capacity_state[0][0].shape, (1, n))
+
     def test_other_batch_sequences_do_not_change_predictions(self):
         for temperature in (0, 0.7):
-            model = self.model(resident=8, temperature=temperature)
+            model = self.model(resident=8, temperature=temperature, capacity=1.5)
             prefix, suffix = self.inputs(batch=2)
             text = torch.cat((prefix, suffix), dim=1)
             with torch.no_grad():

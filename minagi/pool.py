@@ -348,17 +348,24 @@ class PooledMLP(nn.Module):
         if new_text:
             self._capacity_state = {}
 
-    def _capacity_keep(self, idx, positions, n, k):
+    def _capacity_keep(self, idx, positions, n, k, *, budget_n=None):
         """A causal capacity budget that counts accepted prefix assignments.
 
         At absolute position t an expert may have accepted at most
-        ceil(capacity_factor * k * (t + 1) / n) assignments. Overflow is
+        ceil(capacity_factor * k * (t + 1) / budget_n) assignments. Here n
+        counts physical slots; budget_n is the sequence's slot budget. Overflow is
         permanently dropped, rather than queued for future positions. The
         running maximum of requests minus budget counts those drops; this
         vectorized recurrence is independent of suffix length and chunking.
         """
         B, T, offset = self._frame
+        budget_n = n if budget_n is None else budget_n
         state = self._capacity_state.get(self.route_depth)
+        if state is not None and state[0].shape != (B, n):
+            # Fully resident pools can grow/prune between optimizer steps.
+            # A changed expert set starts a new capacity epoch; a fixed
+            # architecture retains its ledger across every cached chunk.
+            state = None
         if state is None:
             counts = idx.new_zeros(B, n)
             overflow = idx.new_zeros(B, n)
@@ -368,7 +375,7 @@ class PooledMLP(nn.Module):
         hits[positions] = F.one_hot(idx, n).sum(1)
         requests = hits.view(B, T, n).cumsum(1) + counts.unsqueeze(1)
         budget = torch.ceil(
-            self.capacity_factor * k / n
+            self.capacity_factor * k / budget_n
             * torch.arange(offset + 1, offset + T + 1, device=idx.device,
                            dtype=torch.float64)).long().clamp_min(1)
         excess = (requests - budget.view(1, T, 1)).clamp_min(0)
@@ -575,7 +582,8 @@ class PooledMLP(nn.Module):
         tok = torch.arange(N, device=flat.device).repeat_interleave(k)
         self.routed += int(flat_e.numel())
         if self.capacity_factor:
-            keep = self._capacity_keep(idx, positions, budget_n, k).reshape(-1)
+            keep = self._capacity_keep(idx, positions, n, k,
+                                       budget_n=budget_n).reshape(-1)
             self.dropped = self.dropped + (~keep).sum()
             flat_e, flat_w, tok = flat_e[keep], flat_w[keep], tok[keep]
 
