@@ -8,6 +8,8 @@
 - If verification fails or material correctness questions remain, keep working on the feature branch; do not merge incomplete work.
 - Do not guess or take shortcuts. Distinguish demonstrated results from assumptions and state the limits of verification.
 - Preserve unrelated user changes. Stage only files belonging to the task.
+- Keep the user's fork (`origin`, `git@github.com:nirbo/mini-AGI.git`) in sync with local work. Push feature branch commits as work progresses, and push `dev` after verified merges.
+- Keep unfinished work on its feature branch when pushing. Do not force-push or overwrite remote history without explicit authorization.
 
 ## Python environment and desktop safety
 
