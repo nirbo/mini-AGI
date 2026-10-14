@@ -205,26 +205,20 @@ class RecurCoder(nn.Module):
                 collect=False):
         cfg = self.cfg
         B, T = idx.shape
+        new_text = caches is None or pos_offset == 0
         if hasattr(self.pool, "begin_forward"):
-            # THE TEXT CHOOSES: nothing admitted yet, and this forward's first
-            # pass will add its requests to its text's vote and be admitted
-            # the most-voted experts. What one forward uses has to be on the
-            # card together - through its backward and the optimiser step when
-            # it trains - so each forward is admitted afresh, but by the whole
-            # text so far: the next character of a reply routes among what the
-            # prompt and the reply have asked for. A forward from position 0
-            # begins a new text, with an empty vote, and is what the prune
-            # clock counts. See PagedPool.admit.
-            #
-            # A forward that trains says so: it counts towards each expert's
-            # recent use and computes the balance term (PagedPool.note_balance).
-            # Choosing is the router's alone in every forward, so measuring and
-            # writing choose the way training does.
+            # Admission is causal and persists across cached chunks. A new
+            # context starts empty; only first-pass prefix requests can fill
+            # its working set. Per-position masks hide later admissions.
             explore = self.training and torch.is_grad_enabled()
-            if caches is None or pos_offset == 0:
-                self.pool.begin_text(explore)
+            if new_text:
+                self.pool.begin_text(explore, batch_size=B)
             else:
-                self.pool.begin_forward(explore)
+                self.pool.begin_forward(explore, pos_offset=pos_offset, batch_size=B)
+        from .pool import PooledMLP
+        sites = [m for m in self.modules() if isinstance(m, PooledMLP)]
+        for site in sites:
+            site.begin_forward(B, T, pos_offset, new_text, managed=True)
         x = self.tok_emb(idx)
         if pos_offset + T > self.rope_cos.shape[0]:
             # Reading past the rotary tables gives an empty slice and a
@@ -270,6 +264,8 @@ class RecurCoder(nn.Module):
                 f"n_recur 1 and n_coda 0, not {cfg.n_recur} and {cfg.n_coda}")
         carried = None            # every character's final keys and values
         for n in range(n_steps):
+            for site in sites:
+                site.route_depth = n
             # truncated backprop: only the last few passes carry gradient, so
             # memory does not grow with depth
             if (targets is not None and cfg.bptt_window > 0
@@ -358,6 +354,8 @@ class RecurCoder(nn.Module):
             out = {"steps": steps_used} if collect else None
             if collect:
                 out["per_step"] = per_step
+            for site in sites:
+                site._managed_frame = False
             return halted_logits, out
 
         # PonderNet: expected loss under the halting distribution, plus a KL
@@ -376,17 +374,15 @@ class RecurCoder(nn.Module):
         self.last_steps = float(steps.mean().detach())
         # logits are the halting-weighted mixture, so top-1 accuracy measured
         # downstream reflects what the model would actually have emitted
+        for site in sites:
+            site._managed_frame = False
         return halted_logits, loss
 
     def generate(self, idx, max_new_tokens, temperature=0.0, top_k=0,
                  top_p=1.0, collect=False, rep_penalty=1.0,
                  no_repeat_ngram=0, adapt_strength=2.5, adapt_decay=0.88):
-        # The prompt's forward admits the experts its characters ask for most,
-        # and then every character of the reply is a forward of its own that
-        # adds its requests to the vote and routes among what the prompt and
-        # the reply so far have voted for. When the attention window fills,
-        # the context is re-read from position 0 - a new text, whose vote is
-        # the re-read context's.
+        # Prompt and reply share a prefix-built working set. Re-reading the
+        # recent context after the window fills starts a new working set.
         self.eval()
         cfg = self.cfg
         caches = self.empty_caches()

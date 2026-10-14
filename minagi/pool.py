@@ -305,10 +305,9 @@ class PooledMLP(nn.Module):
         self.top_k, self.site, self.z_weight = top_k, site, z_weight
         # One row per EXPERT, always - never one row per VRAM slot.
         #
-        # While a forward has room on the card, every character ranks the
-        # whole pool with these rows (that is how a forward asks for experts -
-        # see PagedPool.admit), and every character weighs the ones on the
-        # card with the same rows. A row that meant "slot 5" would mean a
+        # First-pass prefix requests fill a causal working set; each position
+        # weighs only experts admitted by its own prefix. Both decisions use
+        # these same expert-indexed rows. A row that meant "slot 5" would mean a
         # different expert from one forward to the next, and the router
         # could not express "this kind of character wants that expert" - the
         # one thing it exists to say. The cost is d_model per expert, a few
@@ -337,6 +336,47 @@ class PooledMLP(nn.Module):
         # ...and the denominator, so the counter reads as a share of the
         # work rather than as a number nobody can scale.
         self.routed = 0
+        self._capacity_state = {}
+        self._frame = None
+        self._managed_frame = False
+        self.route_depth = 0
+
+    def begin_forward(self, batch, length, offset, new_text, *, managed=False):
+        self._frame = (batch, length, offset)
+        self._managed_frame = managed
+        self.route_depth = 0
+        if new_text:
+            self._capacity_state = {}
+
+    def _capacity_keep(self, idx, positions, n, k):
+        """A causal capacity budget that counts accepted prefix assignments.
+
+        At absolute position t an expert may have accepted at most
+        ceil(capacity_factor * k * (t + 1) / n) assignments. Overflow is
+        permanently dropped, rather than queued for future positions. The
+        running maximum of requests minus budget counts those drops; this
+        vectorized recurrence is independent of suffix length and chunking.
+        """
+        B, T, offset = self._frame
+        state = self._capacity_state.get(self.route_depth)
+        if state is None:
+            counts = idx.new_zeros(B, n)
+            overflow = idx.new_zeros(B, n)
+        else:
+            counts, overflow = state
+        hits = idx.new_zeros(B * T, n)
+        hits[positions] = F.one_hot(idx, n).sum(1)
+        requests = hits.view(B, T, n).cumsum(1) + counts.unsqueeze(1)
+        budget = torch.ceil(
+            self.capacity_factor * k / n
+            * torch.arange(offset + 1, offset + T + 1, device=idx.device,
+                           dtype=torch.float64)).long().clamp_min(1)
+        excess = (requests - budget.view(1, T, 1)).clamp_min(0)
+        dropped = torch.maximum(excess.cummax(1).values, overflow.unsqueeze(1))
+        previous = torch.cat((overflow.unsqueeze(1), dropped[:, :-1]), dim=1)
+        keep = (dropped == previous).flatten(0, 1)[positions].gather(1, idx)
+        self._capacity_state[self.route_depth] = (requests[:, -1], dropped[:, -1])
+        return keep
 
     @property
     def pool(self):
@@ -352,13 +392,16 @@ class PooledMLP(nn.Module):
         expert's capacity, and count in none of the statistics or the
         balancing loss - the pool sees exactly what writing would ask of it.
         """
+        if not self._managed_frame:
+            self.begin_forward(x.shape[0], x.shape[1], 0, True)
         if active is None or bool(active.all()):
             return self._route(x)
         B, T, D = x.shape
         m = active.reshape(-1)
         out = torch.zeros(B * T, D, device=x.device, dtype=x.dtype)
         if bool(m.any()):
-            out[m] = self._route(x.reshape(-1, D)[m].unsqueeze(0))[0]
+            positions = m.nonzero(as_tuple=False).squeeze(1)
+            out[m] = self._route(x.reshape(-1, D)[m].unsqueeze(0), positions)[0]
         return out.view(B, T, D)
 
     @staticmethod
@@ -384,10 +427,14 @@ class PooledMLP(nn.Module):
             start += c
         return torch.cat(out).to(src.dtype)
 
-    def _route(self, x):
+    def _route(self, x, positions=None):
         # see capture_routes() at the bottom of this file
         B, T, D = x.shape
         p = self.pool
+        if self._frame is None:
+            self.begin_forward(B, T, 0, True)
+        if positions is None:
+            positions = torch.arange(B * T, device=x.device)
         # how many this token may choose between. For a resident pool that is
         # every expert; for a paged one it is the slots of the card, and the
         # indices are into the slots rather than the whole pool.
@@ -397,45 +444,35 @@ class PooledMLP(nn.Module):
         # THE TEMPERATURE OF EXPERT SELECTION - pool.select_temperature, not
         # anything about the text. 0 takes each character's top_k; above 0
         # each character DRAWS its top_k without replacement, in proportion to
-        # p^(1/T), and the card is drawn the same way (PagedPool._draw).
+        # p^(1/T), using position-keyed draws for paged pools.
         temp = float(getattr(p, "select_temperature", 0.0) or 0.0)
         if rows is None:
             logits = self.router(flat + self.depth_emb)[:, :n].float()
         else:
-            if p.admitting():
-                # THE SELECTION RULE, while the forward has room on the card.
-                # Every character ranks the WHOLE pool and asks for its
-                # top_k; each request carries the probability the router gave
-                # it, and the most-asked-for experts are admitted until the
-                # card is full. No gradient: admission decides what is
-                # reachable, the routing below decides weights.
+            if p._prefix_mask is None:
+                frame_B, frame_T, offset = self._frame
+                if flat.shape[0] != frame_B * frame_T:
+                    raise RuntimeError("admission must run before adaptive halting")
+                E = p.router_rows()
+                # Only the first recurrent site/pass prepares admission.
+                # Later passes reuse position masks and cannot let a future
+                # first-pass token steal an earlier token's deeper-pass slot.
                 with torch.no_grad():
-                    E = p.router_rows()
-                    z = F.linear(flat + self.depth_emb,
-                                 self.router.weight[:E]).float()
-
-                    def requested(scores):
-                        q = F.softmax(scores, -1)
-                        if temp > 0:
-                            # every expert with its full probability: above
-                            # temperature 0 the card is drawn from the
-                            # text's whole distribution, row by row
-                            return q.float().sum(0)
-                        tq = torch.topk(q, min(self.top_k, E), dim=-1)
-                        mass = torch.zeros(E, device=q.device)
-                        mass.index_add_(0, tq.indices.reshape(-1),
-                                        tq.values.reshape(-1).float())
-                        return mass
-                    mass = requested(z)
-                # THE BALANCE TERM (pool.balance), once per forward that
-                # trains: the router pays for the probability it puts on each
-                # expert in proportion to that expert's share of recent
-                # admissions - the Switch Transformer's balancing term, with
-                # the share taken over the last ~1,000 training forwards
-                # instead of this one, so a text may still want few experts as
-                # long as the texts between them want them all. 0 when usage is
-                # even. Only the router's rows learn from it: the characters'
-                # states are detached, so it cannot bend what the trunk computes.
+                    requests = torch.empty(frame_B, frame_T, 0, dtype=torch.long,
+                                           device=x.device)
+                    if p.admitting():
+                        z = F.linear(flat + self.depth_emb,
+                                     self.router.weight[:E]).float()
+                    if temp > 0 and p.admitting():
+                        keys = [(b, offset + t) for b in range(frame_B)
+                                for t in range(frame_T)]
+                        noise = p.routing_noise(keys, site=self.site, depth=0,
+                                                width=E, admission=True)
+                        z = z / temp + noise
+                    if p.admitting():
+                        requests = torch.topk(
+                            z, min(self.top_k, p.sequence_capacity()), dim=-1
+                        ).indices.view(frame_B, frame_T, -1)
                 if (float(getattr(p, "balance", 0.0) or 0.0) > 0
                         and self.training and torch.is_grad_enabled()
                         and p.balance_term() is None):
@@ -444,23 +481,26 @@ class PooledMLP(nn.Module):
                     P = F.softmax(zg, -1).mean(0)
                     p.note_balance(p.balance * (
                         E * (p.usage_share().to(P.device) * P).sum() - 1.0))
-                p.admit(mass, draw=self.top_k)
+                p.admit(requests)
                 rows = p.resident_rows()
-            # only the rows belonging to the experts in VRAM, in slot order,
-            # so column j of the logits is slot j and row rows[j] is its expert
-            w = self.router.weight[rows]                      # [n, d_model]
+            w = self.router.weight[rows]
             logits = F.linear(flat + self.depth_emb, w).float()
-            # a character whose request was not admitted takes its best
-            # admitted expert: slots holding anything else are out of reach
-            logits = logits.masked_fill(~p.admitted_mask(), float("-inf"))
+            logits = logits.masked_fill(~p.admitted_mask(positions), float("-inf"))
         probs = F.softmax(logits, dim=-1)
-        k = min(self.top_k, n)
+        budget_n = p.sequence_capacity() if rows is not None else n
+        k = min(self.top_k, budget_n)
         if temp > 0:
-            # drawn, not taken (Gumbel-top-k on the scores over T): weighted,
-            # like a taken expert, by the router's own probability
             keys = logits.detach()
-            gum = -torch.log(-torch.log(
-                torch.rand_like(keys).clamp_(1e-12, 1 - 1e-7)))
+            if rows is not None:
+                frame_B, frame_T, offset = self._frame
+                coordinates = [(i // frame_T, offset + i % frame_T)
+                               for i in positions.tolist()]
+                gum = p.routing_noise(coordinates, site=self.site,
+                                      depth=self.route_depth,
+                                      width=p.router_rows())[:, rows]
+            else:
+                gum = -torch.log(-torch.log(
+                    torch.rand_like(keys).clamp_(1e-12, 1 - 1e-7)))
             idx = torch.topk(keys / temp + gum, k, dim=-1).indices
             w = probs.gather(1, idx)
         else:
@@ -527,46 +567,37 @@ class PooledMLP(nn.Module):
         self.aux = ((frac * probs.mean(0)).sum() * n
                     + self.z_weight * torch.logsumexp(logits, -1).pow(2).mean())
 
-        # capacity-based batched dispatch (Switch-Transformer style): every
-        # expert gets a fixed-size slot buffer, so the whole pool runs as three
-        # batched matmuls instead of one small matmul per expert.
+        # Capacity is decided in token order, before sorting for dispatch.
+        # Sorting is stable so grouped rows preserve that order as well.
         N = flat.shape[0]
-        flat_e = idx.reshape(-1)                       # [N*k]
+        flat_e = idx.reshape(-1)
         flat_w = w.reshape(-1).to(flat.dtype)
         tok = torch.arange(N, device=flat.device).repeat_interleave(k)
+        self.routed += int(flat_e.numel())
+        if self.capacity_factor:
+            keep = self._capacity_keep(idx, positions, budget_n, k).reshape(-1)
+            self.dropped = self.dropped + (~keep).sum()
+            flat_e, flat_w, tok = flat_e[keep], flat_w[keep], tok[keep]
 
-        order = torch.argsort(flat_e)
+        order = torch.argsort(flat_e, stable=True)
         e_sorted, t_sorted, w_sorted = flat_e[order], tok[order], flat_w[order]
+        if not e_sorted.numel():
+            return torch.zeros_like(x)
 
-        # WRITING: a forward of a few characters that computes no gradient -
-        # one character of a reply - reads its assignments back once, here,
-        # and runs only the experts it was routed to (_few), from the slots'
-        # weights cast once and kept (PagedPool.inference_weights). The
-        # counts, capacity and slot buffer below would each make the host
-        # wait for the device, at every row of every character, for nothing
-        # this needs. An assignment that capacity would drop sends it the
-        # long way, which drops it.
+        # A few rows need no padded rectangle or backward graph.
         if (e_sorted.numel() <= 64 and getattr(self, "fast_inference", True)
                 and not torch.is_grad_enabled() and hasattr(p, "inference_weights")
                 and not hasattr(p, "stacked_subset") and len(p.stacked()) == 1):
-            runs = self._runs(e_sorted)
-            limit = (max(1, int(math.ceil(self.capacity_factor * e_sorted.numel() / n)))
-                     if n and self.capacity_factor else None)
-            if runs and (limit is None or max(c for _, c in runs) <= limit):
-                self.routed += int(e_sorted.numel())
-                dt = dispatch_dtype(flat.device, flat.dtype)
-                gathered = self._few(flat, dt, *p.inference_weights(dt), runs, t_sorted)
-                out = torch.zeros_like(flat)
-                out.index_add_(0, t_sorted, gathered * w_sorted.unsqueeze(-1))
-                return out.view(B, T, D)
+            dt = dispatch_dtype(flat.device, flat.dtype)
+            gathered = self._few(flat, dt, *p.inference_weights(dt),
+                                 self._runs(e_sorted), t_sorted)
+            out = torch.zeros_like(flat)
+            out.index_add_(0, t_sorted, gathered * w_sorted.unsqueeze(-1))
+            return out.view(B, T, D)
 
         counts = torch.bincount(e_sorted, minlength=n)
-        counts_l = counts.tolist() if n else []      # the one read-back: cap, and runs
-        cap = max(counts_l) if counts_l else 0
-        if cap == 0:
-            return torch.zeros_like(x)
-
-        # position of each assignment within its own expert's slot buffer
+        counts_l = counts.tolist()
+        cap = max(counts_l)
         starts = torch.cumsum(counts, 0) - counts
         slot = torch.arange(e_sorted.numel(), device=flat.device) - starts[e_sorted]
 
@@ -590,30 +621,6 @@ class PooledMLP(nn.Module):
                 levels = [levels]              # a paged pool returns one level
         else:
             levels = p.stacked()
-
-        # CAPACITY. The dispatch buffer is a padded rectangle [n, cap, D], so
-        # without a bound `cap` is whatever the busiest expert happened to
-        # receive and the memory tracks the worst imbalance rather than the
-        # work - one expert taking 44% of a window is enough to cost an order
-        # of magnitude more memory for the same arithmetic, and an OOM.
-        #
-        # So every expert takes at most `capacity_factor` times its fair share
-        # and assignments past that are DROPPED, which is what Switch does. A
-        # dropped assignment costs a character one of its top_k experts, not
-        # the character itself; the load-balancing term above is what keeps it
-        # rare. Constant dropping means the router is collapsing, which is
-        # worth seeing rather than paying for - hence the counters, reported on
-        # the progress line as a share of `routed`.
-        self.routed += int(e_sorted.numel())
-        if n and self.capacity_factor:
-            limit = max(1, int(math.ceil(
-                self.capacity_factor * e_sorted.numel() / n)))
-            if cap > limit:
-                keep = slot < limit
-                self.dropped = self.dropped + (~keep).sum()   # read by pool_dropped
-                e_sorted, t_sorted = e_sorted[keep], t_sorted[keep]
-                w_sorted, slot = w_sorted[keep], slot[keep]
-                cap = limit
 
         # EXACT SIZE. The rectangle above pads every slot to the busiest one,
         # and within a text the busiest slot takes about twice its share: on

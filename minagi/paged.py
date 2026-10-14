@@ -5,51 +5,23 @@ The claim this exists to make true: disk holds every expert, RAM caches the
 ones recently wanted, and VRAM holds only the ones being worked with now. Three
 tiers, and only the last is scarce.
 
-WHICH EXPERTS ARE ON THE CARD is decided by one rule, and it is the router's:
+CAUSAL WORKING SETS
 
-    The text chooses. Every character ranks the WHOLE pool with the router
-    and asks for its top_k, each request carrying the probability the router
-    gave it, and every forward's first pass adds its characters' requests to
-    the vote of its text - everything read since position 0. A forward may
-    use at most `resident` different experts: it is admitted the ones its
-    text has voted for most, until the card is full. Every character routes
-    among the admitted experts, so one whose request was not admitted takes
-    its best admitted expert instead.
+The first recurrent router asks for experts in token order. Each sequence adds
+new requests until its resident budget is full, then keeps that set until the
+context resets. A position may use only experts introduced by its own prefix;
+experts loaded for later positions are masked out, at every recurrent depth.
 
-A training window is a text of its own, so its experts are the most
-requested of its first pass. A reply is a text that grows one character at a
-time: each character is a forward of its own, and routes among the experts
-the prompt and the reply so far have voted for - the same choice a window
-over that text would make, cut off at the character being written. A single
-character never chooses for itself; training never asks it to.
+Cached chunks continue the same working set. Multiple sequences have independent
+budgets (resident // batch_size), so one sample cannot take another's slots.
+No chosen expert is evicted inside a text, preserving weights through backward
+and optimizer updates. This changes the previous whole-chunk voting rule:
+training and evaluation no longer receive future information through admission.
 
-How the choosing is done has a temperature, pool.select_temperature, which
-is about experts and never about the text - characters are always chosen
-greedily. At 0 the card is the text's most-voted and every character takes
-its top 8. Above 0 both are drawn: at each row 8 experts are drawn from the
-text's probabilities until the card is full (_draw), and every character
-draws its 8 from its own, in proportion to p^(1/T).
-
-Left alone the router keeps choosing the same experts, so the WHOLE POOL is
-kept in use by a balance term in the loss (pool.balance): every forward that
-trains charges the router for the probability it puts on each expert, in
-proportion to that expert's share of recent admissions. It changes the router
-itself, so reading and writing choose the way training does - see
-note_balance. Whatever admits an expert resets its prune clock: being used is
-being alive.
-
-A forward is whatever the model computes at once - a training window, a chunk
-of held-out file, a prompt, and then each character of the reply. What is
-computed depends only on the text and the weights; what happened to be on the
-card before only decides how many experts have to be loaded - and because a
-text's vote moves slowly, a reply loads a new expert only now and then.
-
-The cap is not arbitrary. Everything a forward used must still be on the card
-for its backward and for the optimiser step, and an expert on the card for
-training costs its weights, their gradient and Adam's two moments. A forward
-with no backward after it - a held-out chunk, a character being written -
-needs its experts only while it runs, so the next forward is free to choose
-again.
+At selection temperature zero requests and routes are top-k. At a positive
+temperature Gumbel draws are keyed by sequence, position, site and depth, so
+changing chunk size does not change a token's random draw. The balance loss
+still encourages use of the full pool across training texts.
 
 WHAT MAKES PAGING HARD is not the weights. It is the optimiser. Adam keeps two
 moments per parameter, and those belong to the EXPERT, not to the slot of VRAM
@@ -68,6 +40,8 @@ all; parking an expert that was stepped carries its moments back with its
 weights.
 """
 
+import hashlib
+import itertools
 import math
 import os
 import struct
@@ -154,18 +128,6 @@ def _read_exactly(f, n):
             break
         b += more
     return b
-
-
-def _tally(total, add):
-    """A text's vote plus one more forward's requests. The pool may have grown
-    since the vote began; growth appends experts, so their counts start at
-    zero at the end."""
-    if total is None:
-        return add.clone()
-    if total.numel() < add.numel():
-        total = torch.cat([total, total.new_zeros(add.numel() - total.numel())])
-    total[:add.numel()] += add
-    return total
 
 
 class Tiers:
@@ -299,7 +261,7 @@ class PagedPool(nn.Module):
 
     Routing indices are into the RESIDENT set, so a call site picking expert 3
     means the third of the experts currently held, not the third on disk.
-    `self.slots` maps back. Which experts are held is decided by admit().
+    `self.slots` maps back. Which experts are held is decided by causal admit().
     """
 
     def __init__(self, path, d_model, d_ff, n_experts, resident=16,
@@ -378,7 +340,7 @@ class PagedPool(nn.Module):
         self.now = 0
         # share of the survival window unaddressed that counts as dying
         self.dying_at = 0.75
-        # the experts the current forward has admitted - see admit()
+        # the union of the current sequences' causal working sets
         self._admitted = set()
         # the slots' weights in the compute dtype, for forwards that compute
         # no gradient - see inference_weights()
@@ -401,22 +363,18 @@ class PagedPool(nn.Module):
         # model's pool_balance(). See note_balance.
         self.balance = 0.0
         self._balance = None
-        # THE TEXT'S VOTE. Every forward's first pass adds its requests to it,
-        # and a forward is admitted by the whole of it - so what a character
-        # routes among is chosen by all of its text so far, the way a training
-        # window's experts are chosen by all of the window. A new text starts
-        # it empty.
-        self._vote = None
-        self._voted = False
-        # THE TEMPERATURE OF EXPERT SELECTION (pool.select_temperature). 0 is
-        # the vote above. Above 0 the card is DRAWN row by row instead: at each
-        # row the text's probabilities - every character read since position
-        # 0, its full router distribution at that row - are summed into
-        # `_rows[row]`, and `draw` experts not yet admitted are drawn from that
-        # tally in proportion to tally^(1/T) until the card is full. See _draw.
+        # A sequence fills its working set in prefix order on the first
+        # recurrent pass. Its set then stays fixed until the text resets.
+        # Masks distinguish physical residency from causal availability:
+        # loading a later position's expert never exposes it to an earlier one.
+        self._batch_size = 1
+        self._sequence_sets = [set()]
+        self._prefix_mask = None
+        self._offset = 0
+        self._rng_seed = None
+        self._noise_pages = {}
+        self.freeze_admission = False       # replication's fixed-pool control
         self.select_temperature = 0.0
-        self._rows = {}
-        self._row = 0
 
     def _f(self, i):
         """Position in the pool's arrays -> the id its file is named by."""
@@ -570,58 +528,74 @@ class PagedPool(nn.Module):
     def invalidate(self):
         pass
 
-    # -- admission: which experts a forward may use ----------------------
-    #
-    # While the card has room, every character, at every pass, ranks the WHOLE
-    # pool with the router and asks for its top_k (see PooledMLP.forward).
-    # Once it is full the whole-pool ranking is no longer computed: nothing
-    # more could be admitted, and routing needs only the admitted rows.
-    #
-    # A forward may use at most `resident` different experts, because
-    # everything it used must still be on the card for its backward and for
-    # the optimiser step. Its first pass adds its requests to its text's vote
-    # and it is admitted the most-voted experts, until the card is full; a
-    # text so short that fewer have been voted for lets the later passes add
-    # their own requests while there is room. Nothing admitted is evicted
-    # before the forward ends, and the next forward starts with nothing
-    # admitted and is decided by the vote again.
-    #
-    # For a training window the first pass alone asks for far more than
-    # `resident` experts, so the window's set is its first pass's most
-    # requested. A character being written adds its own requests to a vote
-    # its prompt and the reply so far have already cast, so it routes among
-    # what the whole text asks for - which is what training taught it to do.
-    #
-    # What is computed depends only on the text and the weights: the ranking
-    # never looks at what is already on the card. Residency only decides how
-    # many admitted experts have to be copied in.
+    # -- causal admission -------------------------------------------------
 
-    def begin_forward(self, explore=False):
-        """
-        A new forward: nothing admitted yet. The card keeps its contents.
-
-        `explore` is set for a forward that trains: `recent` decays one step,
-        to be topped up by what this forward admits, and the forward may
-        compute a balance term.
-        """
-        self._admitted = set()
-        self._voted = False
-        self._row = 0
+    def begin_forward(self, explore=False, *, pos_offset=0, batch_size=1):
+        """Start a frame while retaining each sequence's prefix working set."""
+        if batch_size != self._batch_size:
+            raise ValueError("cached paging cannot change the sequence batch size")
+        self._prefix_mask = None
+        self._offset = pos_offset
         self._balance = None
         self._trains = bool(explore)
         if self._trains:
-            # a forward that trains holds exactly the memory it always did
             self._infer = None
-        if self._trains:
             self.recent[:self._n] *= 1.0 - 1.0 / self.usage_steps
+            # The running share counts admissions per training forward,
+            # including experts carried from its preceding cached frame.
+            if self._admitted:
+                self.recent[list(self._admitted)] += 1.0 / self.usage_steps
 
-    def begin_text(self, explore=False):
-        """A forward from position 0: a new text. Its vote starts empty, and
-        the prune clock counts it."""
-        self._vote = None
-        self._rows = {}
-        self.begin_forward(explore)
+    def begin_text(self, explore=False, *, batch_size=1):
+        """Reset causal state at a context boundary, never at a chunk boundary."""
+        if batch_size < 1 or batch_size > self.resident:
+            raise ValueError("paging needs at least one resident slot per sequence")
+        if self.freeze_admission:
+            if batch_size != self._batch_size:
+                raise ValueError("the fixed-pool control cannot change batch size")
+        else:
+            self._admitted = set()
+            self._sequence_sets = [set() for _ in range(batch_size)]
+        self._batch_size = batch_size
+        self._rng_seed = (int(torch.randint(0, 2**62, ()).item())
+                          if self.select_temperature > 0 else None)
+        self._noise_pages = {}
+        self.begin_forward(explore, batch_size=batch_size)
         self.segments += 1
+
+    def sequence_capacity(self):
+        """Independent sequence budgets keep batching from changing other inputs."""
+        return self.resident // self._batch_size
+
+    def routing_noise(self, positions, *, site, depth, width, admission=False):
+        """Gumbel draws keyed by sequence, absolute position, site and depth.
+
+        A global RNG advanced in depth-major order gives earlier tokens different
+        draws when a suffix or a chunk is added. Local generators make the random
+        draw independent of execution order. Columns are expert IDs, not slots.
+        """
+        if self._rng_seed is None:
+            raise RuntimeError("stochastic paging needs begin_text before routing")
+        # Fixed pages amortize RNG kernels during tokenwise decoding. Keep
+        # only the last page per site/depth/sequence, bounding the cache even
+        # for long contexts. Regenerating an older page gives the same draws.
+        noise = []
+        key = lambda bp: (bp[0], bp[1] // 128)
+        for (batch, page), group in itertools.groupby(positions, key):
+            cache_key = (batch, site, depth, width, admission)
+            cached = self._noise_pages.get(cache_key)
+            if cached is None or cached[0] != page:
+                identity = (self._rng_seed, batch, page, site, depth, admission)
+                digest = hashlib.blake2b(repr(identity).encode(), digest_size=8).digest()
+                seed = int.from_bytes(digest, "little") % (2**63 - 1)
+                gen = torch.Generator(device=self.gate.device).manual_seed(seed)
+                u = torch.rand(128, width, device=self.gate.device, generator=gen)
+                values = -torch.log(-torch.log(u.clamp(1e-7, 1 - 1e-7)))
+                cached = self._noise_pages[cache_key] = (page, values)
+            within_page = torch.tensor([pos % 128 for _, pos in group],
+                                       device=self.gate.device)
+            noise.append(cached[1][within_page])
+        return torch.cat(noise)
 
     def usage_share(self):
         """Each expert's share of recent admissions, summing to 1 - even when
@@ -656,70 +630,56 @@ class PagedPool(nn.Module):
         return self._balance
 
     def admitting(self):
-        """Whether this forward may still admit experts."""
-        return len(self._admitted) < self.resident
+        return (not self.freeze_admission and any(
+            len(chosen) < self.sequence_capacity() for chosen in self._sequence_sets))
 
-    @torch.no_grad()
-    def admit(self, mass, draw=8):
+    def admit(self, requests):
+        """Build availability from ordered first-pass requests [batch, time, k].
+
+        Each sequence has a fixed share of the resident slots. It accepts new
+        experts in request order until that share is full. All physical loads
+        happen before expert computation, but a position's mask includes only
+        experts accepted at or before that position. No selected slot is evicted
+        until a new text, so backward and Adam still see the same expert weights.
         """
-        Admit the most-requested experts, up to the card's capacity.
-
-        `mass[e]` is the router probability this pass's requests put on
-        expert e. Every expert admitted has its prune clock reset: being used
-        is what keeps an expert alive. Returns how many experts had to be
-        loaded.
-
-        Above select_temperature 0 the experts are drawn instead, `draw` per
-        row - see _draw.
-        """
-        if self.select_temperature > 0:
-            new = self._draw(mass, draw)
-            return self._place(new) if new else 0
-        m = mass.detach().float().cpu()
-        if not self._voted:
-            # this forward's first pass: its requests join the text's vote,
-            # and the forward is admitted by the whole vote
-            self._voted = True
-            self._vote = _tally(self._vote, m)
-            m = self._vote
-        adm = self._admitted
-        free = self.resident - len(adm)
-        if free <= 0:
-            return 0
-        order = torch.argsort(m, descending=True)
-        asked = (m[order] > 0).tolist()
-        new = [e for e, a in zip(order.tolist(), asked) if a and e not in adm][:free]
-        if not new:
-            return 0
-        return self._place(new)
-
-    def _draw(self, mass, draw):
-        """
-        Above temperature 0: this row's experts, drawn from the text.
-
-        `mass` is every expert's full router probability, summed over this
-        forward's characters at this row. It joins the text's tally for the
-        row - every character read since position 0 - and `draw` experts not
-        yet admitted are drawn from that tally without replacement, in
-        proportion to tally^(1/T), while the card has room. Any expert in the
-        pool can be drawn; the colder the temperature, the more the draws
-        favour what the text wants most.
-        """
-        r = self._row
-        self._row += 1
-        t = _tally(self._rows.get(r), mass.detach().float().cpu())
-        self._rows[r] = t
-        free = self.resident - len(self._admitted)
-        if free <= 0:
-            return []
-        u = torch.rand(t.shape).clamp_(1e-12, 1 - 1e-7)
-        keys = (torch.log(t.clamp_min(1e-30)) / self.select_temperature
-                - torch.log(-torch.log(u)))
-        keys[t <= 0] = -float("inf")
-        if self._admitted:
-            keys[torch.tensor(sorted(self._admitted))] = -float("inf")
-        k = min(int(draw), free, int(torch.isfinite(keys).sum()))
-        return torch.topk(keys, k).indices.tolist() if k > 0 else []
+        if requests.ndim != 3 or requests.shape[0] != self._batch_size:
+            raise ValueError("admission requests must be [batch, time, k]")
+        B, T, _ = requests.shape
+        if not self.admitting():
+            key = (tuple(self.slots), tuple(frozenset(s) for s in self._sequence_sets))
+            if self._mask is None or self._mask[0] != key:
+                mask = torch.tensor([[e in chosen for e in self.slots]
+                                     for chosen in self._sequence_sets],
+                                    device=self.gate.device)
+                self._mask = (key, mask)
+            self._prefix_mask = self._mask[1].unsqueeze(1).expand(B, T, -1)
+            return self._prefix_mask
+        births, new = [], []
+        all_chosen = set(self._admitted)
+        for chosen, sequence in zip(self._sequence_sets, requests.tolist()):
+            first = {e: -1 for e in chosen}
+            if not self.freeze_admission:
+                for position, wanted in enumerate(sequence):
+                    if len(chosen) >= self.sequence_capacity():
+                        break
+                    for e in wanted:
+                        if e not in chosen:
+                            chosen.add(e)
+                            first[e] = position
+                            if e not in all_chosen:
+                                all_chosen.add(e)
+                                new.append(e)
+                        if len(chosen) >= self.sequence_capacity():
+                            break
+            births.append(first)
+        if new:
+            self._place(new)
+        introduced = torch.tensor(
+            [[first.get(e, T) if e >= 0 else T for e in self.slots]
+             for first in births], device=self.gate.device)
+        position = torch.arange(T, device=self.gate.device).view(1, T, 1)
+        self._prefix_mask = position >= introduced.unsqueeze(1)
+        return self._prefix_mask
 
     def _place(self, new):
         """Put newly admitted experts on the card. Returns how many loaded."""
@@ -781,16 +741,14 @@ class PagedPool(nn.Module):
                                       for t in (self.w1, self.w3, self.w2)))
         return self._infer[1]
 
-    def admitted_mask(self):
-        """Which slots hold an expert this forward admitted, in slot order.
-        Built again only when the slots or the admitted set change: the
-        characters of a reply are admitted the same experts one after
-        another, and each build is a copy the host waits for."""
-        key = (tuple(self.slots), frozenset(self._admitted))
-        if self._mask is None or self._mask[0] != key:
-            self._mask = (key, torch.tensor([e in self._admitted for e in self.slots],
-                                            device=self.gate.device))
-        return self._mask[1]
+    def admitted_mask(self, positions=None):
+        """Per-position availability; without positions, physical membership."""
+        if positions is not None:
+            if self._prefix_mask is None:
+                raise RuntimeError("the first recurrent pass must prepare admission")
+            return self._prefix_mask.flatten(0, 1)[positions]
+        return torch.tensor([e in self._admitted for e in self.slots],
+                            device=self.gate.device)
 
     @torch.no_grad()
     def _rearrange(self, plan, here):
@@ -1166,10 +1124,10 @@ class PagedPool(nn.Module):
             self._carry(opt, w, fresh.weight, idx=idx)
         remap = {old_i: new_i for new_i, old_i in enumerate(keep)}
         self.slots = [remap.get(s, -1) for s in self.slots]
-        # a vote is counted by position in the pool, which pruning renumbers;
-        # a text in progress starts counting again from its next forward
-        self._vote = None
-        self._rows = {}
+        self._admitted = {remap[e] for e in self._admitted if e in remap}
+        self._sequence_sets = [{remap[e] for e in chosen if e in remap}
+                               for chosen in self._sequence_sets]
+        self._prefix_mask = None
         self._n = len(keep)
         return gone
 

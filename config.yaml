@@ -59,24 +59,17 @@ pool:
   depth: 1                # SwiGLU blocks stacked inside one expert
   top_k: 8                # how many one character routes through
 
-  # HOW EXPERTS ARE CHOSEN - one rule: the text chooses. Every character
-  # ranks the whole pool with the router and asks for its top_k, and every
-  # forward's first pass adds its characters' requests to the vote of its
-  # text - everything read since position 0. A forward - a training window, a
-  # chunk of held-out file, a prompt, each character of a reply - may use at
-  # most `resident` different experts: the ones its text has voted for most,
-  # and a character whose request was not admitted takes its best admitted
-  # expert instead. A character being written routes among what its prompt
-  # and the reply so far asked for, as it would inside a training window.
-  #
-  # Three tiers: disk holds every expert, RAM caches the recently wanted,
-  # VRAM holds what the current forward admitted. Only VRAM is scarce.
-  resident: 32            # experts one forward may use - the card's slots, each
-                          # holding weights, gradient and Adam's moments
+  # CAUSAL WORKING SET: first recurrent-pass requests fill the card in
+  # prefix order. Each position may use only experts introduced by its own
+  # prefix. Once full, the set stays fixed until the context resets; cached
+  # chunks and generated characters keep the same set. Loading an expert
+  # for a later position does not expose it to an earlier one.
+  # In a batch, each sequence has an independent resident // batch_size budget.
+  resident: 32            # slots holding weights, gradient and Adam moments
   ram_cache: 96           # RAM - experts kept in system memory
 
-  capacity_factor: 0      # most of a batch one expert may take, as a multiple
-                          # of its fair share; the rest is dropped. 0 removes
+  capacity_factor: 0      # causal per-expert prefix budget; 0 disables drops
+                          # at position t: ceil(factor * top_k * (t+1) / slots)
 
   # THE BALANCE TERM - how the whole pool gets used. Left alone the router
   # keeps choosing the same experts: reading held-out on its own it put 59 of
@@ -99,19 +92,11 @@ pool:
   # NOT which character comes out. Characters are always chosen greedily; any
   # randomness in what the model writes comes from here.
   #
-  #   0     threshold selection, the rule as it has run: the card holds the
-  #         32 experts the text's first row asks for most, and every character
-  #         takes its own top 8 of those
-  #   > 0   drawn: at each row, 8 experts are drawn from the text's
-  #         probabilities (the router's full distribution, summed over every
-  #         character in the context window) in proportion to p^(1/T), until
-  #         the card's 32 are full, and every character draws its own 8 from
-  #         its own probabilities over the card, the same way
-  #
-  # 1 draws in proportion to the router's probabilities, 0.5 to their
-  # squares, 0.2 to their fifth powers. Close to 0 the draws approach each
-  # row's top 8 - which is not quite 0 itself: a drawn card fills 8 a row, so
-  # the first row has only 8 experts where 0 gives it all 32.
+  #   0     top-k requests fill the working set in prefix order; each
+  #         position routes to its own top-k available experts at every depth
+  #   > 0   requests and routes are drawn in proportion to p^(1/T), with
+  #         randomness keyed by position/site/depth rather than chunk shape
+  # 1 draws proportional to probabilities, 0.5 to their squares, etc.
   select_temperature: 0
 
 training:

@@ -292,9 +292,7 @@ def main():
                 # FROZEN from here on: no forward starts afresh and nothing
                 # more is admitted, so every later forward routes among the
                 # experts this first window admitted
-                pool.begin_text = lambda *a, **k: None
-                pool.begin_forward = lambda *a, **k: None
-                pool.admitting = lambda: False
+                pool.freeze_admission = True
             done += 1
         d = ev.run(a.eval_chunks)
         d.pop("stderr", None)

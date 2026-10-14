@@ -1,5 +1,11 @@
 # mini-AGI
 
+**Fork update: causal expert admission.** The historical checkpoints, samples,
+plots and scores below predate this fix. Their weights still load, but the new
+forward behavior requires fresh evaluation; historical losses are not verified
+causal scores. The separate training-objective versus generation-loss distinction
+has not been changed by this fix.
+
 mini-AGI - is a **continual learning** byte-level language model that assembles its own architecture, trains from scratch on a single 8 GB VRAM GPU, and keeps learning from everything it reads.
 It stores its weights as ordinary files on disk and pages them onto the card as it needs them, so the parameter count is bounded by free disk space rather than by VRAM. It grows new capacity while training when it runs short, prunes what nothing asks for, and reads through exactly the same code path it serves on. Targeted at a PC or laptop with at least an 8 GB VRAM GPU on the board. 
 
@@ -201,9 +207,27 @@ Every expert is a file on disk holding its weights and its Adam moments. Above d
 | RAM | `ram_cache` | the experts used most recently, least-recently-used evicted |
 | VRAM | `resident` | the experts the current forward admitted - what a character may route through |
 
-Selection is one rule: **the text chooses**. Every character ranks the **whole pool** with the router - one row per expert, always on the card, so an expert on disk is scored exactly like one in VRAM - and asks for its top 8, each request carrying the probability the router gave it. Every forward's first pass adds its characters' requests to the **vote of its text** - everything read since position 0 - and the forward is admitted the experts its text has voted for most, until the card's 32 slots are full. Every character then routes with the same router over the admitted experts only and takes its top 8 of those, so a character whose request was not admitted gets its best admitted experts instead.
+**Expert availability is causal.** On the first recurrent pass, each position
+requests its top-k experts from the full pool (or draws them at positive selection
+temperature). New requests fill the working set in prefix order, up to the
+resident limit. A position routes only among experts introduced at or before
+that position, at every recurrent depth. Physical weights can be loaded together
+for efficient dispatch, but later admissions remain masked from earlier positions.
 
-The 32 is what VRAM can hold for training: everything a training forward used has to stay on the card through its backward pass and the optimiser step. In training a window is a text of its own, and the first pass of its 4,096 characters already asks for well over a hundred experts, so the window's 32 are its first pass's most requested. **When the model writes, every character is a forward of its own** that adds its requests to the vote the prompt and the reply so far have cast, and routes among the 32 that whole text has asked for most - the choice a training window over that text would make, cut off at the character being written. The set follows the text as it goes and moves only when the vote does, so a reply loads a new expert now and then rather than at every character, from RAM or from disk.
+**The working set stays fixed once full, until the context resets.** Cached
+training/evaluation chunks and generated characters continue the same set rather
+than reselecting it at chunk boundaries. This is the tradeoff that keeps expert
+weights and optimizer state stable through backward while removing whole-chunk
+lookahead. It may affect quality when a topic changes within a context; measure
+that with causal evaluation rather than assuming the old scores carry over.
+For batches, each sequence gets an independent `resident // batch_size` budget;
+identical expert requests can share physical weights, but other samples cannot
+change a sequence's availability.
+
+At positive selection temperature, random draws are keyed by sequence, absolute
+position, router site and recurrent depth, so execution chunking does not change
+a token's draw. If capacity dropping is enabled, each expert's accepted assignments
+are bounded by a prefix quota instead of a quota determined by future chunk length.
 
 Three rules the project holds to:
 
@@ -211,9 +235,37 @@ Three rules the project holds to:
 - **An expert already on the card stays in the slot it is in.** Admission is a set, not a ranking. An expert the new forward also admits is never moved; a newcomer takes the slot of an expert this forward did not admit - an empty slot first, then the one admitted longest ago. The number of loads is exactly the number of admitted experts that were not already there, and consecutive windows of one subject ask for nearly the same experts: over fifteen minutes of real training a step loaded 2.4 experts on average.
 - **An expert nothing trained is not written back.** An expert leaving the card is copied back to RAM - and later to disk - only if the optimiser stepped it while it was there. A reply loads experts at almost every character and trains none of them, so each is still exactly its copy, and writing it back would cost a disk write per load for nothing.
 
-**What was on the card before changes the cost, never the choice.** Admission reads only the text and the weights, so the same text admits the same experts whatever was read before it; history decides only how many of them have to be loaded. And because the rows that admit experts are the rows that route every character, admission is learned by the ordinary gradient. When a character mixes its experts, the loss raises the router score of each one whose output helped more than the mixture as a whole and lowers the score of each that helped less. Only the rows of experts the window admitted receive that signal, and the next text whose states look like those asks more strongly for the experts that helped.
+What was resident before determines transfer cost, not the expert identities
+available at a position. Requests use the router over the full pool, and admitted
+experts keep their slots throughout the context. Ordinary routing gradients still
+teach the router which available experts help its predictions.
 
 **While it trains, the router is taught to use the whole pool.** That gradient only reaches experts that get chosen, and left alone the router keeps choosing the same ones: reading held-out text on its own, it put just 59 of its 118 experts on a card across every subject. So the loss carries a balance term - the [Switch Transformer's](https://arxiv.org/abs/2101.03961), with one change. Every expert keeps a running share of the recent training forwards that admitted it, and every forward that trains pays, on the router's probability for each expert over the whole pool, in proportion to that share: `balance × (experts × Σ share × probability − 1)`, zero when use is even. Probability on a busy expert costs more than on an idle one, so the router's rows move toward the idle. Switch charges each expert by its share of the current batch; here the share is taken over the last thousand or so training forwards, because a training window is one text and a text should be free to want few experts - what has to be even is the use across texts. Only the router's rows learn from it, since the characters' states are detached, so it cannot bend what the trunk computes. And because it changes the router itself, reading and writing choose the way training does. In a 15-minute test at weight 0.01, the experts the router put on a card across held-out rose from 59 to 114, at a cost of 0.023 in held-out loss over those minutes. The exploration bonus it replaced acted only while training: over the same 15 minutes it spread the training work across 116 experts, while the model reading on its own still used 58. The weight sets how hard the term leans against learning the text on the experts in use - an expert no text admits gets no other gradient, so Adam moves its row at the usual pace whatever the weight - and the default is gentler, 0.003.
+
+### Verify causality
+
+Run the temporary-model regressions without downloading data or checkpoints:
+
+```bash
+.venv/bin/python -m unittest discover -s tests -v
+```
+
+The suite changes/appends future text and checks earlier logits, expert IDs and
+prefix gradients; compares full-window, chunked and tokenwise computation; tests
+mixed halting, stochastic paging, capacity limits, independent batch sequences,
+checkpoint loading, and optimizer moment ownership. CUDA tests run when available.
+Strict FP32 checks disable TF32; cached-gradient checks also use FP64 parameters
+to distinguish graph correctness from FP32 reduction-order differences.
+
+The argument behind the tests is inductive: first-pass router states are causal;
+working-set admission at position t uses only requests through t; its availability
+mask is reused at every depth. Attention reads only preceding/current states,
+capacity decisions use only preceding/current assignments, and random draws do
+not depend on how future positions are scheduled. Loading additional weights for
+later positions cannot alter that mask or overwrite a prefix-selected expert.
+The guarantee assumes fixed weights, the same context boundaries and depth
+schedule, and controlled randomness. It does not assert equivalence across
+optimizer updates or across different sampled training-depth schedules.
 
 ## How growth and pruning work
 
