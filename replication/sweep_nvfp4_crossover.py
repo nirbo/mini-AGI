@@ -12,6 +12,7 @@ import json
 from pathlib import Path
 import subprocess
 import traceback
+from unittest.mock import patch
 
 import torch
 
@@ -19,7 +20,7 @@ from minagi.expert_compute import compute_experts
 from minagi.paged import _CachedCast
 from minagi.precision import amp, set_compute_dtype
 from replication.gpu_monitor import PowerMonitor, summarize_samples
-from replication.probe_nvfp4 import benchmark
+from replication.probe_nvfp4 import benchmark, dequantize, error_metrics, check_kernel
 
 
 def routes(experts, rows_per_expert, topk, device):
@@ -31,6 +32,33 @@ def routes(experts, rows_per_expert, topk, device):
     t = torch.arange(tokens, device=device)
     ids = ((t[:, None] * topk + torch.arange(topk, device=device)) % experts).flatten()
     return ids, t.repeat_interleave(topk)
+
+
+def qualify_projections(d, f, m):
+    """Decode every forward/dgrad/wgrad operand at each requested new shape.
+
+    One expert keeps the independent FP32 oracle separate from full-bank VRAM
+    measurements. Group metadata/unequal alphas have dedicated backend tests.
+    """
+    from minagi import nvfp4
+    original, records = nvfp4.grouped_mm, []
+
+    def checked(left, right):
+        out = original(left, right)
+        reference = dequantize(*left[0]) @ dequantize(*right[0]).T
+        metrics = error_metrics(out, reference)
+        check_kernel(metrics)
+        records.append({"shape_mkn": [left[0].fp4.shape[0], left[0].fp4.shape[1] * 2,
+                                      right[0].fp4.shape[0]], **metrics})
+        return out
+
+    for k, n in ((d, f), (f, d)):
+        x = torch.randn(m, k, device="cuda", dtype=torch.bfloat16, requires_grad=True)
+        w = torch.nn.Parameter(torch.empty(1, n, k, device="cuda").normal_(std=k**-.5))
+        with patch.object(nvfp4, "grouped_mm", checked):
+            y = nvfp4.linear(x, w, (m,))
+            y.backward(torch.randn_like(y))
+    return records
 
 
 def main():
@@ -79,6 +107,13 @@ def main():
             if 18 * p + 2 * 2**30 > budget:
                 report.update(status="skipped_budget", reason="Persistent state/cache alone leaves less than 2 GiB for layer temporaries")
             else:
+                if args.backend == "nvfp4":
+                    report["stage"] = "independent_operand_qualification"
+                    report["projection_qualification"] = qualify_projections(d, f, args.rows_per_expert)
+                    gc.collect()
+                    torch.cuda.empty_cache()
+                torch.manual_seed(42)  # identical workload initialization after qualification
+                report["stage"] = "full_layer_training"
                 ids, tokens = routes(e, args.rows_per_expert, args.topk, "cuda")
                 t = e * args.rows_per_expert // args.topk
                 x = torch.randn(t, d, device="cuda", requires_grad=True)
@@ -113,7 +148,9 @@ def main():
                               optimizer_state_gib=allocated_states / 2**30, measurement=measured,
                               peak_reserved_gib=torch.cuda.max_memory_reserved() / 2**30)
         except torch.OutOfMemoryError as exc:
-            report.update(status="out_of_memory", error=str(exc))
+            report.update(status="out_of_memory", error=str(exc),
+                          peak_allocated_gib=torch.cuda.max_memory_allocated() / 2**30,
+                          peak_reserved_gib=torch.cuda.max_memory_reserved() / 2**30)
             gc.collect()
         except BaseException as exc:
             report.update(status="failed", error=repr(exc), traceback=traceback.format_exc())
