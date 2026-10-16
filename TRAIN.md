@@ -454,6 +454,7 @@ forwarded-token throughput. Keep evaluation/sample overhead separate when
 comparing steady training rates.
 
 The existing [Gefen learning screen](replication/GEFEN_PAGING.md),
+[Muon variant comparison](replication/MUON_VARIANTS.md),
 [training profile measurements](replication/results/rtx5090_training_profile.json) and
 [backend qualification](replication/EXPERT_BACKENDS.md) describe their tested
 workloads and limits. They are experiments, not guarantees for a new model size.

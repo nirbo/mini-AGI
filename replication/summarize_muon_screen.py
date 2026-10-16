@@ -71,10 +71,13 @@ def summarize(root):
     latency = {name:json.loads((root/f'latency-{name}.json').read_text()) for name in variants}
     if any(not r['finite'] for r in latency.values()):
         raise AssertionError('non-finite optimizer benchmark')
+    large = {name:json.loads((root/f'latency-large-{name}.json').read_text()) for name in variants}
+    frozen = [r for r in reports if r['configuration']['optimizer']=='adamw' and r['configuration']['lr']==0.]
     return dict(sources=SOURCES, learning_trial_count=len(reports),
                 manifest_sha256=reports[0]['manifest_sha256'], text_sha256=reports[0]['text_sha256'],
                 initial_tune=initial_tune, initial_test=initial_test, grid=grid, confirmation=table,
-                isolated_latency=latency,
+                isolated_latency=latency, isolated_latency_large=large,
+                auxiliary_only_control=frozen,
                 limits=['Short BF16 adaptation, not original-depth pretraining or NVFP4 qualification.',
                         'Two data-order seeds and disjoint token ranges in one validation text; original pretraining overlap unknown.',
                         'Available implementations differ in batching and shape scaling; timings are not algorithm-only comparisons.',

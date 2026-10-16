@@ -141,7 +141,7 @@ class MuonCandidateTests(unittest.TestCase):
                     for s, uid in enumerate(plan):
                         other = clone.pool.slots.index(uid)
                         for n in NAMES:
-                            torch.testing.assert_close(getattr(model.pool, n)[s], getattr(clone.pool, n)[other], rtol=0, atol=2e-5)
+                            torch.testing.assert_close(getattr(model.pool, n)[s], getattr(clone.pool, n)[other], rtol=0, atol=0)
                     self.assertEqual(dict(opt._counts), dict(resumed._counts))
 
     @torch.no_grad()
@@ -187,6 +187,43 @@ class MuonCandidateTests(unittest.TestCase):
         model.pool.tiers.read_only = False
         with self.assertRaisesRegex(ValueError, 'read-only'):
             self.optimizer(model, 'muon')
+
+    def test_closure_can_page_and_all_missing_gradients_pause_history(self):
+        for variant in VARIANTS:
+            with self.subTest(variant=variant):
+                model = self.model(variant)
+                opt = self.optimizer(model, variant)
+                ps = [torch.nn.Parameter(model.pool.tiers.fetch(0)[n].to(self.device).clone()) for n in NAMES]
+                reference = matrix_optimizer(variant, ps, .001)
+                self.select(model.pool, (0, -1))
+                self.gradients(model, 1)
+                for n,p in zip(NAMES,ps):
+                    p.grad = getattr(model.pool,n).grad[0].clone()
+                reference.step()
+                opt.step()
+                self.select(model.pool, (1, -1))
+                def closure():
+                    self.select(model.pool, (0, -1))
+                    self.gradients(model, 2)
+                    for n,p in zip(NAMES,ps):
+                        p.grad = getattr(model.pool,n).grad[0].clone()
+                    reference.step()
+                    return torch.tensor(7.)
+                self.assertEqual(float(opt.step(closure)), 7.)
+                for n,p in zip(NAMES,ps):
+                    torch.testing.assert_close(getattr(model.pool,n)[0],p,rtol=0,atol=0)
+                counts = dict(opt._counts)
+                before = {n:getattr(model.pool,n).detach().clone() for n in NAMES}
+                states = {p:copy.deepcopy(opt._matrix.state[p]) for p in opt._views[0]}
+                opt.zero_grad(set_to_none=True)
+                opt.step()
+                self.assertEqual(dict(opt._counts), counts)
+                for n in NAMES:
+                    torch.testing.assert_close(getattr(model.pool,n),before[n],rtol=0,atol=0)
+                for p,state in states.items():
+                    for key,value in state.items():
+                        if torch.is_tensor(value):
+                            torch.testing.assert_close(opt._matrix.state[p][key],value,rtol=0,atol=0)
 
 
 if __name__ == '__main__':

@@ -18,15 +18,19 @@ def main():
     parser.add_argument('--optimizer', choices=('adamw', 'gefen', *VARIANTS), required=True)
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--seconds', type=float, default=5.)
+    parser.add_argument('--experts', type=int, default=8)
+    parser.add_argument('--hidden', type=int, default=512)
+    parser.add_argument('--width', type=int, default=2048)
     args = parser.parse_args()
     report = {'optimizer':args.optimizer, 'sources':SOURCES, 'dtype':'FP32 masters/gradients',
-              'geometry':{'experts':8, 'hidden':512, 'width':2048},
+              'geometry':{'experts':args.experts, 'hidden':args.hidden, 'width':args.width},
               'limit':'Optimizer-only fixed correlated gradients, not learning or a full trainer speedup.'}
     with PowerMonitor() as monitor:
         torch.set_num_threads(4)
         torch.manual_seed(42)
+        torch.cuda.set_per_process_memory_fraction(.75)
         torch.backends.cuda.matmul.allow_tf32 = False
-        shapes = [(2048,512), (2048,512), (512,2048)] * 8
+        shapes = [(args.width,args.hidden), (args.width,args.hidden), (args.hidden,args.width)] * args.experts
         ps = [torch.nn.Parameter(torch.randn(s, device='cuda')*.02) for s in shapes]
         for p in ps:
             p.grad = (torch.randn(p.shape[0],1,device='cuda')*torch.randn(1,p.shape[1],device='cuda')
