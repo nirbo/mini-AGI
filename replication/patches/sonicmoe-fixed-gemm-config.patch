@@ -2,66 +2,24 @@ diff --git a/sonicmoe/functional/__init__.py b/sonicmoe/functional/__init__.py
 index 2a15f8f..265ab30 100644
 --- a/sonicmoe/functional/__init__.py
 +++ b/sonicmoe/functional/__init__.py
-@@ -23,6 +23,9 @@ from .backward import (
- from .forward import _router_forward, _topk_softmax_fwd
- from .triton_kernels import TC_topk_router_metadata_triton, general_routing_router_metadata_triton
- 
+@@ -25,0 +26,3 @@ from .triton_kernels import TC_topk_router_metadata_triton, general_routing_rout
 +# Qualified mini-AGI integration: public default GEMM configs, no online tuning.
 +_MINAGI_FIXED_GEMM_CONFIG = True
 +
- 
- 
- # QuACK autotuning accelerators, applied at import. QuACK sweeps its whole config space
-@@ -261,6 +264,7 @@ class _UpProjection(torch.autograd.Function):
-             x,
-             w1.permute(2, 1, 0),
-             activation=activation_type.value,
+@@ -263,0 +267 @@ class _UpProjection(torch.autograd.Function):
 +            tuned=False,
-             cu_seqlens_m=expert_frequency_offset,
-             A_idx=x_gather_idx,
-             preact_out=h,
-@@ -344,6 +348,7 @@ class _UpProjection(torch.autograd.Function):
-             A_idx=x_gather_idx,
-             batch_idx_permute=None,
-             dynamic_scheduler=False,
+@@ -346,0 +351 @@ class _UpProjection(torch.autograd.Function):
 +            tuned=False,
-             concat_layout=(("out",) if concat_layout else None),
-         )
- 
-@@ -386,7 +391,7 @@ class _DownProjection(torch.autograd.Function):
- 
-         y = torch.empty(TK, H, dtype=a.dtype, device=a.device)
- 
+@@ -389 +394 @@ class _DownProjection(torch.autograd.Function):
 -        gemm(a, w2.permute(2, 1, 0), out=y, cu_seqlens_m=expert_frequency_offset, bias=b2)
 +        gemm(a, w2.permute(2, 1, 0), out=y, cu_seqlens_m=expert_frequency_offset, bias=b2, tuned=False)
- 
-         o = torch.empty(T, H, device=a.device, dtype=a.dtype)
-         topk_scores = topk_scores.view(-1)
-@@ -470,6 +475,7 @@ class _DownProjection(torch.autograd.Function):
-             A_idx=x_gather_idx,
-             batch_idx_permute=None,
-             dynamic_scheduler=False,
+@@ -472,0 +478 @@ class _DownProjection(torch.autograd.Function):
 +            tuned=False,
-         )
- 
-         # TC top-K routing
 diff --git a/sonicmoe/functional/backward.py b/sonicmoe/functional/backward.py
 index 6f7dd1a..4711b32 100644
 --- a/sonicmoe/functional/backward.py
 +++ b/sonicmoe/functional/backward.py
-@@ -189,6 +189,7 @@ def _up_projection_backward_act(
-         w1.permute(2, 0, 1),
-         cu_seqlens_m=expert_frequency_offset,
-         dynamic_scheduler=False,
+@@ -191,0 +192 @@ def _up_projection_backward_act(
 +        tuned=False,
-         out=dx_expanded,
-         concat_layout=(("B",) if concat_layout else None),
-     )
-@@ -237,6 +238,7 @@ def _down_projection_backward_act(
-         cu_seqlens_m=expert_frequency_offset,
-         A_idx=x_gather_idx,
-         dynamic_scheduler=False,
+@@ -239,0 +241 @@ def _down_projection_backward_act(
 +        tuned=False,
-     )
-     ds[s_scatter_idx] = ds_scattered
- 

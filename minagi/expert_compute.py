@@ -109,27 +109,33 @@ def _sonic(src, levels, experts, tokens, scores, *, recompute):
         raise RuntimeError("sonic expert backend requires the qualified source patch "
                            "replication/patches/sonicmoe-fixed-gemm-config.patch; "
                            "see replication/EXPERT_BACKENDS.md")
-    # A backward grouped GEMM reduces over each expert's accepted rows. Never
-    # pass an empty reduction group to the native kernels: remove unused
-    # slots, retaining an autograd scatter back to the pool-owned slabs.
-    present, expert_ids = torch.unique(experts, sorted=True, return_inverse=True)
-    if present.numel() != w1.shape[0]:
-        w1, w3, w2 = (w.index_select(0, present) for w in (w1, w3, w2))
+    # Keep every backward reduction group nonempty without changing E from
+    # call to call (which causes shape-specific metadata JIT and host syncs).
+    # Each expert gets a constant zero-score assignment to one zero input row.
+    # Its output is discarded and its weight/input gradients are zero. Real
+    # zero-score assignments remain untouched: their score derivatives matter.
+    n = w1.shape[0]
     # Accepted routes arrive in token order, even with variable capacity drops.
     # Never substitute the library's router: admission and expert gates have
     # already been applied. Bind metadata and casts before checkpoint replay.
-    token_ids, expert_ids = tokens.to(torch.int32).contiguous(), expert_ids.to(torch.int32)
+    token_ids = torch.cat((tokens.to(torch.int32),
+                           torch.full((n,), src.shape[0], device=src.device, dtype=torch.int32)))
+    expert_ids = torch.cat((experts.to(torch.int32),
+                            torch.arange(n, device=src.device, dtype=torch.int32)))
 
     def run(x, a, b, c, route_scores):
         # Packing remains per use, inside the recomputed region. No shared
         # differentiable cache may accumulate gradients in BF16 across uses.
         packed = torch.stack((a.to(dt), b.to(dt)), dim=2).flatten(1, 2)
+        xb = torch.cat((x.to(dt), x.new_zeros((1, x.shape[1]), dtype=dt)))
+        score = route_scores.float()
+        score = torch.cat((score, score.new_zeros(n)))
         out, _ = moe_general_routing_inputs(
-            x.to(dt), route_scores.float(), token_ids, expert_ids,
+            xb, score, token_ids, expert_ids,
             packed.permute(1, 2, 0), None, c.to(dt).permute(1, 2, 0), None,
             a.shape[0], torch.cuda.current_stream(x.device).cuda_stream,
             ActivationType.SWIGLU, is_inference_mode_enabled=not torch.is_grad_enabled())
-        return out.to(x.dtype)
+        return out[:-1].to(x.dtype)
 
     args = (src, w1, w3, w2, scores)
     return checkpoint(run, *args, use_reentrant=False) if recompute else run(*args)
