@@ -79,7 +79,7 @@ def read_npz(path, names):
     with open(path, "rb", buffering=0) as f:
         members = {zi.filename[:-4]: zi for zi in zipfile.ZipFile(f).infolist()
                    if zi.filename.endswith(".npy")}
-        for k in names:
+        for k in (members if names is None else names):
             zi = members.get(k)
             if zi is None:
                 continue
@@ -188,7 +188,7 @@ class Tiers:
         file the whole of what that expert is, which is what the weights
         directory claims about itself.
         """
-        z = read_npz(self._file(i), _WEIGHTS + _MOMENTS)
+        z = read_npz(self._file(i), None)
         # every array was read into memory of its own, so the tensors take it
         # over rather than copying it
         out = {k: torch.from_numpy(z[k]) for k in _WEIGHTS}
@@ -197,6 +197,10 @@ class Tiers:
                 # bf16 if this file has been written since the moments were
                 # narrowed, fp32 if it has not; unpack_bf16 reads both
                 out[k] = unpack_bf16(z[k])
+        # Gefen's encoded state is already lossless storage (including uint8
+        # indices and metadata). Never cast it through floating point.
+        out.update({k: torch.from_numpy(v) for k, v in z.items()
+                    if k.startswith("__gefen_")})
         return out
 
     def fetch(self, i, count=True):
@@ -240,7 +244,8 @@ class Tiers:
         # what they need is exponent range and bf16 keeps all of fp32's. The
         # weights cannot go with them - see minagi/precision.py, which has the
         # measurement for both.
-        arrays = {k: (pack_bf16(v) if is_moment(k) else v.to(torch.float32).numpy())
+        arrays = {k: (v.cpu().numpy() if k.startswith("__gefen_") else
+                      pack_bf16(v) if is_moment(k) else v.to(torch.float32).numpy())
                   for k, v in ent.items() if torch.is_tensor(v)}
         tmp = self._file(i) + ".tmp.npz"
         np.savez(tmp, **arrays)
@@ -835,6 +840,9 @@ class PagedPool(nn.Module):
         """
         tensors = ((self.w1, "w1"), (self.w3, "w3"), (self.w2, "w2"))
         ent = {nm: p.data[s].detach().to("cpu").clone() for p, nm in tensors}
+        if self._own[s] and hasattr(self._opt, "export_expert_state"):
+            ent.update(self._opt.export_expert_state(s, self._f(e)))
+            return ent
         if self._own[s]:
             for p, nm in tensors:
                 o = st.get(p)
@@ -844,7 +852,7 @@ class PagedPool(nn.Module):
         else:
             ent.update({k: v for k, v in
                         self.tiers.fetch(self._f(e), count=False).items()
-                        if is_moment(k)})
+                        if is_moment(k) or k.startswith("__gefen_")})
         return ent
 
     def _moment_state(self):
@@ -874,8 +882,13 @@ class PagedPool(nn.Module):
         every slot is filled again. Before an optimiser's first step there
         are no moment tensors to fill; Adam creates them, at zero, in it.
         """
+        if hasattr(self._opt, "prepare_paged_step"):
+            return  # adapter restores after its closure, which may page
         sts = self._moment_state()
         if sts is None:
+            for s, e in enumerate(self.slots):
+                if e >= 0 and not self._own[s] and "__gefen_json" in self.tiers.fetch(self._f(e), count=False):
+                    raise ValueError("Gefen expert history requires the Gefen optimizer; reset explicitly to change optimizer")
             return
         if self._own_in is None or any(r() is not o["exp_avg"]
                                        for r, o in zip(self._own_in, sts)):
@@ -885,6 +898,8 @@ class PagedPool(nn.Module):
             if e < 0 or self._own[s]:
                 continue
             src = self.tiers.fetch(self._f(e), count=False)
+            if "__gefen_json" in src:
+                raise ValueError("Gefen expert history requires the Gefen optimizer; reset explicitly to change optimizer")
             for nm, o in zip(names, sts):
                 if nm + "_m" in src:
                     o["exp_avg"][s].copy_(src[nm + "_m"])
@@ -909,6 +924,9 @@ class PagedPool(nn.Module):
     def _count_step(self, *_):
         self._stepped += 1
         self.invalidate()
+        if hasattr(self._opt, "prepare_paged_step"):
+            self._own = [e >= 0 for e in self.slots]
+            return
         # whatever each slot's moments were going in - its own, or the zeros
         # an optimiser's first step starts from - they are its expert's now
         sts = self._moment_state()

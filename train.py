@@ -768,8 +768,13 @@ def cmd_read(args):
           "base_lr": args.lr * args.trunk_lr_mult}
     pg = {"params": pool_ps, "name": "pool", "weight_decay": args.wd,
           "lr": args.lr, "base_lr": args.lr}
-    opt = torch.optim.AdamW([tg, pg], lr=args.lr, betas=(0.9, 0.95),
-                            fused=(device.type == "cuda"))
+    from minagi.optimizers import make_optimizer
+    optimizer_name = getattr(args, "optimizer", "adamw")
+    opt = make_optimizer([tg, pg], pool=pool, optimizer=optimizer_name,
+                         lr=args.lr, betas=(0.9, 0.95), fused=(device.type == "cuda"))
+    if optimizer_name == "gefen":
+        print("  Gefen expert matrices + AdamW auxiliary parameters, FP32 masters; "
+              "legacy Adam expert history starts fresh on first adoption")
     snr = GradSNR()
     print(f"  trunk learns at {args.trunk_lr_mult:g}x the pool's rate "
           f"({sum(q.numel() for q in trunk)/1e6:.1f}M trunk, "
@@ -821,7 +826,12 @@ def cmd_read(args):
                       for st in opt.state.values() if "step" in st), default=0)
         print(f"  optimiser moments restored ({t_seen:,.0f} steps of history)")
     except Exception as e:                     # never let this stop a run
+        if optimizer_name == "gefen" or "Gefen" in str(e):
+            raise  # incompatible/corrupt history must not silently restart
         print(f"  [note] optimiser moments not restored: {e}")
+    if optimizer_name == "gefen":
+        from minagi.optimizers import configure_training_groups
+        configure_training_groups(opt, args.lr, args.trunk_lr_mult, args.wd)
     grower = AutoGrow(grow_k=args.grow_k, max_experts=10_000_000,
                       mem_frac_max=args.grow_mem_frac,
                       dying_frac_max=args.grow_dying_frac,
@@ -2022,6 +2032,10 @@ def main():
                          "files should adjust the model, not overwrite it")
     rd.add_argument("--wd", type=float,
                     default=_cfg(_c, "training.weight_decay", 0.1))
+    rd.add_argument("--optimizer", choices=("adamw", "gefen"),
+                    default=_cfg(_c, "training.optimizer", "adamw"),
+                    help="gefen uses compressed Gefen state for paged expert matrices "
+                         "and AdamW for other parameters; requires optional Gefen 1.2.3")
     rd.add_argument("--clip", type=float,
                     default=_cfg(_c, "training.clip", 1.0))
     rd.add_argument("--seed", type=int, default=0)

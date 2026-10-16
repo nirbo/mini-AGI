@@ -456,6 +456,18 @@ opt-in. Integration checks, full-model throughput/power measurements,
 limitations and commands are in
 [`replication/EXPERT_BACKENDS.md`](replication/EXPERT_BACKENDS.md).
 
+#### Optional compressed expert optimizer
+
+`train.py read ... --optimizer gefen` applies Gefen 1.2.3 to independent expert
+matrices and keeps AdamW for auxiliary parameters, with FP32 masters. The same
+option is available in `serve.py` for live learning; AdamW remains the default.
+Compressed state follows permanent expert IDs through paging, growth/pruning
+and checkpoint resume. A short BF16 adaptation comparison measured 29% less
+peak allocated VRAM with promising held-out loss, but additional time/energy;
+native-FP4 learning and long-run convergence remain unqualified. Setup,
+state-format details, 96-test verification and measurements are in
+[`replication/GEFEN_PAGING.md`](replication/GEFEN_PAGING.md).
+
 ## How growth and pruning work
 
 The pool grows when it is short of capacity and shrinks when parts of it stop being asked for.
@@ -736,6 +748,8 @@ minagi/          the model. no command lines here.
   stream.py        reading a corpus behind a KV cache, one chunk at a time
   store.py         the weights directory, which IS the model
   optim.py         how much of a gradient is signal
+  optimizers.py    optional Gefen experts + AdamW auxiliary parameters
+  optim_codec.py   lossless versioned optimizer state for NPZ files
   plasticity.py    the learning rate, governed by held-out loss
   live.py          serving a model that is being trained underneath
   report.py        the model reading statistics off its own weights

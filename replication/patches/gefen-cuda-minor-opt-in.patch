@@ -1,0 +1,25 @@
+diff --git a/kernels/_build_notice.py b/kernels/_build_notice.py
+index f880385..e4cd294 100644
+--- a/kernels/_build_notice.py
++++ b/kernels/_build_notice.py
+@@ -286,7 +286,19 @@ def _check_cuda_toolkit() -> tuple[str, str]:
+             "Gefen could not parse torch.version.cuda='{}'.\n"
+             "{}".format(torch.version.cuda, _cuda_diagnostic(nvcc, nvcc_output))
+         )
+-    if nvcc_version != torch_cuda:
++    allow_minor = (
++        _env_flag("MINAGI_GEFEN_ALLOW_CUDA_MINOR_MISMATCH")
++        and nvcc_version[0] == torch_cuda[0]
++    )
++    if nvcc_version != torch_cuda and allow_minor:
++        print(
++            "Gefen experimental opt-in: allowing same-major CUDA toolkit {}.{} "
++            "with PyTorch CUDA {}.{}; PyTorch extension checks still apply.".format(
++                *nvcc_version, *torch_cuda
++            ),
++            flush=True,
++        )
++    if nvcc_version != torch_cuda and not allow_minor:
+         raise RuntimeError(
+             "Gefen CUDA toolkit version mismatch: nvcc reports {}.{}, "
+             "but PyTorch was built with CUDA {}.{}.\n"
