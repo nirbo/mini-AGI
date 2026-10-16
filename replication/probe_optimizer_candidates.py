@@ -56,12 +56,14 @@ def make_optimizer(name, weights, lr=1e-5):
 
 def latency(args):
     dtype = torch.float32 if args.dtype == "fp32" else torch.bfloat16
-    shapes = [(args.width, args.hidden), (args.width, args.hidden), (args.hidden, args.width)] * args.experts
+    shapes = [(args.width, args.hidden), (args.width, args.hidden), (args.hidden, args.width)]
+    shapes = ([tuple([args.experts, *s]) for s in shapes] if args.layout == "slabs"
+              else shapes * args.experts)
     weights = [torch.nn.Parameter(torch.empty(s, device="cuda", dtype=dtype).normal_(std=s[-1]**-.5)) for s in shapes]
     # Correlated row/column magnitudes exercise Gefen partition inference.
     for p in weights:
-        row = torch.randn(p.shape[0], 1, device="cuda", dtype=dtype)
-        col = torch.randn(1, p.shape[1], device="cuda", dtype=dtype)
+        row = torch.randn(*p.shape[:-1], 1, device="cuda", dtype=dtype)
+        col = torch.randn(*([1] * (p.ndim - 1)), p.shape[-1], device="cuda", dtype=dtype)
         p.grad = (row * col + .1 * torch.randn_like(p)) * 1e-3
     opt = make_optimizer(args.optimizer, weights)
     t0 = time.perf_counter()
@@ -126,7 +128,8 @@ def update_retention(args):
                       "mean_delta": float((p.float() - initial).mean()),
                       "state_bytes_per_parameter": state_bytes(opt) / p.numel(),
                       "standard_checkpoint_next_update_bit_identical": True})
-    return {"cases": cases, "limits": "Artificial constant-gradient update retention; optimizer directions/scaling differ. Not matched learning quality."}
+    return {"cases": cases, "updates": 33,
+            "limits": "Artificial constant-gradient update retention; optimizer directions/scaling differ. Not matched learning quality."}
 
 
 def main():
@@ -134,6 +137,7 @@ def main():
     parser.add_argument("--mode", choices=("latency", "retention"), required=True)
     parser.add_argument("--optimizer", choices=("adamw", "gefen", "muon", "gefen_muon"), required=True)
     parser.add_argument("--dtype", choices=("fp32", "bf16"), default="fp32")
+    parser.add_argument("--layout", choices=("matrices", "slabs"), default="matrices")
     parser.add_argument("--hidden", type=int, default=512)
     parser.add_argument("--width", type=int, default=2048)
     parser.add_argument("--experts", type=int, default=8)
