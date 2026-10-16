@@ -45,7 +45,7 @@ def trial(out, variant, lr, seed=42, steps=64):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--out', type=Path, default=Path('runs/muon-screen'))
-    parser.add_argument('--phase', choices=('smoke', 'grid', 'confirm'), required=True)
+    parser.add_argument('--phase', choices=('smoke', 'grid', 'confirm', 'latency'), required=True)
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
     os.environ['PATH'] = str(ROOT/'.venv/bin') + os.pathsep + os.environ['PATH']
@@ -61,7 +61,7 @@ def main():
             # candidate in one thermal/background-activity block.
             for name in variants:
                 trial(args.out, name, lr)
-    else:
+    elif args.phase == 'confirm':
         selected = {}
         for name in variants:
             candidates = [json.loads(p.read_text()) for p in args.out.glob(f'{name}-lr*-seed42-steps64.json')]
@@ -75,6 +75,25 @@ def main():
         for seed in (43, 44):
             for name in variants:
                 trial(args.out, name, selected[name], seed=seed, steps=256)
+    else:
+        for name in variants:
+            path = args.out / f'latency-{name}.json'
+            if path.exists():
+                raise RuntimeError(f'latency result already exists: {path}')
+            command = [sys.executable, '-m', 'replication.probe_muon_variants',
+                       '--optimizer', name, '--out', str(path)]
+            print(json.dumps({'starting_latency':name}), flush=True)
+            with PowerMonitor() as monitor:
+                with path.with_suffix('.log').open('w') as log:
+                    code = subprocess.call(command, stdout=log, stderr=subprocess.STDOUT, cwd=ROOT)
+            monitor.save(path.with_suffix('.external-power.json'), command=command, returncode=code)
+            if code:
+                raise RuntimeError(f'latency probe failed: {name}')
+            report = json.loads(path.read_text())
+            report['external_power'] = summarize_samples(monitor.samples, report['start_monotonic'], report['end_monotonic'])
+            report['external_board_joules_per_step'] = report['external_power']['estimated_board_energy_j']/report['iterations']
+            path.write_text(json.dumps(report,indent=2)+'\n')
+            print(json.dumps({'finished_latency':name,'median_ms':report['median_step_seconds']*1000}),flush=True)
 
 
 if __name__ == '__main__':
