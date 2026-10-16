@@ -432,7 +432,7 @@ performance measurements. Detailed results, commands, hashes and limits are in
 Standalone RTX 5090 probes now validate native NVFP4 forward, input-gradient
 and weight-gradient GEMMs, grouped FP4 forward, and SonicMoE BF16 expert
 forward/backward. They monitor board power and preserve raw telemetry.
-Production training still uses the existing BF16 path.
+The production default remains the reference BF16 path.
 
 Native FP4 performance depends strongly on matrix size; the stock linear path
 is slower at the current expert sizes. Default whole-matrix activation scaling
@@ -440,6 +440,21 @@ also needs a causal replacement before integration. The controlled synthetic
 learning check does not demonstrate an advantage over PTQ. Measurements,
 limitations, optional venv-only setup and reproduction commands are in
 [`replication/NVFP4_FEASIBILITY.md`](replication/NVFP4_FEASIBILITY.md).
+
+#### Replaceable expert backend
+
+Expert arithmetic is now isolated from routing, causal admission and paging.
+`MINAGI_EXPERT_BACKEND=reference` is the default; `sonic` selects the optional
+SonicMoE BF16 implementation for CUDA depth-1 experts. FP32 master weights,
+pool-owned optimizer moments and checkpoint formats are retained. The reference
+also retains CPU, other precisions and deeper experts. Unsupported Sonic settings
+raise an explicit error.
+
+SonicMoE changes BF16 rounding and can change near-tied routes after recurrence.
+It requires the qualified source patch described in the report and remains
+opt-in. Integration checks, full-model throughput/power measurements,
+limitations and commands are in
+[`replication/EXPERT_BACKENDS.md`](replication/EXPERT_BACKENDS.md).
 
 ## How growth and pruning work
 

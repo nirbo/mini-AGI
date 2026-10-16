@@ -93,6 +93,7 @@ def main():
     ap.add_argument("--warmup", type=int, default=3)
     ap.add_argument("--precision", choices=("bf16", "fp32"), default="bf16")
     ap.add_argument("--dispatch", choices=("exact", "padded"), default="exact")
+    ap.add_argument("--expert-backend", choices=("reference", "sonic"), default="reference")
     ap.add_argument("--no-checkpoint", action="store_true")
     ap.add_argument("--no-weight-cache", action="store_true",
                     help="cast expert weights on every use (reference path)")
@@ -107,6 +108,7 @@ def main():
     if not torch.cuda.is_available():
         ap.error("CUDA is required")
     os.environ["MINAGI_DISPATCH"] = args.dispatch
+    os.environ["MINAGI_EXPERT_BACKEND"] = args.expert_backend
     if args.deterministic:
         os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
         torch.use_deterministic_algorithms(True)

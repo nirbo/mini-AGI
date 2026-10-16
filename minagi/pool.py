@@ -22,16 +22,15 @@ with idle experts means the optimiser is stuck, not that the model is full.
 New experts arrive gated to almost zero and are pruned away if they never contribute.
 """
 
-import itertools
 import math
 import os
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.utils.checkpoint import checkpoint
 
 from .precision import dispatch_dtype
+from .expert_compute import backend_name, compute_experts
 
 class Expert(nn.Module):
     """
@@ -327,6 +326,7 @@ class PooledMLP(nn.Module):
         # compute for most of that memory, and is still far faster than
         # dispatching expert by expert.
         self.grad_checkpoint = grad_checkpoint
+        self.expert_backend = None  # None uses MINAGI_EXPERT_BACKEND, default reference
         # The largest share of a batch any one expert may take, as a multiple
         # of its fair share. Assignments past it are dropped. Without a bound
         # the padded rectangle scales with the worst imbalance rather than with
@@ -410,29 +410,6 @@ class PooledMLP(nn.Module):
             positions = m.nonzero(as_tuple=False).squeeze(1)
             out[m] = self._route(x.reshape(-1, D)[m].unsqueeze(0), positions)[0]
         return out.view(B, T, D)
-
-    @staticmethod
-    def _runs(e_sorted):
-        """Assignments sorted by expert, as (expert, how many) runs - one
-        read-back of the indices, which the host needs to pick the weights."""
-        return [(e, sum(1 for _ in g)) for e, g in itertools.groupby(e_sorted.tolist())]
-
-    @staticmethod
-    def _few(src, dt, W1, W3, W2, runs, t_sorted):
-        """
-        Each expert that was routed to, on its own rows: the arithmetic of the
-        batched dispatch for a forward of a few characters, without computing
-        the slots nothing was routed to. Assignments arrive sorted by expert,
-        so each expert's rows are one contiguous run (_runs).
-        """
-        x = src[t_sorted].to(dt)
-        out, start = [], 0
-        for e, c in runs:
-            xe = x[start:start + c]
-            h = F.silu(xe @ W1[e].t()) * (xe @ W3[e].t())
-            out.append(h @ W2[e].t())
-            start += c
-        return torch.cat(out).to(src.dtype)
 
     def _route(self, x, positions=None):
         # see capture_routes() at the bottom of this file
@@ -587,132 +564,37 @@ class PooledMLP(nn.Module):
             self.dropped = self.dropped + (~keep).sum()
             flat_e, flat_w, tok = flat_e[keep], flat_w[keep], tok[keep]
 
-        order = torch.argsort(flat_e, stable=True)
-        e_sorted, t_sorted, w_sorted = flat_e[order], tok[order], flat_w[order]
-        if not e_sorted.numel():
+        backend = backend_name(self.expert_backend)
+        if not flat_e.numel():
             return torch.zeros_like(x)
 
-        # A few rows need no padded rectangle or backward graph.
-        if (e_sorted.numel() <= 64 and getattr(self, "fast_inference", True)
-                and not torch.is_grad_enabled() and hasattr(p, "inference_weights")
-                and not hasattr(p, "stacked_subset") and len(p.stacked()) == 1):
-            dt = dispatch_dtype(flat.device, flat.dtype)
-            gathered = self._few(flat, dt, *p.inference_weights(dt),
-                                 self._runs(e_sorted), t_sorted)
-            out = torch.zeros_like(flat)
-            out.index_add_(0, t_sorted, gathered * w_sorted.unsqueeze(-1))
-            return out.view(B, T, D)
-
-        counts = torch.bincount(e_sorted, minlength=n)
-        counts_l = counts.tolist()
-        cap = max(counts_l)
-        starts = torch.cumsum(counts, 0) - counts
-        slot = torch.arange(e_sorted.numel(), device=flat.device) - starts[e_sorted]
-
-        # A disk-backed pool loads only the experts this batch selected. The
-        # resident pool stacks everything, which is fine while it fits.
+        # Weights remain owned by the pool. Subset pools remap physical slot
+        # IDs here; no compute backend may admit, evict or reorder experts.
         if hasattr(p, "stacked_subset"):
             present = torch.unique(idx).tolist()
             remap = torch.full((n,), -1, dtype=torch.long, device=flat.device)
-            for slot_i, e in enumerate(present):
-                remap[e] = slot_i
-            e_sorted = remap[e_sorted]
-            n = len(present)
-            counts = torch.bincount(e_sorted, minlength=n)
-            counts_l = counts.tolist() if n else []
-            cap = max(counts_l) if counts_l else 0
-            starts = torch.cumsum(counts, 0) - counts
-            slot = torch.arange(e_sorted.numel(),
-                                device=flat.device) - starts[e_sorted]
+            remap[torch.tensor(present, device=flat.device)] = torch.arange(len(present), device=flat.device)
+            flat_e = remap[flat_e]
             levels = p.stacked_subset(present)
             if isinstance(levels, tuple) and len(levels) == 3:
-                levels = [levels]              # a paged pool returns one level
+                levels = [levels]
         else:
             levels = p.stacked()
 
-        # EXACT SIZE. The rectangle above pads every slot to the busiest one,
-        # and within a text the busiest slot takes about twice its share: on
-        # the real pool 36-43% of the batched arithmetic, forward and backward,
-        # was padding. Each slot instead multiplies just its own run of
-        # characters - the same experts, the same drops, the same arithmetic on
-        # every real row. Slower per FLOP than one batched matmul, faster in
-        # total: on an RTX 3070, 1.11x in bf16 and 1.16x in fp32 for this
-        # layer, with 60% less memory in its backward. Single-level experts
-        # only; MINAGI_DISPATCH=padded restores the rectangle.
-        runs = [(e, min(c, cap)) for e, c in enumerate(counts_l) if c]
-
-        def run_exact(src, W1, W3, W2):
-            dt = dispatch_dtype(src.device, src.dtype)
-            xs = src[t_sorted].to(dt)
-            # unbind, not W1[e]: indexing a parameter thirty-two times makes
-            # thirty-two full-size zero gradients in the backward; unbind's
-            # backward is one stack
-            w1, w3, w2 = (W.to(dt).unbind(0) for W in (W1, W3, W2))
-            outs, start = [], 0
-            for e, c in runs:
-                xe = xs[start:start + c]
-                outs.append((F.silu(xe @ w1[e].t()) * (xe @ w3[e].t())) @ w2[e].t())
-                start += c
-            return torch.cat(outs).to(src.dtype)
-
-        def run(src, *ws):
-            lv = [(ws[i], ws[i + 1], ws[i + 2]) for i in range(0, len(ws), 3)]
-            # The slot buffer, and everything computed from it, in the COMPUTE
-            # dtype rather than the residual stream's. The residual stays fp32
-            # by design; the dispatch does not need to, and halving this buffer
-            # is the difference between fitting on the card and not. Autocast
-            # does not do it for us: the weights are cast TO buf's dtype a few
-            # lines below, so the matmul runs at whatever buf is.
-            dt = dispatch_dtype(src.device, src.dtype)
-            buf = torch.zeros(n, cap, D, device=src.device, dtype=dt)
-            buf[e_sorted, slot] = src[t_sorted].to(dt)
-            if len(lv) == 1:
-                W1, W3, W2 = lv[0]
-                h = F.silu(torch.bmm(buf, W1.transpose(1, 2).to(buf.dtype))) * \
-                    torch.bmm(buf, W3.transpose(1, 2).to(buf.dtype))
-                y = torch.bmm(h, W2.transpose(1, 2).to(buf.dtype))  # [n,cap,D]
-                return y[e_sorted, slot].to(src.dtype)
-            # deeper experts stack residually, so an expert of any depth can
-            # still be added to the mixture without changing its scale
-            x = buf
-            for W1, W3, W2 in lv:
-                h = F.silu(torch.bmm(x, W1.transpose(1, 2).to(x.dtype))) * \
-                    torch.bmm(x, W3.transpose(1, 2).to(x.dtype))
-                x = x + torch.bmm(h, W2.transpose(1, 2).to(x.dtype))
-            return x[e_sorted, slot].to(src.dtype)
-
-        # WRITING AND HELD-OUT: no gradient, so the slots' weights in the
-        # compute dtype come from a copy cast once and kept until the card
-        # changes (PagedPool.inference_weights) instead of being cast at every
-        # row. And a forward of a few characters - one being written - runs
-        # only the experts it was routed to, not every slot of the card.
-        if (getattr(self, "fast_inference", True) and not torch.is_grad_enabled()
-                and hasattr(p, "inference_weights") and len(levels) == 1):
-            dt = dispatch_dtype(flat.device, flat.dtype)
+        dt = dispatch_dtype(flat.device, flat.dtype)
+        few = (getattr(self, "fast_inference", True) and not torch.is_grad_enabled()
+               and hasattr(p, "inference_weights") and len(levels) == 1)
+        if few:
             levels = [p.inference_weights(dt)]
-            if e_sorted.numel() <= 64:
-                gathered = self._few(flat, dt, *levels[0], self._runs(e_sorted),
-                                     t_sorted)
-                out = torch.zeros_like(flat)
-                out.index_add_(0, t_sorted, gathered * w_sorted.unsqueeze(-1))
-                return out.view(B, T, D)
-
         if torch.is_grad_enabled() and hasattr(p, "training_weights") and len(levels) == 1:
-            # Bind each use before checkpointing: recomputation receives the
-            # same immutable cast generation, even if a later forward pages
-            # more experts. Each use converts its gradient separately to FP32.
-            levels = [p.training_weights(dispatch_dtype(flat.device, flat.dtype))]
-        flat_w = tuple(t for lv_ in levels for t in lv_)
-        fn = (run_exact if len(levels) == 1
-              and os.environ.get("MINAGI_DISPATCH", "exact").strip().lower() != "padded"
-              else run)
-        if self.grad_checkpoint and self.training and torch.is_grad_enabled():
-            gathered = checkpoint(fn, flat, *flat_w, use_reentrant=False)
-        else:
-            gathered = fn(flat, *flat_w)
-
-        out = torch.zeros_like(flat)
-        out.index_add_(0, t_sorted, gathered * w_sorted.unsqueeze(-1))
+            # Each use has its own FP32 gradient edge. Bind immutable cast
+            # generations before checkpointing, including during paging.
+            levels = [p.training_weights(dt)]
+        out = compute_experts(
+            flat, levels, flat_e, tok, flat_w, backend=backend,
+            recompute=self.grad_checkpoint and self.training and torch.is_grad_enabled(),
+            padded=os.environ.get("MINAGI_DISPATCH", "exact").strip().lower() == "padded",
+            few=few)
         return out.view(B, T, D)
 
 
