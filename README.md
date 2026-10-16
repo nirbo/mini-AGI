@@ -5,6 +5,9 @@ historical checkpoints, samples, plots and scores below predate these fixes.
 Their weights still load, but require fresh evaluation. Historical losses used
 the training objective; they are not verified causal predictive scores.
 
+For trainer capabilities, configuration, command examples and checkpoint
+behavior, see [TRAIN.md](TRAIN.md).
+
 mini-AGI - is a **continual learning** byte-level language model that assembles its own architecture, trains from scratch on a single 8 GB VRAM GPU, and keeps learning from everything it reads.
 It stores its weights as ordinary files on disk and pages them onto the card as it needs them, so the parameter count is bounded by free disk space rather than by VRAM. It grows new capacity while training when it runs short, prunes what nothing asks for, and reads through exactly the same code path it serves on. Targeted at a PC or laptop with at least an 8 GB VRAM GPU on the board. 
 
