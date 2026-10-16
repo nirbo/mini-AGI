@@ -9,6 +9,7 @@ import copy
 import hashlib
 import importlib.metadata
 import json
+import os
 from pathlib import Path
 import subprocess
 import tempfile
@@ -200,6 +201,12 @@ def main():
               "limits": ["Optimizer-only synthetic fixed gradients; matrix list preserves independent experts.",
                          "No model forward/backward, paging or convergence measurement. Optimizer latency is not end-to-end throughput.",
                          "Different optimizer mathematics cannot be compared as a correctness-equivalent replacement."]}
+    import gefen
+    package = Path(gefen.__file__).parent
+    report["gefen_source_sha256"] = {str(p.relative_to(package)): hashlib.sha256(p.read_bytes()).hexdigest()
+                                    for p in package.rglob("*") if p.suffix in (".py", ".cu", ".cpp")}
+    report["cuda_build_environment"] = {k: os.environ.get(k) for k in
+                                       ("MAX_JOBS", "TORCH_CUDA_ARCH_LIST", "MINAGI_GEFEN_ALLOW_CUDA_MINOR_MISMATCH")}
     with PowerMonitor() as monitor:
         try:
             torch.manual_seed(42)
