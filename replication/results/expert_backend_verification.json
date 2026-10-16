@@ -1,0 +1,762 @@
+{
+  "source_commit": "e0fa1833516e60d3de8cd7803d32c661f056deb5",
+  "source_sha256": {
+    "minagi/pool.py": "9f008ddaf04acdb4b67fd61292dca9baea1b9ef25148830527e782bcbc38551d",
+    "minagi/expert_compute.py": "a91b93e65b275dfa934d2f28c3785be85d4e8ba7f56631d2fe8ec7d093baefdf",
+    "replication/profile_training.py": "201be04b1dac78cef395fdc0d7ee6b7ae3f54a4e8f22f31bbc6c5682586a8207",
+    "replication/patches/sonicmoe-fixed-gemm-config.patch": "3dbe6f8e0c88f7f216c2568f1f043855c5bd75dc3a90ccb4b06fe0a7ec982661"
+  },
+  "verification": {
+    "repository_tests": 77,
+    "repository_tests_passed": true,
+    "default_reference_equivalence": {
+      "base_commit": "d0f581a",
+      "checks": {
+        "-checkpoint-equivalence": {
+          "state_digests_identical": true,
+          "losses_identical": true,
+          "updates_including_warmup": 6
+        },
+        "-no-checkpoint-equivalence": {
+          "state_digests_identical": true,
+          "losses_identical": true,
+          "updates_including_warmup": 6
+        }
+      },
+      "commands": [
+        [
+          "/home/nir/ml-tools/mini-AGI/.venv/bin/python",
+          "-m",
+          "replication.gpu_monitor",
+          "--out",
+          "/home/nir/ml-tools/mini-AGI/runs/performance/expert-backends/legacy-checkpoint-equivalence.power.json",
+          "--",
+          "/home/nir/ml-tools/mini-AGI/.venv/bin/python",
+          "/tmp/minagi-legacy-profile.py",
+          "--weights",
+          "/mnt/fast/models/mini-AGI/undertrained/weights",
+          "--text",
+          "/mnt/fast/models/mini-AGI/evaluation-data/TinyStoriesV2-GPT4-valid.txt",
+          "--no-profile",
+          "--out",
+          "/home/nir/ml-tools/mini-AGI/runs/performance/expert-backends/legacy-checkpoint-equivalence.json",
+          "--warmup",
+          "1",
+          "--steps",
+          "5",
+          "--deterministic",
+          "--state-digests"
+        ],
+        [
+          "/home/nir/ml-tools/mini-AGI/.venv/bin/python",
+          "-m",
+          "replication.gpu_monitor",
+          "--out",
+          "/home/nir/ml-tools/mini-AGI/runs/performance/expert-backends/reference-checkpoint-equivalence.power.json",
+          "--",
+          "/home/nir/ml-tools/mini-AGI/.venv/bin/python",
+          "replication/profile_training.py",
+          "--weights",
+          "/mnt/fast/models/mini-AGI/undertrained/weights",
+          "--text",
+          "/mnt/fast/models/mini-AGI/evaluation-data/TinyStoriesV2-GPT4-valid.txt",
+          "--no-profile",
+          "--out",
+          "/home/nir/ml-tools/mini-AGI/runs/performance/expert-backends/reference-checkpoint-equivalence.json",
+          "--warmup",
+          "1",
+          "--steps",
+          "5",
+          "--deterministic",
+          "--state-digests"
+        ],
+        [
+          "/home/nir/ml-tools/mini-AGI/.venv/bin/python",
+          "-m",
+          "replication.gpu_monitor",
+          "--out",
+          "/home/nir/ml-tools/mini-AGI/runs/performance/expert-backends/legacy-no-checkpoint-equivalence.power.json",
+          "--",
+          "/home/nir/ml-tools/mini-AGI/.venv/bin/python",
+          "/tmp/minagi-legacy-profile.py",
+          "--weights",
+          "/mnt/fast/models/mini-AGI/undertrained/weights",
+          "--text",
+          "/mnt/fast/models/mini-AGI/evaluation-data/TinyStoriesV2-GPT4-valid.txt",
+          "--no-profile",
+          "--out",
+          "/home/nir/ml-tools/mini-AGI/runs/performance/expert-backends/legacy-no-checkpoint-equivalence.json",
+          "--warmup",
+          "1",
+          "--steps",
+          "5",
+          "--deterministic",
+          "--state-digests",
+          "--no-checkpoint"
+        ],
+        [
+          "/home/nir/ml-tools/mini-AGI/.venv/bin/python",
+          "-m",
+          "replication.gpu_monitor",
+          "--out",
+          "/home/nir/ml-tools/mini-AGI/runs/performance/expert-backends/reference-no-checkpoint-equivalence.power.json",
+          "--",
+          "/home/nir/ml-tools/mini-AGI/.venv/bin/python",
+          "replication/profile_training.py",
+          "--weights",
+          "/mnt/fast/models/mini-AGI/undertrained/weights",
+          "--text",
+          "/mnt/fast/models/mini-AGI/evaluation-data/TinyStoriesV2-GPT4-valid.txt",
+          "--no-profile",
+          "--out",
+          "/home/nir/ml-tools/mini-AGI/runs/performance/expert-backends/reference-no-checkpoint-equivalence.json",
+          "--warmup",
+          "1",
+          "--steps",
+          "5",
+          "--deterministic",
+          "--state-digests",
+          "--no-checkpoint"
+        ]
+      ],
+      "source_sha256": {
+        "minagi/pool.py": "9f008ddaf04acdb4b67fd61292dca9baea1b9ef25148830527e782bcbc38551d",
+        "minagi/expert_compute.py": "794c451980a27850a171d1ba0c7793f4121c0f628b71ae04dc58b7d2fda91401",
+        "replication/profile_training.py": "201be04b1dac78cef395fdc0d7ee6b7ae3f54a4e8f22f31bbc6c5682586a8207"
+      },
+      "reference_path_unchanged_since_comparison": true,
+      "final_reference_function_ast_sha256": {
+        "backend_name": "b36c64fcdb778c123ba96cea6bb695897e1f690e27e2cb7ba2f1810822ab2fd0",
+        "_few": "8b8b85620db66cdd338f0fbe6210158f9d0c25736e615e5e5b5cfaab9686f0ac",
+        "_reference": "12bf20e199625474eecb61d2f697df344a40a918862b69ce7046f50a9c6ba07e",
+        "compute_experts": "f3de89b858e4ea4bc0315a9b126b37ca32ac95c6a11d8dca9d64502ccb8d70ff"
+      }
+    },
+    "all_final_training_runs_completed": true
+  },
+  "environment": {
+    "packages": {
+      "torch": "2.14.1",
+      "triton": "3.8.0",
+      "quack-kernels": "0.6.5",
+      "sonic-moe": "0.1.2.post1",
+      "nvidia-cutlass-dsl": "4.8.1",
+      "nvidia-ml-py": "13.615.71"
+    },
+    "sonic_source_revision": "7396f3e604827d8186c2e16e64b28ee33d3defd0",
+    "quack_source_revision": "77a750c0d9548d4a6e23c0f64062d61b3ea420ff",
+    "patch": "replication/patches/sonicmoe-fixed-gemm-config.patch",
+    "patch_sha256": "3dbe6f8e0c88f7f216c2568f1f043855c5bd75dc3a90ccb4b06fe0a7ec982661",
+    "installed_sonic_files_sha256": {
+      "sonicmoe/functional/__init__.py": "7ceff3b067d3d0f68d2ce36b9337dc4459a4e05255abece2683ea69f6eff5c61",
+      "sonicmoe/functional/backward.py": "08330072f2e73213ebbd4bef4591fe2f08fe6a4583a1e2409ecbb3a65a0f1ba1"
+    }
+  },
+  "runs": [
+    {
+      "name": "reference-checkpoint-perf-0",
+      "expert_checkpointing": true,
+      "backend": "reference",
+      "git_commit": "e0fa1833516e60d3de8cd7803d32c661f056deb5",
+      "manifest_sha256": "f0ade4a3127971b20edc35d58b1ae66241af914aecd3ca8e9c0a2939ef8a74f3",
+      "input_ids_sha256": "eba0b24bedf6dd38e0b190766b94d3ea661c99e883b779aa110fbeaf9c284a4b",
+      "median_update_seconds": 0.3764570220009773,
+      "max_update_seconds": 0.5291505499990308,
+      "mean_update_seconds": 0.37994511287479327,
+      "new_tokens_per_second_from_median": 5440.19603915021,
+      "elapsed_window_new_tokens_per_second": 5387.38672680328,
+      "peak_allocated_gib_including_warmup": 5.2579545974731445,
+      "power": {
+        "duration_seconds": 12.164710521697998,
+        "sample_count_inside": 121,
+        "average_board_power_w": 270.05366990583605,
+        "peak_sampled_board_power_w": 297.278,
+        "estimated_board_energy_j": 3285.1247197266816,
+        "max_sample_gap_seconds": 0.10076522827148438,
+        "new_tokens": 65536,
+        "new_tokens_per_second": 5387.38672680328,
+        "estimated_board_joules_per_new_token": 0.05012702514231387,
+        "gpu_busy_percent": {
+          "median": 56,
+          "min": 22,
+          "max": 96
+        },
+        "memory_busy_percent": {
+          "median": 11,
+          "min": 1,
+          "max": 45
+        },
+        "sm_clock_mhz": {
+          "median": 2940,
+          "min": 2932,
+          "max": 2940
+        },
+        "memory_clock_mhz": {
+          "median": 13801,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 59,
+          "min": 55,
+          "max": 64
+        },
+        "memory_used_mib": {
+          "median": 7468.5625,
+          "min": 7466.5625,
+          "max": 7570.5625
+        },
+        "clock_event_reason_masks": [
+          0
+        ],
+        "start_unix": 1792176447.883104,
+        "end_unix": 1792176460.0478146
+      },
+      "timed_losses_and_gradient_norms_finite": true
+    },
+    {
+      "name": "reference-checkpoint-perf-3",
+      "expert_checkpointing": true,
+      "backend": "reference",
+      "git_commit": "e0fa1833516e60d3de8cd7803d32c661f056deb5",
+      "manifest_sha256": "f0ade4a3127971b20edc35d58b1ae66241af914aecd3ca8e9c0a2939ef8a74f3",
+      "input_ids_sha256": "eba0b24bedf6dd38e0b190766b94d3ea661c99e883b779aa110fbeaf9c284a4b",
+      "median_update_seconds": 0.37632276650037966,
+      "max_update_seconds": 0.494888171000639,
+      "mean_update_seconds": 0.3814157883432472,
+      "new_tokens_per_second_from_median": 5442.136863111985,
+      "elapsed_window_new_tokens_per_second": 5366.574334463477,
+      "peak_allocated_gib_including_warmup": 5.329863548278809,
+      "power": {
+        "duration_seconds": 12.211887121200562,
+        "sample_count_inside": 122,
+        "average_board_power_w": 273.4569660597899,
+        "peak_sampled_board_power_w": 298.016,
+        "estimated_board_energy_j": 3339.4256020281273,
+        "max_sample_gap_seconds": 0.10109400749206543,
+        "new_tokens": 65536,
+        "new_tokens_per_second": 5366.574334463477,
+        "estimated_board_joules_per_new_token": 0.050955590851259266,
+        "gpu_busy_percent": {
+          "median": 59.0,
+          "min": 26,
+          "max": 99
+        },
+        "memory_busy_percent": {
+          "median": 18.0,
+          "min": 1,
+          "max": 47
+        },
+        "sm_clock_mhz": {
+          "median": 2932.0,
+          "min": 2925,
+          "max": 2940
+        },
+        "memory_clock_mhz": {
+          "median": 13801.0,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 60.0,
+          "min": 57,
+          "max": 63
+        },
+        "memory_used_mib": {
+          "median": 7490.5625,
+          "min": 7488.5625,
+          "max": 7700.5625
+        },
+        "clock_event_reason_masks": [
+          0
+        ],
+        "start_unix": 1792176512.5400243,
+        "end_unix": 1792176524.7519114
+      },
+      "timed_losses_and_gradient_norms_finite": true
+    },
+    {
+      "name": "reference-no-checkpoint-perf-0",
+      "expert_checkpointing": false,
+      "backend": "reference",
+      "git_commit": "e0fa1833516e60d3de8cd7803d32c661f056deb5",
+      "manifest_sha256": "f0ade4a3127971b20edc35d58b1ae66241af914aecd3ca8e9c0a2939ef8a74f3",
+      "input_ids_sha256": "eba0b24bedf6dd38e0b190766b94d3ea661c99e883b779aa110fbeaf9c284a4b",
+      "median_update_seconds": 0.3194474914998864,
+      "max_update_seconds": 0.4376348669975414,
+      "mean_update_seconds": 0.3331091915622437,
+      "new_tokens_per_second_from_median": 6411.069282103686,
+      "elapsed_window_new_tokens_per_second": 6144.33423143792,
+      "peak_allocated_gib_including_warmup": 13.624691486358643,
+      "power": {
+        "duration_seconds": 10.666086435317993,
+        "sample_count_inside": 107,
+        "average_board_power_w": 269.82369771770044,
+        "peak_sampled_board_power_w": 294.843,
+        "estimated_board_energy_j": 2877.9628821541073,
+        "max_sample_gap_seconds": 0.10121583938598633,
+        "new_tokens": 65536,
+        "new_tokens_per_second": 6144.33423143792,
+        "estimated_board_joules_per_new_token": 0.04391422854849407,
+        "gpu_busy_percent": {
+          "median": 67,
+          "min": 23,
+          "max": 92
+        },
+        "memory_busy_percent": {
+          "median": 20,
+          "min": 1,
+          "max": 46
+        },
+        "sm_clock_mhz": {
+          "median": 2932,
+          "min": 2925,
+          "max": 2940
+        },
+        "memory_clock_mhz": {
+          "median": 13801,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 61,
+          "min": 57,
+          "max": 64
+        },
+        "memory_used_mib": {
+          "median": 15484.5625,
+          "min": 15484.5625,
+          "max": 16188.5625
+        },
+        "clock_event_reason_masks": [
+          0
+        ],
+        "start_unix": 1792176531.3159106,
+        "end_unix": 1792176541.981997
+      },
+      "timed_losses_and_gradient_norms_finite": true
+    },
+    {
+      "name": "reference-no-checkpoint-perf-3",
+      "expert_checkpointing": false,
+      "backend": "reference",
+      "git_commit": "e0fa1833516e60d3de8cd7803d32c661f056deb5",
+      "manifest_sha256": "f0ade4a3127971b20edc35d58b1ae66241af914aecd3ca8e9c0a2939ef8a74f3",
+      "input_ids_sha256": "eba0b24bedf6dd38e0b190766b94d3ea661c99e883b779aa110fbeaf9c284a4b",
+      "median_update_seconds": 0.3222014225029852,
+      "max_update_seconds": 0.41249705900554545,
+      "mean_update_seconds": 0.327633908718326,
+      "new_tokens_per_second_from_median": 6356.272371767773,
+      "elapsed_window_new_tokens_per_second": 6247.001117641736,
+      "peak_allocated_gib_including_warmup": 13.238441467285156,
+      "power": {
+        "duration_seconds": 10.490793704986572,
+        "sample_count_inside": 104,
+        "average_board_power_w": 270.6703887503989,
+        "peak_sampled_board_power_w": 303.376,
+        "estimated_board_energy_j": 2839.5472104289533,
+        "max_sample_gap_seconds": 0.10163187980651855,
+        "new_tokens": 65536,
+        "new_tokens_per_second": 6247.001117641736,
+        "estimated_board_joules_per_new_token": 0.0433280519169457,
+        "gpu_busy_percent": {
+          "median": 57.0,
+          "min": 19,
+          "max": 99
+        },
+        "memory_busy_percent": {
+          "median": 18.0,
+          "min": 1,
+          "max": 50
+        },
+        "sm_clock_mhz": {
+          "median": 2940.0,
+          "min": 2925,
+          "max": 2940
+        },
+        "memory_clock_mhz": {
+          "median": 13801.0,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 61.0,
+          "min": 56,
+          "max": 64
+        },
+        "memory_used_mib": {
+          "median": 15500.5625,
+          "min": 15500.5625,
+          "max": 15760.5625
+        },
+        "clock_event_reason_masks": [
+          0
+        ],
+        "start_unix": 1792176589.1348414,
+        "end_unix": 1792176599.6256351
+      },
+      "timed_losses_and_gradient_norms_finite": true
+    },
+    {
+      "name": "sonic-checkpoint-perf-1",
+      "expert_checkpointing": true,
+      "backend": "sonic",
+      "git_commit": "e0fa1833516e60d3de8cd7803d32c661f056deb5",
+      "manifest_sha256": "f0ade4a3127971b20edc35d58b1ae66241af914aecd3ca8e9c0a2939ef8a74f3",
+      "input_ids_sha256": "eba0b24bedf6dd38e0b190766b94d3ea661c99e883b779aa110fbeaf9c284a4b",
+      "median_update_seconds": 0.29622763199949986,
+      "max_update_seconds": 0.5498688529987703,
+      "mean_update_seconds": 0.32643493925093026,
+      "new_tokens_per_second_from_median": 6913.602172006215,
+      "elapsed_window_new_tokens_per_second": 6269.99921998499,
+      "peak_allocated_gib_including_warmup": 4.253992080688477,
+      "power": {
+        "duration_seconds": 10.452313899993896,
+        "sample_count_inside": 104,
+        "average_board_power_w": 261.1616439697333,
+        "peak_sampled_board_power_w": 315.969,
+        "estimated_board_energy_j": 2729.7434814101007,
+        "max_sample_gap_seconds": 0.10186052322387695,
+        "new_tokens": 65536,
+        "new_tokens_per_second": 6269.99921998499,
+        "estimated_board_joules_per_new_token": 0.041652579977571116,
+        "gpu_busy_percent": {
+          "median": 52.0,
+          "min": 0,
+          "max": 94
+        },
+        "memory_busy_percent": {
+          "median": 17.0,
+          "min": 1,
+          "max": 47
+        },
+        "sm_clock_mhz": {
+          "median": 2932.0,
+          "min": 2917,
+          "max": 2947
+        },
+        "memory_clock_mhz": {
+          "median": 13801.0,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 59.0,
+          "min": 56,
+          "max": 65
+        },
+        "memory_used_mib": {
+          "median": 6792.5625,
+          "min": 6790.5625,
+          "max": 6794.5625
+        },
+        "clock_event_reason_masks": [
+          0,
+          4
+        ],
+        "start_unix": 1792176473.3577614,
+        "end_unix": 1792176483.8100753
+      },
+      "timed_losses_and_gradient_norms_finite": true
+    },
+    {
+      "name": "sonic-checkpoint-perf-2",
+      "expert_checkpointing": true,
+      "backend": "sonic",
+      "git_commit": "e0fa1833516e60d3de8cd7803d32c661f056deb5",
+      "manifest_sha256": "f0ade4a3127971b20edc35d58b1ae66241af914aecd3ca8e9c0a2939ef8a74f3",
+      "input_ids_sha256": "eba0b24bedf6dd38e0b190766b94d3ea661c99e883b779aa110fbeaf9c284a4b",
+      "median_update_seconds": 0.3003963839983044,
+      "max_update_seconds": 0.42375435300346,
+      "mean_update_seconds": 0.30240334774975963,
+      "new_tokens_per_second_from_median": 6817.658630709617,
+      "elapsed_window_new_tokens_per_second": 6767.877180215183,
+      "peak_allocated_gib_including_warmup": 4.261119842529297,
+      "power": {
+        "duration_seconds": 9.683390855789185,
+        "sample_count_inside": 97,
+        "average_board_power_w": 271.3620024003151,
+        "peak_sampled_board_power_w": 295.459,
+        "estimated_board_energy_j": 2627.7043326518537,
+        "max_sample_gap_seconds": 0.10030245780944824,
+        "new_tokens": 65536,
+        "new_tokens_per_second": 6767.877180215183,
+        "estimated_board_joules_per_new_token": 0.04009558613055197,
+        "gpu_busy_percent": {
+          "median": 46,
+          "min": 22,
+          "max": 97
+        },
+        "memory_busy_percent": {
+          "median": 11,
+          "min": 1,
+          "max": 50
+        },
+        "sm_clock_mhz": {
+          "median": 2925,
+          "min": 2917,
+          "max": 2932
+        },
+        "memory_clock_mhz": {
+          "median": 13801,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 61,
+          "min": 57,
+          "max": 67
+        },
+        "memory_used_mib": {
+          "median": 6816.5625,
+          "min": 6816.5625,
+          "max": 6816.5625
+        },
+        "clock_event_reason_masks": [
+          0,
+          4
+        ],
+        "start_unix": 1792176495.5050836,
+        "end_unix": 1792176505.1884744
+      },
+      "timed_losses_and_gradient_norms_finite": true
+    },
+    {
+      "name": "sonic-no-checkpoint-perf-1",
+      "expert_checkpointing": false,
+      "backend": "sonic",
+      "git_commit": "e0fa1833516e60d3de8cd7803d32c661f056deb5",
+      "manifest_sha256": "f0ade4a3127971b20edc35d58b1ae66241af914aecd3ca8e9c0a2939ef8a74f3",
+      "input_ids_sha256": "eba0b24bedf6dd38e0b190766b94d3ea661c99e883b779aa110fbeaf9c284a4b",
+      "median_update_seconds": 0.2705952409996826,
+      "max_update_seconds": 0.49531318999652285,
+      "mean_update_seconds": 0.2834369281247291,
+      "new_tokens_per_second_from_median": 7568.499698789612,
+      "elapsed_window_new_tokens_per_second": 7220.450477900113,
+      "peak_allocated_gib_including_warmup": 11.331264019012451,
+      "power": {
+        "duration_seconds": 9.076442003250122,
+        "sample_count_inside": 91,
+        "average_board_power_w": 253.9019575858912,
+        "peak_sampled_board_power_w": 281.462,
+        "estimated_board_energy_j": 2304.526392540014,
+        "max_sample_gap_seconds": 0.10140299797058105,
+        "new_tokens": 65536,
+        "new_tokens_per_second": 7220.450477900113,
+        "estimated_board_joules_per_new_token": 0.03516428211273215,
+        "gpu_busy_percent": {
+          "median": 38,
+          "min": 21,
+          "max": 89
+        },
+        "memory_busy_percent": {
+          "median": 12,
+          "min": 1,
+          "max": 40
+        },
+        "sm_clock_mhz": {
+          "median": 2932,
+          "min": 2925,
+          "max": 2940
+        },
+        "memory_clock_mhz": {
+          "median": 13801,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 60,
+          "min": 56,
+          "max": 65
+        },
+        "memory_used_mib": {
+          "median": 13034.5625,
+          "min": 13034.5625,
+          "max": 13758.5625
+        },
+        "clock_event_reason_masks": [
+          0
+        ],
+        "start_unix": 1792176552.8920662,
+        "end_unix": 1792176561.9685082
+      },
+      "timed_losses_and_gradient_norms_finite": true
+    },
+    {
+      "name": "sonic-no-checkpoint-perf-2",
+      "expert_checkpointing": false,
+      "backend": "sonic",
+      "git_commit": "e0fa1833516e60d3de8cd7803d32c661f056deb5",
+      "manifest_sha256": "f0ade4a3127971b20edc35d58b1ae66241af914aecd3ca8e9c0a2939ef8a74f3",
+      "input_ids_sha256": "eba0b24bedf6dd38e0b190766b94d3ea661c99e883b779aa110fbeaf9c284a4b",
+      "median_update_seconds": 0.27423776350042317,
+      "max_update_seconds": 0.41628108699660515,
+      "mean_update_seconds": 0.2828186751244175,
+      "new_tokens_per_second_from_median": 7467.972221837493,
+      "elapsed_window_new_tokens_per_second": 7236.253986024825,
+      "peak_allocated_gib_including_warmup": 11.00930643081665,
+      "power": {
+        "duration_seconds": 9.056619644165039,
+        "sample_count_inside": 91,
+        "average_board_power_w": 253.68021249683042,
+        "peak_sampled_board_power_w": 270.826,
+        "estimated_board_energy_j": 2297.485195834756,
+        "max_sample_gap_seconds": 0.10085797309875488,
+        "new_tokens": 65536,
+        "new_tokens_per_second": 7236.253986024825,
+        "estimated_board_joules_per_new_token": 0.03505684197745904,
+        "gpu_busy_percent": {
+          "median": 51,
+          "min": 26,
+          "max": 93
+        },
+        "memory_busy_percent": {
+          "median": 14,
+          "min": 2,
+          "max": 47
+        },
+        "sm_clock_mhz": {
+          "median": 2932,
+          "min": 2925,
+          "max": 2940
+        },
+        "memory_clock_mhz": {
+          "median": 13801,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 59,
+          "min": 56,
+          "max": 64
+        },
+        "memory_used_mib": {
+          "median": 12994.5625,
+          "min": 12994.5625,
+          "max": 13378.5625
+        },
+        "clock_event_reason_masks": [
+          0
+        ],
+        "start_unix": 1792176573.1788788,
+        "end_unix": 1792176582.2354984
+      },
+      "timed_losses_and_gradient_norms_finite": true
+    }
+  ],
+  "evidence_archive": {
+    "path": "expert_backend_evidence.tar.gz",
+    "sha256": "83de50ef4a3706994e14f747e738d7428f857245ab5ab0acfde02a78986a5811",
+    "member_sha256": {
+      "final/reference-checkpoint-perf-0.json": "8fc9cd6a2af50be96be6d5743d763d7bce49408ac7312be88e80eb43062ba874",
+      "final/reference-checkpoint-perf-0.power.json": "ea0be9fb72f4f8c37bc2aa91a5dc3cd14c1e955390d583df1510635d8c741e91",
+      "final/reference-checkpoint-perf-3.json": "219c45ed9eec51fd89ed7eeb2e91e6afe95bf5416521c8ea897081637dbf7831",
+      "final/reference-checkpoint-perf-3.power.json": "b621919736e637098fe0ff0d9b19e15314455b6634a26bbbe122b37e65eca374",
+      "final/reference-no-checkpoint-perf-0.json": "70560a120219a5a3d2eaa976fdf6a02bf7b19ba65da315897865f808cd0249c7",
+      "final/reference-no-checkpoint-perf-0.power.json": "a28c7637e4858c2d65c127f25c1be184fd5f472cacae5ae8602758a8ad727a61",
+      "final/reference-no-checkpoint-perf-3.json": "4ce6841f041770ffc6fbd7dda6f193b5d60fd764f161e6b2445ef88d872e8fec",
+      "final/reference-no-checkpoint-perf-3.power.json": "ccf9251d1c65c4a8776c6040eae26544b08be57c666e114c52760bc182817531",
+      "final/sonic-checkpoint-perf-1.json": "1e6d21cc586da645f0095e8de4be9a284273d2c47802de3ff5c891f92b4cb614",
+      "final/sonic-checkpoint-perf-1.power.json": "25d372b2299217ad659d86f882748605915ab915faa2fedf8e00290981be9de3",
+      "final/sonic-checkpoint-perf-2.json": "95ef146dcabd733d878f8fdd99f0a4de2994690a4431a41747a0b4d69d86915c",
+      "final/sonic-checkpoint-perf-2.power.json": "69a309f46d8d71096eba69d117f29fccdf236d990f51f027d2ff8bfca006f2bb",
+      "final/sonic-no-checkpoint-perf-1.json": "51c06be791f0e212821c95f3062b87e9b8014e99d5d416466875c26eeaf86dac",
+      "final/sonic-no-checkpoint-perf-1.power.json": "6aa572b81a9204aeeca93027cf8b283d36b2263fa5cc87e262552a9a4ce7502c",
+      "final/sonic-no-checkpoint-perf-2.json": "e2ecffbb6ab388a4666ff639c8b8f721d23535f575065b3e8d72190a593f99da",
+      "final/sonic-no-checkpoint-perf-2.power.json": "5a7c82ea7b42cb4e6a13c0eb0737b2319e5013cebb9f29394c6bf6841d19b6bb",
+      "final/performance-commands.json": "8e43c00c5df23135ff5496cca69e4c65d0d3c1dab8941ada442fe605015f751a",
+      "reference-equivalence/legacy-checkpoint-equivalence.json": "63b779cdf5ee986a4dd2c335f7d8f2bf434f0701b97d27cf6d3d06ae573e9ffb",
+      "reference-equivalence/legacy-checkpoint-equivalence.power.json": "13b6885641552696a2ff85d59f45158d692003c5ac3a947e9e0590331d388e4a",
+      "reference-equivalence/reference-checkpoint-equivalence.json": "da460d17e87691c777c99261aaf9a0e2f2f56048f982aab3c5b82f1042643978",
+      "reference-equivalence/reference-checkpoint-equivalence.power.json": "11004994199e3c585e05e10a6adf45fc267219df9da10bbeeb8cddd023c55c71",
+      "reference-equivalence/legacy-no-checkpoint-equivalence.json": "c5c983b3ff75ee3d40f401029f6974c4b97ca12f98ee11b246fe1bda9745cbf5",
+      "reference-equivalence/legacy-no-checkpoint-equivalence.power.json": "d5729ec6e044125e74ffb08df7f1c510f3ecc1fd022986b291ccee7cfe7598c6",
+      "reference-equivalence/reference-no-checkpoint-equivalence.json": "cd8bcd5bde0cdfbcc81a6846fb8c5ee2bd8c9885d331aba7f8409c7c1c8321c8",
+      "reference-equivalence/reference-no-checkpoint-equivalence.power.json": "55f3088df1a5695a8d62a4118967159ee00c44556825729d5a7711e351f49674",
+      "reference-equivalence.json": "c74f8a67524a418acfd09cbe22e78a1da021166d5ce87ff20b0604af315d24e9",
+      "qualified-environment.json": "18a2aa737519813328a0f9d240ceb8bd0363add20e6f1f550a6a3b2f04af6699",
+      "padded-full-suite.power.json": "b878b1e3700b8d9e3ba479e3601146b8202faad51f1f5e6a18a44257c1c76bc5",
+      "pilot-sonic-unpatched-startup.power.json": "c569ac1b4192e4dc40fd6773dd0291ea3d89cbc6ade7fc878d7f2d5a83f7c195",
+      "pilot-sonic-unpatched-startup.log": "7afce421e258f1b8a87895358a360a696c3e8d001052396db32881fb34236080",
+      "rejected-varlen-k-tuning-key.patch": "edc9d69a87c463b2d90b719a06d035f0dd13bb037e4895d0ee38026977c184c0",
+      "diagnostics/minagi-padded-full-suite.log": "66917815fadfcf2ef538dade6be74051b1abb072d48657a0bfd8f6dc464e9a07",
+      "diagnostics/minagi-sonic-fresh-tuning.log": "eb0f48f16bb21cdb64edf594efe5257649a92241e48374a55b4489b6a1dcfd7d",
+      "diagnostics/minagi-expert-full-suite-patched.log": "9ed45d5b23d19a52d4cab23d0dda640b0d446098166b2332ce0d0f578be58c0a",
+      "diagnostics/minagi-prefix-diagnostic.log": "7b398790afd822275ddbc410eb58c316fd277808b34e15df117d450d6829d92b",
+      "diagnostics/minagi-model-diagnostic.log": "72c90b240212db1db833ff8858afc37ae6bbc224b20b2b42dca68864d707fd43",
+      "diagnostics/minagi-run-backend-verification.py": "05958c3d869d044ca3657d91203e5346060fceb9a6e9ef2cce896bc43974d6c7",
+      "diagnostics/minagi-original-pool.py": "ef77c67b6a919f89e7c023099346b05d6394ed4ac9dbc4a630cbfc28d129842e",
+      "diagnostics/minagi-legacy-profile.py": "e9ea5dbb35ccb9d924f7be14ede83c4f8dc71f61d54e80d7aae75669df9bb460",
+      "diagnostics/integration-first.power.json": "eda486507087b8b7da1829a5709f7097acdd324ab66d5917270efeb8e1cbdaef",
+      "diagnostics/sonic-fresh-tuning.power.json": "bc9d0a8f98e6b8af5c194039e889f627d58074cc5c757a3f3709541ad746cf63",
+      "diagnostics/model-diagnostic.power.json": "0dad4f9c3083c9ab9618825b7d98d58e4939fa0a884232384ce22e8cc310b77d",
+      "diagnostics/prefix-diagnostic.power.json": "f870529b42acfdf097affcc0620a6bcd67f5d00a2dcb836975f0c035fe32849c",
+      "diagnostics/full-suite-patched.power.json": "b16eb0fdc4d054c0b5640184ac8fc62e26a8b889e02c715d633846d2caad3537",
+      "compacted-pilot/reference-checkpoint-perf-3.power.json": "361995fe4ad69b61f4b967c0033e32f7c3f6ca1fcf7b0d6d951f16be704b2a28",
+      "compacted-pilot/sonic-checkpoint-perf-1.power.json": "1c4af7c9d0f1ff6de157458f270cca71eb078b51a6ab21b665195e030f7c70cb",
+      "compacted-pilot/reference-checkpoint-perf-3.json": "c5108d82d8a1a4ed549c163f3e512b0ab81cbfe599c3f9c52f65154dfc17ac01",
+      "compacted-pilot/minagi-reference-checkpoint-perf-3.log": "8f085caee3cf74d3b85f1ce95d9406ddfac3c7f2e2db21c86d0fd43cbe4fabbc",
+      "compacted-pilot/minagi-reference-checkpoint-perf-0.log": "07f614a533b5b05d125cf4d0965388e609e23df0be72bc70b80aae47da43e634",
+      "compacted-pilot/reference-no-checkpoint-perf-0.power.json": "8df7612837ffb1548e5ca50ff4f8330c9706da7b13039827e2a0383e0d35fba0",
+      "compacted-pilot/minagi-sonic-checkpoint-perf-1.log": "0e2a49bd8adfd86632b9f4cd0a67c9ea6259765555cce9e60ecc1a71296888ef",
+      "compacted-pilot/minagi-sonic-no-checkpoint-perf-1.log": "e197b62bfaa177c74b480fe2a020fa7b0c1e8af9ca82fb103f759eeb81d0238b",
+      "compacted-pilot/reference-checkpoint-perf-0.power.json": "7ff02843e284981607a5d827bafb98dcef97a521de2f4dfbd0e7618d06745fe2",
+      "compacted-pilot/minagi-reference-no-checkpoint-perf-0.log": "3a845f064a03b98909648653919a9c16fdad4d7eab9a4319eb2a202151ca2d21",
+      "compacted-pilot/performance-commands.json": "065c825012e7823da7b809a42efc98e215c6712d4d1fb25c41d166e8ef5d5e4f",
+      "compacted-pilot/sonic-checkpoint-perf-2.power.json": "bc5336b08c404bf77b30e309e3f1ce3d1d60810efd94950020f56a742ddb2ae7",
+      "compacted-pilot/reference-no-checkpoint-perf-0.json": "c6ad9d9989c4a67298ce844a8c133e6fbbf8326f343613881974d320e02fd2e7",
+      "compacted-pilot/minagi-sonic-checkpoint-perf-2.log": "2fcbcc59bf719c3c13fa0d9eaa69cc83a6124de398b38bc1a2d323bb7093a9ac",
+      "compacted-pilot/sonic-checkpoint-perf-2.json": "7887e1eee94bd3837a59897cd40724f632bf4d45bdda1cc4c7c2f19b2f91b62c",
+      "compacted-pilot/reference-checkpoint-perf-0.json": "275f80659aee0e19b29cbd7e6652400e74f06ff9800ff32e4dee6903061e9eb6",
+      "compacted-pilot/sonic-no-checkpoint-perf-1.power.json": "8fb912254ba840522e0f372f2e534ee9ebf3fb6465fd066885c7b6779c8f4886",
+      "compacted-pilot/sonic-checkpoint-perf-1.json": "b25e14b12f1b0357deaa8b5f224066b9c6f63b324590584624e94682966e53c6",
+      "final/minagi-padded-reference-checkpoint-perf-0.log": "ee92503f05242cd6177393142fee92054b1773fe4566aad85e98a76fce14ebd4",
+      "final/minagi-padded-reference-checkpoint-perf-3.log": "0199db609155b220ccba9961a46b3b43c4b65ab94c8ee384a7e41cd5603ba536",
+      "final/minagi-padded-reference-no-checkpoint-perf-0.log": "9882e04c2935386d7f9dc9f4f80c0e33d46106cdeb7d7d67790178d7e59a80e1",
+      "final/minagi-padded-reference-no-checkpoint-perf-3.log": "8740f9a640155c700cbef45955915eabc4ced074abe991d36166608f7cad732b",
+      "final/minagi-padded-sonic-checkpoint-perf-1.log": "f3b17df90752d1abbbcc163c0ba9836abeb055e324fca811318030e33b7865b7",
+      "final/minagi-padded-sonic-checkpoint-perf-2.log": "e425577d4ec06c59c8ee4924bffa036922def7025008c8b658932386a83592d1",
+      "final/minagi-padded-sonic-no-checkpoint-perf-1.log": "07ad9af5c563577cdc02634e256e7d7ae51c1a055b4390613dc22966d381e7ed",
+      "final/minagi-padded-sonic-no-checkpoint-perf-2.log": "4561a5b23dd3eb47cd1544362eb318dafe8e1224181e2df0d63f937b414d6cd6"
+    }
+  },
+  "limits": [
+    "Two timing repeats per backend/configuration; 8 warmups and 32 timed updates from fresh optimizers, no convergence or held-out quality claim.",
+    "Board power integrated over UNIX-aligned update windows. Sensor averaging, 100 ms sampling and desktop activity limit energy/peak accuracy; CPU/system energy excluded.",
+    "Peak allocated VRAM includes warmup/JIT; it is not an isolated steady-training-memory estimate.",
+    "Different BF16 rounding can change routing, halting and subsequent learning trajectories; full-model runs need not do identical arithmetic.",
+    "Measured warm RAM/filesystem and compiler caches; initial JIT can take minutes on a fresh installation.",
+    "Sonic requires the pinned source patch selecting default GEMM configurations. Online tuning/cache-key candidates were rejected and are excluded from final timings.",
+    "Production backend default remains reference; no native FP4 training backend, new model checkpoint, system package or driver change."
+  ],
+  "aggregate": {
+    "checkpoint": {
+      "reference": {
+        "median_update_seconds_across_runs": 0.3763898942506785,
+        "combined_elapsed_window_tokens_per_second": 5376.960391278566,
+        "combined_board_joules_per_new_token": 0.050541307996786564
+      },
+      "sonic": {
+        "median_update_seconds_across_runs": 0.2983120079989021,
+        "combined_elapsed_window_tokens_per_second": 6509.431956304158,
+        "combined_board_joules_per_new_token": 0.04087408305406154
+      },
+      "sonic_throughput_ratio": 1.21061556764719,
+      "sonic_board_energy_ratio": 0.8087262612328975
+    },
+    "no_checkpoint": {
+      "reference": {
+        "median_update_seconds_across_runs": 0.3208244570014358,
+        "combined_elapsed_window_tokens_per_second": 6195.242357605621,
+        "combined_board_joules_per_new_token": 0.04362114023271989
+      },
+      "sonic": {
+        "median_update_seconds_across_runs": 0.27241650225005287,
+        "combined_elapsed_window_tokens_per_second": 7228.343594071666,
+        "combined_board_joules_per_new_token": 0.03511056204509559
+      },
+      "sonic_throughput_ratio": 1.1667571947686202,
+      "sonic_board_energy_ratio": 0.8048978513119981
+    }
+  }
+}
