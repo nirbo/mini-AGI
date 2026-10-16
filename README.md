@@ -352,6 +352,48 @@ Verification found that the legacy `stream` path fails to restore the paged
 optimizer state (`KeyError: 'step'`), also on the pre-fix revision. Fresh-start
 `stream` training and the `read` train/save/reload path were verified.
 
+### RTX 5090 training profile
+
+The trained undertrained snapshot was profiled at batch 1, context 4096,
+stride 2048, BF16 compute, 32 resident experts and a fixed 24-step ceiling.
+Eight timed updates followed three warmups; timings include forward, backward,
+gradient clipping and fused AdamW, with a fresh optimizer. Two runs per exact
+dispatch configuration gave these observed ranges:
+
+| Configuration | Seconds/update | New tokens/s | Peak allocated VRAM |
+| --- | ---: | ---: | ---: |
+| Exact dispatch, expert checkpointing | 0.413–0.416 | 4,925–4,964 | 4.97–4.98 GiB |
+| Exact dispatch, no expert checkpointing | 0.359–0.362 | 5,665–5,709 | 16.80–17.78 GiB |
+| Padded dispatch, expert checkpointing (one run) | 0.555 | 3,691 | 6.58 GiB |
+
+Processed tokens/s is twice new tokens/s because consecutive training windows
+overlap. The separate sampled-depth run measured about 6,279 new tokens/s;
+its varying depth makes it unsuitable for a direct optimization comparison.
+These are cache-warmed short-run observations, excluding initial loading,
+evaluation, sampling and checkpoint saves. BF16 numerical differences also
+changed the learning/routing trajectories; this is not a convergence result.
+Training defaults remain unchanged.
+
+```bash
+.venv/bin/python replication/profile_training.py \
+  --weights /mnt/fast/models/mini-AGI/undertrained/weights \
+  --text /path/to/performance-input.txt --out runs/performance/profile.json
+```
+
+Use `--no-checkpoint`, `--dispatch padded` or `--sample-depth` for the respective
+experiments. Checkpoint files are opened read-only; updates remain in RAM/VRAM.
+Unprofiled timings are separate from the instrumented trace. The reference
+trace has about 25,000 kernels, 7,500 matrix multiplication calls and substantial
+copying/host synchronization; it does not establish SM or Tensor Core occupancy.
+Detailed evidence, limits and the pinned Quartet-II NVFP4 source review are in
+[`replication/results/rtx5090_training_profile.json`](replication/results/rtx5090_training_profile.json).
+
+Quartet-II explicitly provides RTX 5090 kernels, making NVFP4 a useful candidate
+for a controlled experiment. Integration must handle variable expert row counts,
+paged slab parameters, and causal activation scaling: its default whole-matrix
+activation maximum can make quantization depend on future token rows. No FP8 or
+NVFP4 backend has been installed or enabled by this profiling work.
+
 ## How growth and pruning work
 
 The pool grows when it is short of capacity and shrinks when parts of it stop being asked for.

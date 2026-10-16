@@ -1,0 +1,494 @@
+{
+  "base_commit": "197213e560e9192ec10c67ccbd0d6a828c23343f",
+  "environment": {
+    "gpu": "RTX 5090; compute capability 12.0",
+    "torch": "2.14.1+cu130",
+    "pytorch_cuda": "13.0",
+    "installed_nvcc": "13.1.115",
+    "system_changes": "None; used existing repository venv and CUDA toolkit. No low-precision package installed."
+  },
+  "workload": {
+    "checkpoint": "undertrained; revision 5906e846242d80a487f7bb685d88f4751f2f88ec",
+    "manifest_sha256": "f0ade4a3127971b20edc35d58b1ae66241af914aecd3ca8e9c0a2939ef8a74f3",
+    "input": "TinyStoriesV2-GPT4-valid.txt, performance input only; no checkpoint produced",
+    "context_tokens": 4096,
+    "new_tokens_per_update": 2048,
+    "batch": 1,
+    "experts": 397,
+    "resident": 32,
+    "precision": "BF16 arithmetic; FP32 master weights and Adam state",
+    "tf32_allowed": true,
+    "warmup_steps": 3,
+    "timed_steps": 8,
+    "optimizer": "fresh fused AdamW, lr 1e-5, betas .9/.95, wd .1, clipping 1.0; not restored training state or exact CLI parameter groups",
+    "depth": "Fixed ceiling 24 except sampled case using checkpoint mean 12.8",
+    "files": "Checkpoint opened read-only; optimizer updates only in RAM/VRAM."
+  },
+  "runs": {
+    "exact": {
+      "median_step_seconds": 0.412535844499871,
+      "processed_tokens_per_second": 9928.834196130758,
+      "new_tokens_per_second": 4964.417098065379,
+      "peak_allocated_gib": 4.968316078186035,
+      "step_seconds": [
+        0.4133672670004671,
+        0.4343413980004698,
+        0.49741050800002995,
+        0.4117044219992749,
+        0.34069339000052423,
+        0.3858541730005527,
+        0.5035267929997644,
+        0.37001288999999815
+      ],
+      "sampled_depths": [
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24
+      ],
+      "profile": {
+        "profiled_step_ms": 516.035808,
+        "kernel_count": 24890,
+        "kernel_union_ms": 209.48156201171875,
+        "kernel_or_copy_union_ms": 287.78818212890627,
+        "aten_device_times_ms": {
+          "aten::copy_": 107.08464099999993,
+          "aten::mm": 93.66657900000031,
+          "aten::add_": 27.64740699999987,
+          "aten::mul": 12.359621000001065,
+          "aten::_flash_attention_backward": 8.273115999999805,
+          "aten::cat": 7.0254620000000685,
+          "aten::fill_": 5.10976000000022,
+          "aten::_flash_attention_forward": 5.0177869999999825
+        }
+      }
+    },
+    "exact-repeat": {
+      "median_step_seconds": 0.4158400880000954,
+      "processed_tokens_per_second": 9849.940201049256,
+      "new_tokens_per_second": 4924.970100524628,
+      "peak_allocated_gib": 4.983631610870361,
+      "step_seconds": [
+        0.41242006099946593,
+        0.4370545169995239,
+        0.4951678119996359,
+        0.41512816500016925,
+        0.348096598999291,
+        0.46684194299996307,
+        0.4165520110000216,
+        0.38357425199956197
+      ],
+      "sampled_depths": [
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24
+      ],
+      "routed_assignments_per_step": [
+        489856,
+        452592,
+        483928,
+        463880,
+        405488,
+        427648,
+        444096,
+        390904
+      ],
+      "expected_depths": [
+        11.201504707336426,
+        10.584102630615234,
+        11.489194869995117,
+        10.980644226074219,
+        9.43752384185791,
+        10.014772415161133,
+        10.483150482177734,
+        9.171817779541016
+      ],
+      "profile": {
+        "profiled_step_ms": 510.5867,
+        "kernel_count": 24832,
+        "kernel_union_ms": 209.88974365234375,
+        "kernel_or_copy_union_ms": 288.22885400390624,
+        "aten_device_times_ms": {
+          "aten::copy_": 107.00320300000082,
+          "aten::mm": 94.12115699999895,
+          "aten::add_": 27.413538000000415,
+          "aten::mul": 12.41180000000052,
+          "aten::_flash_attention_backward": 8.285149000000063,
+          "aten::cat": 7.136511999999981,
+          "aten::fill_": 5.109212999998863,
+          "aten::_flash_attention_forward": 5.017084000000005,
+          "aten::_index_put_impl_": 4.6652140000003275,
+          "aten::silu": 2.411611000000121,
+          "aten::silu_backward": 2.0535939999996042,
+          "aten::_fused_adamw_": 1.9997110000000102,
+          "aten::sum": 1.6807709999997138,
+          "aten::index": 1.0408239999997895,
+          "aten::sort": 0.888829000000027,
+          "aten::add": 0.7926670000002486,
+          "aten::_foreach_mul_": 0.5612160000000149,
+          "aten::mean": 0.5400980000002906,
+          "aten::div": 0.5021460000001553,
+          "aten::nonzero": 0.4256650000003574,
+          "aten::scatter_add_": 0.3767060000000056,
+          "aten::topk": 0.2933130000000219,
+          "aten::_foreach_norm": 0.2697600000000093,
+          "aten::sub": 0.26195199999992225,
+          "aten::where": 0.24224099999992177
+        },
+        "cpu_events": [
+          {
+            "name": "measured_training_step",
+            "calls": 1,
+            "self_cpu_ms": 255.06983900000026
+          },
+          {
+            "name": "cudaMemcpyAsync",
+            "calls": 1575,
+            "self_cpu_ms": 103.05166799999957
+          },
+          {
+            "name": "aten::copy_",
+            "calls": 3296,
+            "self_cpu_ms": 59.31236300000184
+          },
+          {
+            "name": "aten::mm",
+            "calls": 7495,
+            "self_cpu_ms": 56.14628900000035
+          },
+          {
+            "name": "cudaLaunchKernel",
+            "calls": 16230,
+            "self_cpu_ms": 32.00323099999694
+          },
+          {
+            "name": "cudaStreamSynchronize",
+            "calls": 835,
+            "self_cpu_ms": 24.66623699999958
+          },
+          {
+            "name": "MmBackward0",
+            "calls": 1894,
+            "self_cpu_ms": 21.717620000000753
+          },
+          {
+            "name": "aten::mul",
+            "calls": 4309,
+            "self_cpu_ms": 16.581907999997938
+          }
+        ],
+        "expert_shaped_matmul_count": 5301,
+        "expert_shaped_matmul_fraction_below_128_rows": 0.300509337860781,
+        "round_rows_to_128_work_multiplier": 1.103258008893729
+      }
+    },
+    "no-checkpoint": {
+      "median_step_seconds": 0.3587366374999874,
+      "processed_tokens_per_second": 11417.846887746848,
+      "new_tokens_per_second": 5708.923443873424,
+      "peak_allocated_gib": 16.797707080841064,
+      "step_seconds": [
+        0.35475153700008377,
+        0.38494839499981026,
+        0.3837969370006249,
+        0.36272173799989105,
+        0.3038544479995835,
+        0.34350782399997115,
+        0.388621306999994,
+        0.3520920829996612
+      ],
+      "sampled_depths": [
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24
+      ],
+      "profile": {
+        "profiled_step_ms": 438.717847,
+        "kernel_count": 21424,
+        "kernel_union_ms": 176.96819506835936,
+        "kernel_or_copy_union_ms": 254.48163110351564,
+        "aten_device_times_ms": {
+          "aten::copy_": 97.72268900000007,
+          "aten::mm": 71.96825799999891,
+          "aten::add_": 27.73129900000185,
+          "aten::mul": 11.401965000000837,
+          "aten::_flash_attention_backward": 8.260601000000111,
+          "aten::cat": 7.017024000000013,
+          "aten::fill_": 5.0895379999998385,
+          "aten::_flash_attention_forward": 5.017343000000128
+        }
+      }
+    },
+    "no-checkpoint-repeat": {
+      "median_step_seconds": 0.36150437049991524,
+      "processed_tokens_per_second": 11330.4300978042,
+      "new_tokens_per_second": 5665.2150489021,
+      "peak_allocated_gib": 17.77800226211548,
+      "step_seconds": [
+        0.36462907399982214,
+        0.3791092530000242,
+        0.3945678690006389,
+        0.35837966700000834,
+        0.3119083680003314,
+        0.3519318310000017,
+        0.38272033500015823,
+        0.3460173240000586
+      ],
+      "sampled_depths": [
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24
+      ],
+      "routed_assignments_per_step": [
+        475008,
+        442992,
+        532728,
+        470752,
+        411952,
+        434696,
+        468680,
+        395824
+      ],
+      "expected_depths": [
+        11.027891159057617,
+        10.395807266235352,
+        12.420961380004883,
+        11.086047172546387,
+        9.583221435546875,
+        10.111394882202148,
+        10.824488639831543,
+        9.221986770629883
+      ],
+      "profile": {
+        "profiled_step_ms": 441.771568,
+        "kernel_count": 22329,
+        "kernel_union_ms": 182.94792919921875,
+        "kernel_or_copy_union_ms": 258.34759033203125,
+        "aten_device_times_ms": {
+          "aten::copy_": 96.47879900000127,
+          "aten::mm": 74.38445399999956,
+          "aten::add_": 28.679642999999523,
+          "aten::mul": 11.701123999999137,
+          "aten::_flash_attention_backward": 8.61708199999988,
+          "aten::cat": 7.365891000000165,
+          "aten::_flash_attention_forward": 5.21593500000009,
+          "aten::fill_": 5.202081999999227,
+          "aten::_index_put_impl_": 4.700039000000252,
+          "aten::silu_backward": 2.1619869999997317,
+          "aten::_fused_adamw_": 2.0014070000000066,
+          "aten::sum": 1.717209000000747,
+          "aten::silu": 1.248529999999799,
+          "aten::sort": 0.8910730000000913,
+          "aten::add": 0.8169980000002409,
+          "aten::index": 0.8109790000001085,
+          "aten::_foreach_mul_": 0.5595520000000251,
+          "aten::mean": 0.5594829999999412,
+          "aten::div": 0.5156460000000971,
+          "aten::nonzero": 0.45152099999968776,
+          "aten::scatter_add_": 0.38284499999997207,
+          "aten::topk": 0.298691999999975,
+          "aten::sub": 0.2711049999997679,
+          "aten::_foreach_norm": 0.2704320000000298,
+          "aten::where": 0.2613149999999441
+        },
+        "cpu_events": [
+          {
+            "name": "measured_training_step",
+            "calls": 1,
+            "self_cpu_ms": 198.9320869999996
+          },
+          {
+            "name": "cudaMemcpyAsync",
+            "calls": 1601,
+            "self_cpu_ms": 99.434588
+          },
+          {
+            "name": "aten::copy_",
+            "calls": 3293,
+            "self_cpu_ms": 55.12690099999969
+          },
+          {
+            "name": "aten::mm",
+            "calls": 6010,
+            "self_cpu_ms": 33.87337699999784
+          },
+          {
+            "name": "cudaLaunchKernel",
+            "calls": 15634,
+            "self_cpu_ms": 30.849157999997463
+          },
+          {
+            "name": "cudaStreamSynchronize",
+            "calls": 824,
+            "self_cpu_ms": 28.763613000000376
+          },
+          {
+            "name": "aten::mul",
+            "calls": 3869,
+            "self_cpu_ms": 11.352230999998483
+          },
+          {
+            "name": "cuLaunchKernel",
+            "calls": 5583,
+            "self_cpu_ms": 9.44017500000096
+          }
+        ],
+        "expert_shaped_matmul_count": 3714,
+        "expert_shaped_matmul_fraction_below_128_rows": 0.3408723747980614,
+        "round_rows_to_128_work_multiplier": 1.1076324464539837
+      }
+    },
+    "padded": {
+      "median_step_seconds": 0.5548362004997216,
+      "processed_tokens_per_second": 7382.358967044464,
+      "new_tokens_per_second": 3691.179483522232,
+      "peak_allocated_gib": 6.58425235748291,
+      "step_seconds": [
+        0.5542712819997178,
+        0.5554011189997254,
+        0.5903744860006555,
+        0.5800687009996182,
+        0.4971668680000221,
+        0.5159992529997908,
+        0.5936518879998403,
+        0.4777204840002014
+      ],
+      "sampled_depths": [
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24
+      ],
+      "profile": {
+        "profiled_step_ms": 619.114118,
+        "kernel_count": 10897,
+        "kernel_union_ms": 393.82111572265626,
+        "kernel_or_copy_union_ms": 472.5349755859375,
+        "aten_device_times_ms": {
+          "aten::bmm": 227.23664699999918,
+          "aten::copy_": 107.00782899999821,
+          "aten::mul": 47.050144999999155,
+          "aten::add_": 19.60442199999798,
+          "aten::silu": 13.638295999999947,
+          "aten::silu_backward": 10.378456999999937,
+          "aten::_flash_attention_backward": 8.339293999999645,
+          "aten::mm": 8.241599999999536,
+          "aten::_index_put_impl_": 7.053891000000702
+        }
+      }
+    },
+    "sampled": {
+      "median_step_seconds": 0.3261818315004348,
+      "processed_tokens_per_second": 12557.413088149087,
+      "new_tokens_per_second": 6278.706544074544,
+      "peak_allocated_gib": 4.714550018310547,
+      "step_seconds": [
+        0.45547416699992027,
+        0.31856031300048926,
+        0.26914969999961613,
+        0.3338033500003803,
+        0.33694828399984544,
+        0.26845773100012593,
+        0.4032886300001337,
+        0.273568420000629
+      ],
+      "sampled_depths": [
+        20,
+        11,
+        8,
+        16,
+        18,
+        9,
+        13,
+        8
+      ],
+      "telemetry": {
+        "samples": 27,
+        "power_w": 262.73,
+        "sm_clock_mhz": 2955.0,
+        "temperature_c": 50.0,
+        "gpu_busy_percent": 49.0,
+        "memory_used_mib": 6114.0,
+        "note": "nvidia-smi observations during unprofiled timing; GPU busy is not SM/Tensor Core occupancy."
+      }
+    }
+  },
+  "findings": [
+    "Two fixed-24 exact BF16 runs: 0.4125 and 0.4158 s/update; peak 4.97-4.98 GiB.",
+    "Disabling expert checkpointing: 0.3587 and 0.3615 s/update, approximately 15% higher observed throughput; peak 16.80-17.78 GiB. This is a measured option, not a changed default.",
+    "Padded dispatch: 0.5548 s/update, slower despite fewer kernel launches. Grouped ragged GEMM is a different proposal, not what this padded path measures.",
+    "Sampled-depth baseline: median 0.3262 s/update, 12.56k processed or 6.28k new tokens/s. Depth varied; do not compare directly with fixed-24 to claim an optimization gain.",
+    "Representative exact repeat trace: 24,832 kernels and 7,495 aten::mm calls. Significant copying, Python dispatch and host synchronization accompany GEMM.",
+    "In that trace approximately 30% of expert-shaped matrix multiplications have fewer than 128 rows. Padding each independently to 128 would add about 10.3% matmul row work in aggregate; quantization/launch overhead remains additional."
+  ],
+  "quartet_ii_review": {
+    "revision": "5f2a47e8f464b17ef4b1cac78db8d14edd1f3f7d",
+    "supported_hardware": "README explicitly supplies RTX 5090 sm120a kernels; CMake defaults include 100a,120a,103a.",
+    "tested_stack_claim": "CUDA 13.0, PyTorch 2.10, Python 3.11; our newer stack has not been tested with it.",
+    "backend": "Current linear.py uses FlashInfer mm_fp4 with cuDNN; CUDA quantization kernels and a custom backward.",
+    "shape_requirement": "quant_fp4 asserts both dimensions divisible by 128. Expert widths 512/2048 satisfy this; routed token counts need handling.",
+    "parameter_integration": "Paged experts use slab parameters and functional matmuls, so replacing nn.Linear modules alone misses the main expert workload.",
+    "causality_risk": "Source review: default input_amax=abs_max(flat_input) spans token rows. Future activations can therefore affect prefix quantization scales. A causal/static calibration policy and prefix/chunk tests are prerequisites; this has not been tested with the Quartet kernels locally.",
+    "quality": "Paper studies forward and backward NVFP4 with improved gradient estimation; it does not validate this recurrent, hard-routed/halting model.",
+    "sources": {
+      "readme": "https://github.com/IST-DASLab/Quartet-II/blob/5f2a47e8f464b17ef4b1cac78db8d14edd1f3f7d/README.md",
+      "build": "https://github.com/IST-DASLab/Quartet-II/blob/5f2a47e8f464b17ef4b1cac78db8d14edd1f3f7d/kernels/CMakeLists.txt",
+      "linear": "https://github.com/IST-DASLab/Quartet-II/blob/5f2a47e8f464b17ef4b1cac78db8d14edd1f3f7d/kernels/python/quartet2/linear.py",
+      "quant": "https://github.com/IST-DASLab/Quartet-II/blob/5f2a47e8f464b17ef4b1cac78db8d14edd1f3f7d/kernels/python/quartet2/quant.py",
+      "paper": "https://arxiv.org/abs/2601.22813"
+    }
+  },
+  "recommendation": [
+    "Optimize BF16 host/device transfers, synchronization and expert dispatch based on this profile; evaluate checkpointing as a configurable per-workload choice.",
+    "Microbenchmark FP8 and Quartet II NVFP4 forward+backward on observed expert shapes, including quantization, padding and launch overhead. Generic SM120/a/f flags alone are not an optimization.",
+    "Retain FP32 master weights/optimizer state and higher precision for routing, halting, norms and losses; test selective lower precision in expert GEMMs.",
+    "Require causal scaling, unchanged prefix behavior, checkpoint/optimizer ownership checks, and matched-data/depth-schedule training comparisons scored with predictive CE. Judge wall time to equivalent quality, not peak FLOPS alone."
+  ],
+  "hardware_sources": {
+    "targets": "https://docs.nvidia.com/cuda/archive/13.1.1/cuda-programming-guide/05-appendices/compute-capabilities.html",
+    "precision_support": "https://nvidia.github.io/TransformerEngine/support_matrix.html",
+    "peak_rates": "https://images.nvidia.com/aem-dam/Solutions/geforce/blackwell/nvidia-rtx-blackwell-gpu-architecture.pdf"
+  },
+  "limitations": [
+    "Few-step single-corpus, single-GPU measurement; cache-warmed runs, not sustained full-corpus throughput. Initial loading, growth/pruning, evaluation and checkpoint saves are excluded.",
+    "CUDA/BF16 nondeterminism and finite-precision dispatch differences produced different learning/routing trajectories between runs. Comparisons are observations, not a mathematical equivalence or convergence result.",
+    "Profiler overhead: exact instrumented step about 511 ms vs unprofiled median about 416 ms. Event times cannot be used as an exact unprofiled Amdahl bound.",
+    "Profiler operator/device sums may overlap; kernel union is separate from SM occupancy, memory bandwidth, or Tensor Core utilization. Nsight hardware counters were not measured.",
+    "FLOP accounting is incomplete; no model FLOP utilization percentage is claimed.",
+    "Quartet II was reviewed, not installed/built/benchmarked. No FP8/NVFP4 speed or convergence result for mini-AGI is claimed."
+  ],
+  "tests": {
+    "command": ".venv/bin/python -m unittest discover -s tests -v",
+    "result": "53 tests pass, no skips",
+    "new_tests": "Trace interval union, clipping and missing-CUDA detection",
+    "log": "test_cached_training_gradients_match_full_window (test_causality.CausalityTests.test_cached_training_gradients_match_full_window) ... ok\ntest_capacity_ledger_handles_changed_expert_count (test_causality.CausalityTests.test_capacity_ledger_handles_changed_expert_count) ... ok\ntest_capacity_limit_is_causal (test_causality.CausalityTests.test_capacity_limit_is_causal) ... ok\ntest_capacity_matches_independent_sequential_oracle (test_causality.CausalityTests.test_capacity_matches_independent_sequential_oracle) ... ok\ntest_chunked_and_tokenwise_predictions_agree (test_causality.CausalityTests.test_chunked_and_tokenwise_predictions_agree) ... ok\ntest_configured_24_step_ceiling_is_causal (test_causality.CausalityTests.test_configured_24_step_ceiling_is_causal) ... ok\ntest_cuda_bf16_predictions_and_backward (test_causality.CausalityTests.test_cuda_bf16_predictions_and_backward) ... ok\ntest_cuda_predictions_and_gradients_are_causal (test_causality.CausalityTests.test_cuda_predictions_and_gradients_are_causal) ... ok\ntest_each_sequence_in_a_batch_is_causal (test_causality.CausalityTests.test_each_sequence_in_a_batch_is_causal) ... ok\ntest_existing_checkpoint_shapes_load_without_migration (test_causality.CausalityTests.test_existing_checkpoint_shapes_load_without_migration) ... ok\ntest_existing_directory_checkpoint_loads_into_causal_paging (test_causality.CausalityTests.test_existing_directory_checkpoint_loads_into_causal_paging) ... ok\ntest_fixed_pool_replication_control_prepares_new_masks (test_causality.CausalityTests.test_fixed_pool_replication_control_prepares_new_masks) ... ok\ntest_fully_resident_pool_capacity_is_causal (test_causality.CausalityTests.test_fully_resident_pool_capacity_is_causal) ... ok\ntest_future_text_does_not_change_prefix (test_causality.CausalityTests.test_future_text_does_not_change_prefix) ... ok\ntest_mixed_adaptive_halting_is_causal (test_causality.CausalityTests.test_mixed_adaptive_halting_is_causal) ... ok\ntest_multiple_recurrent_sites_and_small_resident_pools (test_causality.CausalityTests.test_multiple_recurrent_sites_and_small_resident_pools) ... ok\ntest_new_text_resets_admission_and_cached_text_keeps_slots (test_causality.CausalityTests.test_new_text_resets_admission_and_cached_text_keeps_slots) ... ok\ntest_other_batch_sequences_do_not_change_predictions (test_causality.CausalityTests.test_other_batch_sequences_do_not_change_predictions) ... ok\ntest_padded_dispatch_and_checkpointing_are_causal (test_causality.CausalityTests.test_padded_dispatch_and_checkpointing_are_causal) ... ok\ntest_paged_optimizer_restores_incoming_experts_moments (test_causality.CausalityTests.test_paged_optimizer_restores_incoming_experts_moments) ... ok\ntest_prefix_gradient_does_not_depend_on_future_text (test_causality.CausalityTests.test_prefix_gradient_does_not_depend_on_future_text) ... ok\ntest_random_pages_do_not_depend_on_chunk_boundaries (test_causality.CausalityTests.test_random_pages_do_not_depend_on_chunk_boundaries) ... ok\ntest_stochastic_routing_is_causal_with_fixed_seed (test_causality.CausalityTests.test_stochastic_routing_is_causal_with_fixed_seed) ... ok\ntest_training_predictions_are_causal (test_causality.CausalityTests.test_training_predictions_are_causal) ... ok\ntest_checkpoint_metric_prevents_historical_score_comparison (test_evaluation.EvaluationTests.test_checkpoint_metric_prevents_historical_score_comparison) ... ok\ntest_controller_seeding_excludes_historical_objective (test_evaluation.EvaluationTests.test_controller_seeding_excludes_historical_objective) ... ok\ntest_cuda_bf16_predictive_ce_matches_generation (test_evaluation.EvaluationTests.test_cuda_bf16_predictive_ce_matches_generation) ... ok\ntest_file_boundaries_and_last_single_token_are_scored (test_evaluation.EvaluationTests.test_file_boundaries_and_last_single_token_are_scored) ... ok\ntest_file_reader_uses_generation_predictions (test_evaluation.EvaluationTests.test_file_reader_uses_generation_predictions) ... ok\ntest_folder_weights_by_predictions_and_preserves_mode (test_evaluation.EvaluationTests.test_folder_weights_by_predictions_and_preserves_mode) ... ok\ntest_full_chunk_and_token_scoring_match (test_evaluation.EvaluationTests.test_full_chunk_and_token_scoring_match) ... ok\ntest_invalid_reader_bounds_and_empty_evaluation_fail_clearly (test_evaluation.EvaluationTests.test_invalid_reader_bounds_and_empty_evaluation_fail_clearly) ... ok\ntest_manual_training_objective_is_preserved (test_evaluation.EvaluationTests.test_manual_training_objective_is_preserved) ... ok\ntest_metric_migration_preserves_lr_scale_but_discards_fits (test_evaluation.EvaluationTests.test_metric_migration_preserves_lr_scale_but_discards_fits) ... ok\ntest_packed_evaluator_scores_predictive_ce (test_evaluation.EvaluationTests.test_packed_evaluator_scores_predictive_ce) ... ok\ntest_plots_parse_new_scores_and_keep_metric_eras_separate (test_evaluation.EvaluationTests.test_plots_parse_new_scores_and_keep_metric_eras_separate) ... ok\ntest_prediction_matches_generation_with_guards_disabled (test_evaluation.EvaluationTests.test_prediction_matches_generation_with_guards_disabled) ... ok\ntest_predictive_scoring_ignores_training_penalties_and_sampling (test_evaluation.EvaluationTests.test_predictive_scoring_ignores_training_penalties_and_sampling) ... ok\ntest_window_error_is_invariant_to_chunk_partition (test_evaluation.EvaluationTests.test_window_error_is_invariant_to_chunk_partition) ... ok\ntest_accepted_unicode_text_reaches_tokenization (test_ingest.IngestTests.test_accepted_unicode_text_reaches_tokenization) ... ok\ntest_actual_truncated_and_interior_invalid_utf8_are_rejected (test_ingest.IngestTests.test_actual_truncated_and_interior_invalid_utf8_are_rejected) ... ok\ntest_deleted_files_pruned_without_evicting_other_roots (test_ingest.IngestTests.test_deleted_files_pruned_without_evicting_other_roots) ... ok\ntest_failed_cache_save_keeps_scan_result_and_removes_temporary_file (test_ingest.IngestTests.test_failed_cache_save_keeps_scan_result_and_removes_temporary_file) ... ok\ntest_old_and_malformed_caches_are_resurveyed (test_ingest.IngestTests.test_old_and_malformed_caches_are_resurveyed) ... ok\ntest_overlapping_roots_do_not_duplicate_files (test_ingest.IngestTests.test_overlapping_roots_do_not_duplicate_files) ... ok\ntest_rejection_reasons_and_ascii_boundary (test_ingest.IngestTests.test_rejection_reasons_and_ascii_boundary) ... ok\ntest_same_name_same_size_changes_are_rechecked_both_directions (test_ingest.IngestTests.test_same_name_same_size_changes_are_rechecked_both_directions) ... ok\ntest_skip_reporting_can_be_silenced (test_ingest.IngestTests.test_skip_reporting_can_be_silenced) ... ok\ntest_unchanged_verdicts_reused_from_memory_and_disk (test_ingest.IngestTests.test_unchanged_verdicts_reused_from_memory_and_disk) ... ok\ntest_utf8_characters_cut_by_probe_are_kept (test_ingest.IngestTests.test_utf8_characters_cut_by_probe_are_kept) ... ok\ntest_missing_cuda_capture_is_not_reported_as_idle_gpu (test_training_profile.TrainingProfileTests.test_missing_cuda_capture_is_not_reported_as_idle_gpu) ... ok\ntest_overlapping_and_nested_intervals_count_once (test_training_profile.TrainingProfileTests.test_overlapping_and_nested_intervals_count_once) ... ok\ntest_trace_clips_to_step_and_separates_kernels_from_copies (test_training_profile.TrainingProfileTests.test_trace_clips_to_step_and_separates_kernels_from_copies) ... ok\n\n----------------------------------------------------------------------\nRan 53 tests in 2.598s\n\nOK\n"
+  },
+  "raw_artifacts": "/home/nir/ml-tools/mini-AGI/runs/performance/rtx5090",
+  "source_sha256": {
+    "replication/profile_training.py": "b9af11c217b1f620c83735a050bb04094e8ad0d830f099e38f46a1264618b9f2",
+    "tests/test_training_profile.py": "443df12ac49400dc64b1df115cd9391bd954e0c15500b1f36fe66c69d70c609f"
+  }
+}
