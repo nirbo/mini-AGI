@@ -697,6 +697,11 @@ class PooledMLP(nn.Module):
                 out.index_add_(0, t_sorted, gathered * w_sorted.unsqueeze(-1))
                 return out.view(B, T, D)
 
+        if torch.is_grad_enabled() and hasattr(p, "training_weights") and len(levels) == 1:
+            # Bind each use before checkpointing: recomputation receives the
+            # same immutable cast generation, even if a later forward pages
+            # more experts. Each use converts its gradient separately to FP32.
+            levels = [p.training_weights(dispatch_dtype(flat.device, flat.dtype))]
         flat_w = tuple(t for lv_ in levels for t in lv_)
         fn = (run_exact if len(levels) == 1
               and os.environ.get("MINAGI_DISPATCH", "exact").strip().lower() != "padded"

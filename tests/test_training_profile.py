@@ -3,12 +3,35 @@
 import json
 from pathlib import Path
 import tempfile
+from types import SimpleNamespace
 import unittest
 
-from replication.profile_training import trace_summary, union_duration
+import torch
+
+from replication.profile_training import trace_summary, training_state_digests, union_duration
 
 
 class TrainingProfileTests(unittest.TestCase):
+    def test_state_digests_distinguish_weights_gradients_and_moments(self):
+        model = torch.nn.Linear(2, 2)
+        model.pool = SimpleNamespace(slots=[1, 0], _f=lambda e: e + 100)
+        opt = torch.optim.AdamW(model.parameters())
+        model(torch.ones(1, 2)).sum().backward()
+        opt.step()
+        before = training_state_digests(model, opt)
+        self.assertEqual(before, training_state_digests(model, opt))
+        self.assertEqual(before["slot_expert_uids"], [101, 100])
+        model.weight.grad.add_(1)
+        after = training_state_digests(model, opt)
+        self.assertNotEqual(before["clipped_gradients"], after["clipped_gradients"])
+        self.assertEqual(before["parameters"], after["parameters"])
+        self.assertEqual(before["optimizer"], after["optimizer"])
+        with torch.no_grad():
+            model.weight.add_(1)
+        self.assertNotEqual(after["parameters"], training_state_digests(model, opt)["parameters"])
+        opt.state[model.weight]["exp_avg"].add_(1)
+        self.assertNotEqual(after["optimizer"], training_state_digests(model, opt)["optimizer"])
+
     def test_overlapping_and_nested_intervals_count_once(self):
         self.assertEqual(union_duration([]), 0)
         self.assertEqual(union_duration([(10, 20), (0, 15), (2, 3), (21, 25)]), 24)

@@ -372,7 +372,7 @@ its varying depth makes it unsuitable for a direct optimization comparison.
 These are cache-warmed short-run observations, excluding initial loading,
 evaluation, sampling and checkpoint saves. BF16 numerical differences also
 changed the learning/routing trajectories; this is not a convergence result.
-Training defaults remain unchanged.
+Those profiling runs used the uncached expert-weight path.
 
 ```bash
 .venv/bin/python replication/profile_training.py \
@@ -393,6 +393,39 @@ for a controlled experiment. Integration must handle variable expert row counts,
 paged slab parameters, and causal activation scaling: its default whole-matrix
 activation maximum can make quantization depend on future token rows. No FP8 or
 NVFP4 backend has been installed or enabled by this profiling work.
+
+#### BF16 expert-weight cache
+
+Paged training now reuses detached BF16 weight data across expert calls. Each
+use has its own gradient conversion to FP32, preserving cast-per-use gradient
+accumulation. FP32 master weights and Adam state are retained. Updates, paging,
+parameter replacement and device/dtype changes invalidate the cache; existing
+backward graphs retain their original cast generation. Checkpoint formats are
+unchanged. External in-place `.data` edits must call `pool.invalidate()`.
+
+All 62 tests pass, including exact CPU/CUDA BF16 output and raw-gradient
+comparisons for both dispatch paths, with checkpointing enabled and disabled.
+On the real checkpoint, six deterministic updates produced identical parameter,
+clipped-gradient and optimizer-state hashes with cache on/off, independently
+with and without expert checkpointing.
+
+Two counterbalanced runs per configuration, using the workload above and
+deterministic algorithms to keep learning/routing identical, measured:
+
+| Expert checkpointing | Cache off → on, seconds/update | Peak allocated VRAM, off → on |
+| --- | ---: | ---: |
+| Enabled | 0.460 → 0.453 | 5.11 → 5.26 GiB |
+| Disabled | 0.396 → 0.389 | 17.83 → 13.77 GiB |
+
+The observed throughput gains are modest (about 1.5–1.9%); the larger benefit
+is saving 4.06 GiB without expert checkpointing. Normal nondeterministic
+checkpointed runs overlapped in timing and do not establish a reliable speed
+gain. These short experiments do not establish convergence or sustained
+throughput. The cache is enabled by default; the profiler's `--no-weight-cache`
+restores the reference training path. Use `--deterministic --state-digests
+--warmup 1 --steps 5 --no-profile` for state comparisons, in separate runs from
+performance measurements. Detailed results, commands, hashes and limits are in
+[`replication/results/bf16_weight_cache_verification.json`](replication/results/bf16_weight_cache_verification.json).
 
 ## How growth and pruning work
 

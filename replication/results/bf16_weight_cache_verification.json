@@ -1,0 +1,1221 @@
+{
+  "implementation_commit": "649d1a2a6bdb54c4d8007ce93e5eeb9b7141e4ca",
+  "source_sha256": {
+    "minagi/paged.py": "8fe21cea98a3da441ce64a22dba8d70eeebed7c0a9340506480aa0a4d6eec642",
+    "minagi/pool.py": "ef77c67b6a919f89e7c023099346b05d6394ed4ac9dbc4a630cbfc28d129842e",
+    "replication/profile_training.py": "caf3541a7f9d185fc43308a11271f4de94c6542597aaac07148e0f73cef2f95b",
+    "tests/test_weight_cache.py": "3317c22a9af20670f6fc675d1054f241b1ec3da59dddd91ec57248e5f2c1de8e",
+    "tests/test_training_profile.py": "a60323347cd8f95ea3fcaee86c19425ec36e05eb4a16f5b844e39f730905fdec"
+  },
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": [
+      12,
+      0
+    ],
+    "torch": "2.14.1+cu130",
+    "cuda": "13.0",
+    "master_weight_dtype": "torch.float32",
+    "tf32_matmul_allowed": true
+  },
+  "system_changes": "None. Existing repository .venv only; no dependencies installed.",
+  "implementation": [
+    "PagedPool caches detached compute-dtype slabs; FP32 parameters, gradients and optimizer state remain unchanged.",
+    "Each dispatch uses an independent autograd edge converting its contribution to the master dtype before accumulation. Sharing a differentiable BF16 cast is explicitly rejected by an adversarial regression.",
+    "Cast generations are replaced rather than overwritten. Activation checkpoint inputs bind their original generation.",
+    "Optimizer hooks and slot loads invalidate. Parameter identities, storage pointers, versions, shape/stride/device/dtype and slot mapping guard reuse. Module moves release old storage; state_dict assignment/replacement is covered.",
+    "External unversioned in-place .data edits must call pool.invalidate(). Cache is runtime-only and does not change checkpoint formats.",
+    "FP32 compute bypasses caching. pool.cache_training_weights=False restores cast-per-use training for A/B tests; profiler exposes --no-weight-cache."
+  ],
+  "workload": {
+    "weights": "/mnt/fast/models/mini-AGI/undertrained/weights",
+    "manifest_sha256": "f0ade4a3127971b20edc35d58b1ae66241af914aecd3ca8e9c0a2939ef8a74f3",
+    "input_file": "/mnt/fast/models/mini-AGI/evaluation-data/TinyStoriesV2-GPT4-valid.txt",
+    "performance_input_ids_sha256": "873b856230f8ed487ba588757c9059971c0dfd04beb218bee9aa44068385012d",
+    "batch": 1,
+    "context": 4096,
+    "stride": 2048,
+    "depth": 24,
+    "resident": 32,
+    "experts": 397,
+    "optimizer": "Fresh fused AdamW, lr 1e-5, betas .9/.95, wd .1, clip norm 1.0. Read-only checkpoint, RAM/VRAM-only updates.",
+    "measurement": "Three warmups, eight timed updates per performance run. Independent processes in off/on/on/off order for each group. Deterministic groups require PyTorch deterministic algorithms and CUBLAS_WORKSPACE_CONFIG=:4096:8."
+  },
+  "correctness": {
+    "suite_command": ".venv/bin/python -m unittest discover -s tests -v",
+    "tests_passed": 62,
+    "tests_skipped": 0,
+    "test_log": "/tmp/minagi-weight-cache-tests.log",
+    "test_log_sha256": "e3dfeea92a31879c642ba2f5049b96717cbcf689089a66a1e9ba46a61ec26c07",
+    "coverage": "CPU/CUDA BF16 bit-exact outputs and all raw parameter gradients, exact/padded dispatch, checkpointing on/off, multi-site recurrence and chunked attention; causality, per-use FP32 accumulation, higher derivatives, cache lifecycle, paging and optimizer ownership via full suite.",
+    "real_checkpoint": {
+      "verify": {
+        "updates": 6,
+        "identical": {
+          "losses": true,
+          "gradient_norms": true,
+          "routed_assignments_per_step": true,
+          "expected_depths": true,
+          "sampled_depths": true,
+          "training_state_digests": true
+        },
+        "state_digests": [
+          {
+            "step": 0,
+            "parameters": "ecd77488b0650513c85db942965eabafd828f6d36fb173873100834999320885",
+            "clipped_gradients": "6b3c201b112ca78b7ea260d493b1c3e62cac202fc3d23ae903e30084aac4ee75",
+            "optimizer": "c1b3aff6322614f845d586a9c874903e9729adde768ab4a1a80e78ebe7fd08d5",
+            "slot_expert_uids": [
+              25,
+              515,
+              523,
+              568,
+              492,
+              510,
+              494,
+              507,
+              14,
+              663,
+              683,
+              379,
+              133,
+              641,
+              605,
+              590,
+              169,
+              678,
+              676,
+              800,
+              197,
+              693,
+              13,
+              733,
+              681,
+              719,
+              756,
+              9,
+              31,
+              53,
+              22,
+              16
+            ]
+          },
+          {
+            "step": 1,
+            "parameters": "593469a1e355ac24241eb0920ca6e594c0263956f05b683dd3feecc3329df11b",
+            "clipped_gradients": "76a0ff8fb633568dd8f661b66fe0fd3800cb5e0a3926f27cf514aa47a373e15b",
+            "optimizer": "ebce2a0ee29b0247786e5627ffe0951b94c8624e6fa6a5e97a7613fecb0b615e",
+            "slot_expert_uids": [
+              25,
+              35,
+              39,
+              24,
+              98,
+              43,
+              528,
+              651,
+              14,
+              58,
+              239,
+              794,
+              133,
+              789,
+              726,
+              608,
+              57,
+              8,
+              788,
+              785,
+              10,
+              19,
+              13,
+              108,
+              796,
+              805,
+              537,
+              9,
+              769,
+              791,
+              768,
+              16
+            ]
+          },
+          {
+            "step": 2,
+            "parameters": "f8f2ee3792d735b364c43d244383a16b4606975a01a18903c1445a60224daa9d",
+            "clipped_gradients": "d625c5d7a7c02224069eb229febacb5913cac60ae3ecf0cd7bcdb86b3c1c1386",
+            "optimizer": "af3d0db2675d90d8d126e5009133f79aa2ea6521df3e2a94e1c8be8d3630ebf2",
+            "slot_expert_uids": [
+              25,
+              678,
+              39,
+              492,
+              500,
+              43,
+              515,
+              541,
+              14,
+              58,
+              507,
+              510,
+              574,
+              527,
+              53,
+              22,
+              729,
+              575,
+              547,
+              785,
+              10,
+              45,
+              711,
+              798,
+              641,
+              687,
+              169,
+              9,
+              699,
+              706,
+              809,
+              643
+            ]
+          },
+          {
+            "step": 3,
+            "parameters": "b431968be8c7c3170c601b907fde46e5401db01468b1ade04e63de3b906c7676",
+            "clipped_gradients": "39fe4c7295bf3351ab74b7126643573de10af967459c7cb28e1791868732d9eb",
+            "optimizer": "a042514c7d421aef657c7c1a657eea905d67cc93c2a1d5c5a2ddef65fe707573",
+            "slot_expert_uids": [
+              25,
+              678,
+              39,
+              492,
+              500,
+              43,
+              515,
+              541,
+              14,
+              551,
+              507,
+              578,
+              590,
+              619,
+              53,
+              33,
+              34,
+              46,
+              108,
+              785,
+              57,
+              56,
+              493,
+              719,
+              769,
+              35,
+              814,
+              9,
+              805,
+              800,
+              809,
+              799
+            ]
+          },
+          {
+            "step": 4,
+            "parameters": "fe093bb9d6b16ae70f8677ba281a20e670f0fb3dd68c8eab5b7816da8df4fc4a",
+            "clipped_gradients": "133ba0d09d42475024095ce422436a0adfc623a5f43896515d7393e59a030374",
+            "optimizer": "8c035039796feb40568c4eadb11b24e0343b259928de4afb6ac1f7826ba7b8c4",
+            "slot_expert_uids": [
+              501,
+              678,
+              529,
+              519,
+              500,
+              510,
+              515,
+              722,
+              14,
+              784,
+              713,
+              751,
+              692,
+              619,
+              643,
+              663,
+              252,
+              675,
+              812,
+              517,
+              188,
+              197,
+              676,
+              756,
+              769,
+              35,
+              693,
+              24,
+              805,
+              800,
+              623,
+              652
+            ]
+          },
+          {
+            "step": 5,
+            "parameters": "9a25813e0efc35178d71f1cd8cc3d5c43599ff3646b62af70922a1811166e345",
+            "clipped_gradients": "e8f51454067f87080776e87ed1902b02d0978ebbb11f6edf6e26d101081ba23f",
+            "optimizer": "a44deb29cc968f6bc9207fad75994394f1298a4824220d3cdb313b34180ccfa9",
+            "slot_expert_uids": [
+              501,
+              678,
+              493,
+              549,
+              506,
+              586,
+              596,
+              722,
+              604,
+              546,
+              571,
+              682,
+              671,
+              796,
+              641,
+              663,
+              808,
+              57,
+              812,
+              517,
+              188,
+              33,
+              676,
+              742,
+              759,
+              799,
+              685,
+              790,
+              805,
+              800,
+              791,
+              652
+            ]
+          }
+        ],
+        "losses": [
+          0.611386775970459,
+          1.0678048133850098,
+          1.1127593517303467,
+          1.2397396564483643,
+          1.7219041585922241
+        ],
+        "unclipped_gradient_norms": [
+          3.301210880279541,
+          10.52754020690918,
+          6.725566387176514,
+          5.533644676208496,
+          10.790167808532715
+        ],
+        "note": "One warmup plus five subsequent updates; digests after every update. Loss/norm lists cover the five subsequent updates. Hashing occurs outside timing; these runs are not used for speed comparisons. The earlier checkpointed pair was run before the source commit; identical source is included in 649d1a2."
+      },
+      "verify-nc": {
+        "updates": 6,
+        "identical": {
+          "losses": true,
+          "gradient_norms": true,
+          "routed_assignments_per_step": true,
+          "expected_depths": true,
+          "sampled_depths": true,
+          "training_state_digests": true
+        },
+        "state_digests": [
+          {
+            "step": 0,
+            "parameters": "ecd77488b0650513c85db942965eabafd828f6d36fb173873100834999320885",
+            "clipped_gradients": "6b3c201b112ca78b7ea260d493b1c3e62cac202fc3d23ae903e30084aac4ee75",
+            "optimizer": "c1b3aff6322614f845d586a9c874903e9729adde768ab4a1a80e78ebe7fd08d5",
+            "slot_expert_uids": [
+              25,
+              515,
+              523,
+              568,
+              492,
+              510,
+              494,
+              507,
+              14,
+              663,
+              683,
+              379,
+              133,
+              641,
+              605,
+              590,
+              169,
+              678,
+              676,
+              800,
+              197,
+              693,
+              13,
+              733,
+              681,
+              719,
+              756,
+              9,
+              31,
+              53,
+              22,
+              16
+            ]
+          },
+          {
+            "step": 1,
+            "parameters": "593469a1e355ac24241eb0920ca6e594c0263956f05b683dd3feecc3329df11b",
+            "clipped_gradients": "76a0ff8fb633568dd8f661b66fe0fd3800cb5e0a3926f27cf514aa47a373e15b",
+            "optimizer": "ebce2a0ee29b0247786e5627ffe0951b94c8624e6fa6a5e97a7613fecb0b615e",
+            "slot_expert_uids": [
+              25,
+              35,
+              39,
+              24,
+              98,
+              43,
+              528,
+              651,
+              14,
+              58,
+              239,
+              794,
+              133,
+              789,
+              726,
+              608,
+              57,
+              8,
+              788,
+              785,
+              10,
+              19,
+              13,
+              108,
+              796,
+              805,
+              537,
+              9,
+              769,
+              791,
+              768,
+              16
+            ]
+          },
+          {
+            "step": 2,
+            "parameters": "f8f2ee3792d735b364c43d244383a16b4606975a01a18903c1445a60224daa9d",
+            "clipped_gradients": "d625c5d7a7c02224069eb229febacb5913cac60ae3ecf0cd7bcdb86b3c1c1386",
+            "optimizer": "af3d0db2675d90d8d126e5009133f79aa2ea6521df3e2a94e1c8be8d3630ebf2",
+            "slot_expert_uids": [
+              25,
+              678,
+              39,
+              492,
+              500,
+              43,
+              515,
+              541,
+              14,
+              58,
+              507,
+              510,
+              574,
+              527,
+              53,
+              22,
+              729,
+              575,
+              547,
+              785,
+              10,
+              45,
+              711,
+              798,
+              641,
+              687,
+              169,
+              9,
+              699,
+              706,
+              809,
+              643
+            ]
+          },
+          {
+            "step": 3,
+            "parameters": "b431968be8c7c3170c601b907fde46e5401db01468b1ade04e63de3b906c7676",
+            "clipped_gradients": "39fe4c7295bf3351ab74b7126643573de10af967459c7cb28e1791868732d9eb",
+            "optimizer": "a042514c7d421aef657c7c1a657eea905d67cc93c2a1d5c5a2ddef65fe707573",
+            "slot_expert_uids": [
+              25,
+              678,
+              39,
+              492,
+              500,
+              43,
+              515,
+              541,
+              14,
+              551,
+              507,
+              578,
+              590,
+              619,
+              53,
+              33,
+              34,
+              46,
+              108,
+              785,
+              57,
+              56,
+              493,
+              719,
+              769,
+              35,
+              814,
+              9,
+              805,
+              800,
+              809,
+              799
+            ]
+          },
+          {
+            "step": 4,
+            "parameters": "fe093bb9d6b16ae70f8677ba281a20e670f0fb3dd68c8eab5b7816da8df4fc4a",
+            "clipped_gradients": "133ba0d09d42475024095ce422436a0adfc623a5f43896515d7393e59a030374",
+            "optimizer": "8c035039796feb40568c4eadb11b24e0343b259928de4afb6ac1f7826ba7b8c4",
+            "slot_expert_uids": [
+              501,
+              678,
+              529,
+              519,
+              500,
+              510,
+              515,
+              722,
+              14,
+              784,
+              713,
+              751,
+              692,
+              619,
+              643,
+              663,
+              252,
+              675,
+              812,
+              517,
+              188,
+              197,
+              676,
+              756,
+              769,
+              35,
+              693,
+              24,
+              805,
+              800,
+              623,
+              652
+            ]
+          },
+          {
+            "step": 5,
+            "parameters": "9a25813e0efc35178d71f1cd8cc3d5c43599ff3646b62af70922a1811166e345",
+            "clipped_gradients": "e8f51454067f87080776e87ed1902b02d0978ebbb11f6edf6e26d101081ba23f",
+            "optimizer": "a44deb29cc968f6bc9207fad75994394f1298a4824220d3cdb313b34180ccfa9",
+            "slot_expert_uids": [
+              501,
+              678,
+              493,
+              549,
+              506,
+              586,
+              596,
+              722,
+              604,
+              546,
+              571,
+              682,
+              671,
+              796,
+              641,
+              663,
+              808,
+              57,
+              812,
+              517,
+              188,
+              33,
+              676,
+              742,
+              759,
+              799,
+              685,
+              790,
+              805,
+              800,
+              791,
+              652
+            ]
+          }
+        ],
+        "losses": [
+          0.611386775970459,
+          1.0678048133850098,
+          1.1127593517303467,
+          1.2397396564483643,
+          1.7219041585922241
+        ],
+        "unclipped_gradient_norms": [
+          3.301210880279541,
+          10.52754020690918,
+          6.725566387176514,
+          5.533644676208496,
+          10.790167808532715
+        ],
+        "note": "One warmup plus five subsequent updates; digests after every update. Loss/norm lists cover the five subsequent updates. Hashing occurs outside timing; these runs are not used for speed comparisons. The earlier checkpointed pair was run before the source commit; identical source is included in 649d1a2."
+      }
+    },
+    "cpu_bf16_prefix_diagnostic": [
+      {
+        "dispatch": "exact",
+        "cached_matches_uncached_per_shape": true,
+        "max_prefix_difference_off": 0.001953125,
+        "max_prefix_difference_on": 0.001953125
+      },
+      {
+        "dispatch": "padded",
+        "cached_matches_uncached_per_shape": true,
+        "max_prefix_difference_off": 0.001953125,
+        "max_prefix_difference_on": 0.001953125
+      }
+    ]
+  },
+  "performance": {
+    "cp": {
+      "deterministic": true,
+      "expert_checkpointing": true,
+      "off_median_of_run_medians_seconds": 0.4595739232499909,
+      "on_median_of_run_medians_seconds": 0.4528386852489348,
+      "observed_throughput_change_percent": 1.4873371512757583,
+      "observed_trajectory_equality": {
+        "losses": true,
+        "gradient_norms": true,
+        "routed_assignments_per_step": true,
+        "expected_depths": true,
+        "sampled_depths": true
+      },
+      "off_peak_gib": [
+        5.107180595397949,
+        5.107180595397949
+      ],
+      "on_peak_gib": [
+        5.2620344161987305,
+        5.2620344161987305
+      ]
+    },
+    "nc": {
+      "deterministic": true,
+      "expert_checkpointing": false,
+      "off_median_of_run_medians_seconds": 0.39629546425203444,
+      "on_median_of_run_medians_seconds": 0.38884299875098804,
+      "observed_throughput_change_percent": 1.9165744336363533,
+      "observed_trajectory_equality": {
+        "losses": true,
+        "gradient_norms": true,
+        "routed_assignments_per_step": true,
+        "expected_depths": true,
+        "sampled_depths": true
+      },
+      "off_peak_gib": [
+        17.828465461730957,
+        17.828465461730957
+      ],
+      "on_peak_gib": [
+        13.766096115112305,
+        13.766096115112305
+      ]
+    },
+    "default": {
+      "deterministic": false,
+      "expert_checkpointing": true,
+      "off_median_of_run_medians_seconds": 0.41817484850071196,
+      "on_median_of_run_medians_seconds": 0.41541540550133504,
+      "observed_throughput_change_percent": 0.6642611137751997,
+      "observed_trajectory_equality": {
+        "losses": false,
+        "gradient_norms": false,
+        "routed_assignments_per_step": false,
+        "expected_depths": false,
+        "sampled_depths": true
+      },
+      "off_peak_gib": [
+        4.98288106918335,
+        4.96727180480957
+      ],
+      "on_peak_gib": [
+        5.17056941986084,
+        5.2746262550354
+      ]
+    }
+  },
+  "runs": {
+    "cp-off-1": {
+      "git_commit": "649d1a2a6bdb54c4d8007ce93e5eeb9b7141e4ca",
+      "median_step_seconds": 0.45855378650230705,
+      "step_seconds": [
+        0.44470622800145065,
+        0.48029307900287677,
+        0.5524161689972971,
+        0.4392227959979209,
+        0.3829423040006077,
+        0.5090060739967157,
+        0.47240134500316344,
+        0.4209498470008839
+      ],
+      "new_tokens_per_second": 4466.215437062357,
+      "processed_tokens_per_second": 8932.430874124713,
+      "peak_allocated_gib": 5.107180595397949,
+      "losses": [
+        1.1127593517303467,
+        1.2397396564483643,
+        1.7219041585922241,
+        1.5733011960983276,
+        1.0892152786254883,
+        1.117598533630371,
+        1.5233080387115479,
+        1.0902411937713623
+      ],
+      "gradient_norms": [
+        6.725566387176514,
+        5.533644676208496,
+        10.790167808532715,
+        10.84326457977295,
+        6.331293106079102,
+        5.966655731201172,
+        6.387670040130615,
+        4.494584560394287
+      ],
+      "profile": {
+        "profiled_step_ms": 569.829421,
+        "kernel_count": 31331,
+        "kernel_union_ms": 241.3061018066406,
+        "kernel_or_copy_union_ms": 320.78641137695314,
+        "selected_operators": [
+          {
+            "name": "aten::copy_",
+            "calls": 3344,
+            "self_cpu_ms": 32.3503539999981,
+            "self_cuda_ms": 108.62985899999913,
+            "flops": 0
+          },
+          {
+            "name": "aten::mm",
+            "calls": 7759,
+            "self_cpu_ms": 60.12267999999414,
+            "self_cuda_ms": 98.30104799999971,
+            "flops": 12856654299136
+          },
+          {
+            "name": "aten::add_",
+            "calls": 2127,
+            "self_cpu_ms": 3.0718760000029004,
+            "self_cuda_ms": 26.6734869999996,
+            "flops": 0
+          }
+        ]
+      }
+    },
+    "cp-off-2": {
+      "git_commit": "649d1a2a6bdb54c4d8007ce93e5eeb9b7141e4ca",
+      "median_step_seconds": 0.4605940599976748,
+      "step_seconds": [
+        0.4453477259958163,
+        0.48278724100237014,
+        0.5618003769995994,
+        0.44072185000550235,
+        0.38426825900387485,
+        0.5113258860001224,
+        0.47584039399953326,
+        0.4217446639959235
+      ],
+      "new_tokens_per_second": 4446.431636591968,
+      "processed_tokens_per_second": 8892.863273183935,
+      "peak_allocated_gib": 5.107180595397949,
+      "losses": [
+        1.1127593517303467,
+        1.2397396564483643,
+        1.7219041585922241,
+        1.5733011960983276,
+        1.0892152786254883,
+        1.117598533630371,
+        1.5233080387115479,
+        1.0902411937713623
+      ],
+      "gradient_norms": [
+        6.725566387176514,
+        5.533644676208496,
+        10.790167808532715,
+        10.84326457977295,
+        6.331293106079102,
+        5.966655731201172,
+        6.387670040130615,
+        4.494584560394287
+      ]
+    },
+    "cp-on-1": {
+      "git_commit": "649d1a2a6bdb54c4d8007ce93e5eeb9b7141e4ca",
+      "median_step_seconds": 0.45403549149705213,
+      "step_seconds": [
+        0.4397861439938424,
+        0.47647675099869957,
+        0.5477372440000181,
+        0.43099122399871703,
+        0.3761500359978527,
+        0.5047282879968407,
+        0.46828483900026185,
+        0.4139307310033473
+      ],
+      "new_tokens_per_second": 4510.660594499575,
+      "processed_tokens_per_second": 9021.32118899915,
+      "peak_allocated_gib": 5.2620344161987305,
+      "losses": [
+        1.1127593517303467,
+        1.2397396564483643,
+        1.7219041585922241,
+        1.5733011960983276,
+        1.0892152786254883,
+        1.117598533630371,
+        1.5233080387115479,
+        1.0902411937713623
+      ],
+      "gradient_norms": [
+        6.725566387176514,
+        5.533644676208496,
+        10.790167808532715,
+        10.84326457977295,
+        6.331293106079102,
+        5.966655731201172,
+        6.387670040130615,
+        4.494584560394287
+      ],
+      "profile": {
+        "profiled_step_ms": 564.0334200000001,
+        "kernel_count": 31061,
+        "kernel_union_ms": 222.02537377929687,
+        "kernel_or_copy_union_ms": 302.25277294921875,
+        "selected_operators": [
+          {
+            "name": "aten::mm",
+            "calls": 7759,
+            "self_cpu_ms": 58.535217000000955,
+            "self_cuda_ms": 98.36055299999931,
+            "flops": 12856654299136
+          },
+          {
+            "name": "aten::copy_",
+            "calls": 3209,
+            "self_cpu_ms": 32.44542600000148,
+            "self_cuda_ms": 93.40667500000075,
+            "flops": 0
+          },
+          {
+            "name": "aten::add_",
+            "calls": 2127,
+            "self_cpu_ms": 3.0979419999986266,
+            "self_cuda_ms": 26.75987999999849,
+            "flops": 0
+          }
+        ]
+      }
+    },
+    "cp-on-2": {
+      "git_commit": "649d1a2a6bdb54c4d8007ce93e5eeb9b7141e4ca",
+      "median_step_seconds": 0.4516418790008174,
+      "step_seconds": [
+        0.4396672139992006,
+        0.47535998500097776,
+        0.5427648510012659,
+        0.4318569809984183,
+        0.37635216499620583,
+        0.5022671059996355,
+        0.46361654400243424,
+        0.4147936570007005
+      ],
+      "new_tokens_per_second": 4534.566202166326,
+      "processed_tokens_per_second": 9069.132404332651,
+      "peak_allocated_gib": 5.2620344161987305,
+      "losses": [
+        1.1127593517303467,
+        1.2397396564483643,
+        1.7219041585922241,
+        1.5733011960983276,
+        1.0892152786254883,
+        1.117598533630371,
+        1.5233080387115479,
+        1.0902411937713623
+      ],
+      "gradient_norms": [
+        6.725566387176514,
+        5.533644676208496,
+        10.790167808532715,
+        10.84326457977295,
+        6.331293106079102,
+        5.966655731201172,
+        6.387670040130615,
+        4.494584560394287
+      ]
+    },
+    "nc-off-1": {
+      "git_commit": "649d1a2a6bdb54c4d8007ce93e5eeb9b7141e4ca",
+      "median_step_seconds": 0.39364120800382807,
+      "step_seconds": [
+        0.39828481200675014,
+        0.4334656150022056,
+        0.43001509700116003,
+        0.3880502169995452,
+        0.34619956600363366,
+        0.388997604000906,
+        0.42426226600218797,
+        0.37925420599640347
+      ],
+      "new_tokens_per_second": 5202.707334390874,
+      "processed_tokens_per_second": 10405.414668781748,
+      "peak_allocated_gib": 17.828465461730957,
+      "losses": [
+        1.1127593517303467,
+        1.2397396564483643,
+        1.7219041585922241,
+        1.5733011960983276,
+        1.0892152786254883,
+        1.117598533630371,
+        1.5233080387115479,
+        1.0902411937713623
+      ],
+      "gradient_norms": [
+        6.725566387176514,
+        5.533644676208496,
+        10.790167808532715,
+        10.84326457977295,
+        6.331293106079102,
+        5.966655731201172,
+        6.387670040130615,
+        4.494584560394287
+      ]
+    },
+    "nc-off-2": {
+      "git_commit": "649d1a2a6bdb54c4d8007ce93e5eeb9b7141e4ca",
+      "median_step_seconds": 0.3989497205002408,
+      "step_seconds": [
+        0.4065923349990044,
+        0.4359896169989952,
+        0.44174329800443957,
+        0.38944899199850624,
+        0.3494343350030249,
+        0.3913071060014772,
+        0.43054751500312705,
+        0.38131103899650043
+      ],
+      "new_tokens_per_second": 5133.478969309777,
+      "processed_tokens_per_second": 10266.957938619555,
+      "peak_allocated_gib": 17.828465461730957,
+      "losses": [
+        1.1127593517303467,
+        1.2397396564483643,
+        1.7219041585922241,
+        1.5733011960983276,
+        1.0892152786254883,
+        1.117598533630371,
+        1.5233080387115479,
+        1.0902411937713623
+      ],
+      "gradient_norms": [
+        6.725566387176514,
+        5.533644676208496,
+        10.790167808532715,
+        10.84326457977295,
+        6.331293106079102,
+        5.966655731201172,
+        6.387670040130615,
+        4.494584560394287
+      ]
+    },
+    "nc-on-1": {
+      "git_commit": "649d1a2a6bdb54c4d8007ce93e5eeb9b7141e4ca",
+      "median_step_seconds": 0.38784538699837867,
+      "step_seconds": [
+        0.39246816100057913,
+        0.427475444994343,
+        0.4254096220029169,
+        0.38261476400657557,
+        0.34316023599967593,
+        0.3832226129961782,
+        0.4192948619966046,
+        0.3739417629985837
+      ],
+      "new_tokens_per_second": 5280.454708640279,
+      "processed_tokens_per_second": 10560.909417280558,
+      "peak_allocated_gib": 13.766096115112305,
+      "losses": [
+        1.1127593517303467,
+        1.2397396564483643,
+        1.7219041585922241,
+        1.5733011960983276,
+        1.0892152786254883,
+        1.117598533630371,
+        1.5233080387115479,
+        1.0902411937713623
+      ],
+      "gradient_norms": [
+        6.725566387176514,
+        5.533644676208496,
+        10.790167808532715,
+        10.84326457977295,
+        6.331293106079102,
+        5.966655731201172,
+        6.387670040130615,
+        4.494584560394287
+      ]
+    },
+    "nc-on-2": {
+      "git_commit": "649d1a2a6bdb54c4d8007ce93e5eeb9b7141e4ca",
+      "median_step_seconds": 0.3898406105035974,
+      "step_seconds": [
+        0.3938218870025594,
+        0.42878585099970223,
+        0.4252451630018186,
+        0.38585933400463546,
+        0.3446671810015687,
+        0.38382395999360597,
+        0.42246120200434234,
+        0.3766530050052097
+      ],
+      "new_tokens_per_second": 5253.429080552656,
+      "processed_tokens_per_second": 10506.858161105312,
+      "peak_allocated_gib": 13.766096115112305,
+      "losses": [
+        1.1127593517303467,
+        1.2397396564483643,
+        1.7219041585922241,
+        1.5733011960983276,
+        1.0892152786254883,
+        1.117598533630371,
+        1.5233080387115479,
+        1.0902411937713623
+      ],
+      "gradient_norms": [
+        6.725566387176514,
+        5.533644676208496,
+        10.790167808532715,
+        10.84326457977295,
+        6.331293106079102,
+        5.966655731201172,
+        6.387670040130615,
+        4.494584560394287
+      ]
+    },
+    "default-off-1": {
+      "git_commit": "649d1a2a6bdb54c4d8007ce93e5eeb9b7141e4ca",
+      "median_step_seconds": 0.41396725500089815,
+      "step_seconds": [
+        0.41180986700055655,
+        0.43572992800181964,
+        0.5094455220023519,
+        0.41612464300123975,
+        0.3328532000014093,
+        0.39509611299581593,
+        0.494885569998587,
+        0.3812806389978505
+      ],
+      "new_tokens_per_second": 4947.251202261292,
+      "processed_tokens_per_second": 9894.502404522584,
+      "peak_allocated_gib": 4.98288106918335,
+      "losses": [
+        1.113078236579895,
+        1.2419620752334595,
+        1.5284931659698486,
+        1.5733381509780884,
+        1.007158875465393,
+        1.111885666847229,
+        1.5203174352645874,
+        1.0942643880844116
+      ],
+      "gradient_norms": [
+        6.854938507080078,
+        5.637178421020508,
+        6.922847270965576,
+        10.33811092376709,
+        5.034136772155762,
+        6.874248504638672,
+        6.107442378997803,
+        4.346484661102295
+      ]
+    },
+    "default-off-2": {
+      "git_commit": "649d1a2a6bdb54c4d8007ce93e5eeb9b7141e4ca",
+      "median_step_seconds": 0.42238244200052577,
+      "step_seconds": [
+        0.40802289999555796,
+        0.4369353340007365,
+        0.5062663619974046,
+        0.4124017249996541,
+        0.3381080530016334,
+        0.457130306000181,
+        0.43236315900139743,
+        0.3746714509979938
+      ],
+      "new_tokens_per_second": 4848.6863949649,
+      "processed_tokens_per_second": 9697.3727899298,
+      "peak_allocated_gib": 4.96727180480957,
+      "losses": [
+        1.1110084056854248,
+        1.1802068948745728,
+        1.5216829776763916,
+        1.564454197883606,
+        1.0050296783447266,
+        1.1107591390609741,
+        1.52262282371521,
+        1.0948280096054077
+      ],
+      "gradient_norms": [
+        6.506475448608398,
+        5.7293853759765625,
+        6.704532623291016,
+        9.354023933410645,
+        4.8969550132751465,
+        5.797321796417236,
+        6.24984884262085,
+        4.4348344802856445
+      ]
+    },
+    "default-on-1": {
+      "git_commit": "649d1a2a6bdb54c4d8007ce93e5eeb9b7141e4ca",
+      "median_step_seconds": 0.41427703450244735,
+      "step_seconds": [
+        0.4060807170026237,
+        0.4284652520000236,
+        0.422473352002271,
+        0.4668924439974944,
+        0.3362924590037437,
+        0.3897859599965159,
+        0.48257773100340273,
+        0.37942415599536616
+      ],
+      "new_tokens_per_second": 4943.551849210462,
+      "processed_tokens_per_second": 9887.103698420924,
+      "peak_allocated_gib": 5.17056941986084,
+      "losses": [
+        1.1130108833312988,
+        1.2428052425384521,
+        1.5223321914672852,
+        1.570478081703186,
+        0.9881287813186646,
+        1.1080738306045532,
+        1.518387794494629,
+        1.0891196727752686
+      ],
+      "gradient_norms": [
+        6.2634596824646,
+        5.614267349243164,
+        6.728978157043457,
+        10.399377822875977,
+        4.177813529968262,
+        5.619623184204102,
+        7.698609352111816,
+        4.500767230987549
+      ]
+    },
+    "default-on-2": {
+      "git_commit": "649d1a2a6bdb54c4d8007ce93e5eeb9b7141e4ca",
+      "median_step_seconds": 0.41655377650022274,
+      "step_seconds": [
+        0.4087608780027949,
+        0.4344517619974795,
+        0.5044967290014029,
+        0.3942546360049164,
+        0.3383437619995675,
+        0.4635930440053926,
+        0.42434667499765055,
+        0.38111705900519155
+      ],
+      "new_tokens_per_second": 4916.532067496224,
+      "processed_tokens_per_second": 9833.064134992448,
+      "peak_allocated_gib": 5.2746262550354,
+      "losses": [
+        1.1157704591751099,
+        1.2429718971252441,
+        1.727033019065857,
+        1.5772591829299927,
+        1.0125418901443481,
+        1.1220309734344482,
+        1.5248416662216187,
+        1.0942463874816895
+      ],
+      "gradient_norms": [
+        6.5466389656066895,
+        5.589366912841797,
+        10.945980072021484,
+        11.163983345031738,
+        7.054227828979492,
+        6.793278217315674,
+        6.395177841186523,
+        4.410815238952637
+      ]
+    }
+  },
+  "reproduce": [
+    ".venv/bin/python -m unittest discover -s tests -v",
+    ".venv/bin/python replication/profile_training.py --weights /mnt/fast/models/mini-AGI/undertrained/weights --text /mnt/fast/models/mini-AGI/evaluation-data/TinyStoriesV2-GPT4-valid.txt --out runs/performance/profile.json --deterministic",
+    "Append --no-weight-cache for uncached control; --no-checkpoint for no expert checkpointing; --no-profile to skip the separate instrumented trace. Omit --deterministic for normal training execution.",
+    "For state equivalence use --deterministic --state-digests --warmup 1 --steps 5 --no-profile, with cache on/off and checkpointing on/off. Compare training_state_digests exactly; do not use these run timings as performance evidence."
+  ],
+  "raw_artifacts": {
+    "directory": "/home/nir/ml-tools/mini-AGI/runs/performance/rtx5090/weight-cache",
+    "sha256": {
+      "cp-off-1.json": "f8104e12b374778481b0345107b5f62dbe7220d2d53887a1aef0b66309fa7809",
+      "cp-off-1.trace.json": "3951dbdd161ef55e2d1b335409f3e5b38d892a41cca0e3f056e844577dd72d0f",
+      "cp-off-2.json": "beb77052616c50a61b26bfa8363228825887142f3792931e7c991034cb2caafe",
+      "cp-on-1.json": "62a0d16ac386e7bff83fb43bcb30dc741fb09da24e1b6c7d1169f602d571ff37",
+      "cp-on-1.trace.json": "2a2151ac433f7cd491e5fa1448a9b9f01c2321d5456c29d782b577c317575a57",
+      "cp-on-2.json": "bcea303c6e2b762b684f31c5b4d0341c8a80907b3dc535abccccb216dc3f744c",
+      "default-off-1.json": "80d8ec704af62da62e2364b08350daceb77cb2882271d82e28a6ba1387343f97",
+      "default-off-2.json": "369fd24b8391b2463a50d1c682a7b1e9cf09ed6731d5dbb348b7ad96d4eceb6e",
+      "default-on-1.json": "07bae76ceb1a95b9fd6a7a1914a23c15d0c3d3043292925ee8f899a574cc0180",
+      "default-on-2.json": "fedca7fc70188993c28b25a0b6b395f14a308a7664c8dbb1ffacbcf253bb2c61",
+      "nc-off-1.json": "500aaf7490636609099b57dd1d71191ed00f7ab0a7f4e16787e8487cea4c219a",
+      "nc-off-2.json": "606c6de719b3a8bc47492b122f5b926b6e8a3d99e043db89bf6b1c5159d3bcc9",
+      "nc-on-1.json": "207e42bfc7fda704aba5e095edd834d0b6b40236858ddd5369de85c2198fa998",
+      "nc-on-2.json": "08278298b69987f5e80fbcb1177888e4000eb0138685da52ec3b6d361fe051a8",
+      "verify-nc-off.json": "716de60dc56f382c49dc36362510fe5e7cbaab4b3e235288222952a1c7d29668",
+      "verify-nc-on.json": "e42263702fd03622d9657e814812f1a8da511f651d03de586cffd0e09b89ff1e",
+      "verify-off.json": "b927ba2a1218c4e643e904eab9201f4eeb672ef956e51402a43970a858891315",
+      "verify-on.json": "f0bd75185c80446f2c831a6b4af28ccaf6eb5c6324209d8d316f3bee6b5f6091",
+      "cpu_bf16_prefix_diagnostic.json": "fe26e48accacbdd806556c385f01cf288653b025211c2383f98ae7eb7ebe9cb0"
+    }
+  },
+  "conclusions": [
+    "Six deterministic real-checkpoint updates match bit-for-bit with cache on/off, independently with expert checkpointing enabled and disabled. Small full-model tests also compare unclipped gradients exactly.",
+    "Controlled median throughput gains are modest: about 1.5% checkpointed, 1.9% without expert checkpointing. These are short-run observations, not guaranteed speedups.",
+    "Normal nondeterministic checkpointed runs overlap in timing and do not establish a reliable speed improvement. Their learning trajectories also differ; use deterministic pairs for controlled comparison.",
+    "Without expert checkpointing peak allocated memory drops by 4.062 GiB (17.828 to 13.766). Checkpointed deterministic peak increases by 0.155 GiB (5.107 to 5.262).",
+    "The matched profiled step removes 135 copy_ calls and reduces total copy_ GPU time from 108.63 to 93.41 ms, with identical mm call counts. Instrumented time is not unprofiled throughput or GPU occupancy."
+  ],
+  "limits": [
+    "Finite tests plus local cast-derivative reasoning support equivalence for supported dispatch paths; this is not a universal proof of PyTorch/backend correctness.",
+    "No convergence, general capability or long-duration throughput claim. Data is performance input only; no trained checkpoint saved.",
+    "Only this RTX 5090/PyTorch/CUDA stack measured. No SM120 custom kernels, BF16 masters, FP8 or NVFP4 introduced.",
+    "No expert eviction between a text forward and its backward is introduced or supported. Existing paging/optimizer ownership constraints still apply.",
+    "Peak memory excludes initial checkpoint load and includes warmup. New tokens/s uses stride; processed tokens/s uses full context and is twice as large.",
+    "Forced CPU BF16 prefix comparisons across different chunk shapes differ by up to 0.001953125 in both cached and uncached paths; outputs match bit-for-bit per shape. Strict FP32 and CUDA BF16 causal regressions pass. The CPU diagnostic does not establish shape-invariant BF16 numerics."
+  ]
+}

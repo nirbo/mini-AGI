@@ -61,6 +61,25 @@ def trace_summary(path):
             "caution": "Instrumented timeline; profiler can increase host gaps. Union time is not SM occupancy or Tensor Core utilization."}
 
 
+def training_state_digests(model, optimizer):
+    """Exact A/B evidence; call outside timing, after an update and clipping."""
+    hashes = {key: hashlib.sha256() for key in ("parameters", "clipped_gradients", "optimizer")}
+
+    def add(group, name, tensor):
+        h = hashes[group]
+        h.update(json.dumps([name, str(tensor.dtype), list(tensor.shape)]).encode())
+        h.update(tensor.detach().reshape(-1).contiguous().view(torch.uint8).cpu().numpy().tobytes())
+
+    for name, param in model.named_parameters():
+        add("parameters", name, param)
+        if param.grad is not None:
+            add("clipped_gradients", name, param.grad)
+        for key, value in sorted(optimizer.state.get(param, {}).items()):
+            add("optimizer", f"{name}/{key}", torch.as_tensor(value))
+    return {**{key: h.hexdigest() for key, h in hashes.items()},
+            "slot_expert_uids": [model.pool._f(e) if e >= 0 else -1 for e in model.pool.slots]}
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--weights", type=Path, required=True)
@@ -75,17 +94,27 @@ def main():
     ap.add_argument("--precision", choices=("bf16", "fp32"), default="bf16")
     ap.add_argument("--dispatch", choices=("exact", "padded"), default="exact")
     ap.add_argument("--no-checkpoint", action="store_true")
+    ap.add_argument("--no-weight-cache", action="store_true",
+                    help="cast expert weights on every use (reference path)")
     ap.add_argument("--no-profile", action="store_true")
+    ap.add_argument("--deterministic", action="store_true",
+                    help="require deterministic PyTorch algorithms, including cuBLAS")
+    ap.add_argument("--state-digests", action="store_true",
+                    help="hash parameters, clipped gradients and Adam state after every update (outside timing)")
     args = ap.parse_args()
     if min(args.context, args.stride, args.depth, args.steps, args.warmup) < 1:
         ap.error("context, stride, depth, steps and warmup must be positive")
     if not torch.cuda.is_available():
         ap.error("CUDA is required")
     os.environ["MINAGI_DISPATCH"] = args.dispatch
+    if args.deterministic:
+        os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
+        torch.use_deterministic_algorithms(True)
     torch.set_num_threads(4)
     torch.manual_seed(42)
     set_compute_dtype(args.precision)
     model, _ = load_any(str(args.weights), torch.device("cuda"), read_only=True)
+    model.pool.cache_training_weights = not args.no_weight_cache
     if args.context > model.cfg.block or args.depth > model.cfg.max_steps:
         ap.error("context/depth may not exceed the checkpoint ceilings")
     model.cfg.max_steps = args.depth
@@ -128,7 +157,7 @@ def main():
         opt.step()
         return loss.detach(), norm.detach()
 
-    times, losses, norms, routed, expected_depths = [], [], [], [], []
+    times, losses, norms, routed, expected_depths, digests = [], [], [], [], [], []
     torch.cuda.reset_peak_memory_stats()
     for i in range(args.warmup + args.steps):
         if i == args.warmup:
@@ -147,6 +176,8 @@ def main():
             norms.append(float(norm))
             routed.append(assignments)
             expected_depths.append(model.last_steps)
+        if args.state_digests:
+            digests.append({"step": i, **training_state_digests(model, opt)})
         print(f"step {i}: {elapsed:.4f}s, depth {depths[-1]}, loss {float(loss):.4f}", flush=True)
     measurement_end = time.time()
     peak = torch.cuda.max_memory_allocated() / 2**30
@@ -164,6 +195,7 @@ def main():
               "processed_tokens_per_second": args.context / statistics.median(times),
               "new_tokens_per_second": args.stride / statistics.median(times),
               "sampled_depths": depths[args.warmup:], "losses": losses, "gradient_norms": norms,
+              "training_state_digests": digests,
               "routed_assignments_per_step": routed, "expected_depths": expected_depths,
               "tf32_matmul_allowed": torch.backends.cuda.matmul.allow_tf32,
               "peak_allocated_gib": peak,
@@ -173,6 +205,8 @@ def main():
                          "Trained checkpoint, real text, fresh optimizer, few steps: no convergence/quality claim.",
                          "Full windows overlap by context minus stride, so processed and new tokens/s differ.",
                          "FLOP counts cover profiler-supported operators; they are not complete model FLOPs or MFU."]}
+    if args.state_digests:
+        result["limits"].append("Per-step state hashing transfers data outside timing; use separate runs for performance comparisons.")
     args.out.parent.mkdir(parents=True, exist_ok=True)
     # Save timing evidence even if profiling is unavailable on this machine.
     args.out.write_text(json.dumps(result, indent=2) + "\n")
