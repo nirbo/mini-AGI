@@ -108,6 +108,25 @@ class SonicIntegrationTests(unittest.TestCase):
                 site.expert_backend = backend
                 site.grad_checkpoint = checkpoint
 
+    def test_qualified_backend_does_not_enter_gemm_autotuning(self):
+        import sonicmoe  # import its class hooks before installing the guard
+        torch.manual_seed(42)
+        x = torch.randn(4, 32, device="cuda", requires_grad=True)
+        weights = tuple(torch.randn(*shape, device="cuda", requires_grad=True)
+                        for shape in ((2, 64, 32), (2, 64, 32), (2, 32, 64)))
+        with patch("quack.autotuner.Autotuner.__call__",
+                   side_effect=AssertionError("Sonic needs the fixed-GEMM-config source patch")):
+            with amp("cuda"):
+                y = compute_experts(x, [weights], torch.tensor([0, 1, 0, 1], device="cuda"),
+                                    torch.arange(4, device="cuda"), torch.ones(4, device="cuda"), backend="sonic")
+            y.backward(torch.randn_like(y))
+        for t in (x, *weights):
+            self.assertTrue(bool(torch.isfinite(t.grad).all()))
+        with patch.object(sonicmoe.functional, "_MINAGI_FIXED_GEMM_CONFIG", False), amp("cuda"):
+            with self.assertRaisesRegex(RuntimeError, "qualified source patch"):
+                compute_experts(x, [weights], torch.tensor([0], device="cuda"),
+                                torch.tensor([0], device="cuda"), torch.ones(1, device="cuda"), backend="sonic")
+
     def test_accepted_routes_outputs_and_gradients_including_zero_scores(self):
         torch.manual_seed(42)
         x = torch.randn(32, 64, device="cuda", requires_grad=True)
@@ -199,6 +218,17 @@ class SonicIntegrationTests(unittest.TestCase):
             model.head.forward = rowwise_head
             with amp("cuda"), self.subTest(training=training, capacity=capacity, batch=batch):
                 self.assert_prefix(model, training=training, batch=batch)
+                if batch == 2:
+                    prefix, suffix = self.inputs("cuda", batch=2)
+                    text = torch.cat((prefix, suffix), 1)
+                    with torch.set_grad_enabled(training):
+                        torch.manual_seed(123)
+                        expected, _ = model(text, torch.zeros_like(text) if training else None)
+                        changed = text.clone()
+                        changed[1] = 0
+                        torch.manual_seed(123)
+                        actual, _ = model(changed, torch.zeros_like(text) if training else None)
+                    torch.testing.assert_close(actual[0], expected[0], rtol=1e-5, atol=2e-7)
 
     def test_paging_changes_weight_generations_and_keeps_optimizer_ownership(self):
         model = self.model(device="cuda", resident=2, experts=4).train()

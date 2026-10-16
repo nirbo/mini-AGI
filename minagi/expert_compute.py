@@ -100,10 +100,15 @@ def _sonic(src, levels, experts, tokens, scores, *, recompute):
         raise ValueError("sonic expert backend requires a QuACK-supported SM90/SM100/SM120 GPU family")
     try:
         from sonicmoe import moe_general_routing_inputs
+        from sonicmoe import functional as sonic_functional
         from sonicmoe.enums import ActivationType
     except ImportError as exc:
         raise RuntimeError("sonic expert backend needs the optional SonicMoE/QuACK packages "
                            "in the repository venv; see replication/NVFP4_FEASIBILITY.md") from exc
+    if not getattr(sonic_functional, "_MINAGI_FIXED_GEMM_CONFIG", False):
+        raise RuntimeError("sonic expert backend requires the qualified source patch "
+                           "replication/patches/sonicmoe-fixed-gemm-config.patch; "
+                           "see replication/EXPERT_BACKENDS.md")
     # A backward grouped GEMM reduces over each expert's accepted rows. Never
     # pass an empty reduction group to the native kernels: remove unused
     # slots, retaining an autograd scatter back to the pool-owned slabs.
