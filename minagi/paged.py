@@ -129,6 +129,19 @@ def _read_exactly(f, n):
     return b
 
 
+class _CachedCast(torch.autograd.Function):
+    """One cast's derivative, backed by reusable detached compute storage."""
+
+    @staticmethod
+    def forward(ctx, master, data):
+        ctx.master_dtype = master.dtype
+        return data
+
+    @staticmethod
+    def backward(ctx, grad):
+        return grad.to(ctx.master_dtype), None
+
+
 class Tiers:
     """
     Disk, RAM and VRAM, with an LRU between them.
@@ -341,9 +354,10 @@ class PagedPool(nn.Module):
         self.dying_at = 0.75
         # the union of the current sequences' causal working sets
         self._admitted = set()
-        # the slots' weights in the compute dtype, for forwards that compute
-        # no gradient - see inference_weights()
+        # Detached compute data only; each training use gets its own FP32
+        # gradient edge. Never overwrite a generation held by a backward graph.
         self._infer = None
+        self.cache_training_weights = True
         self._mask = None
         # the slots as an index on a device - see _slot_rows()
         self._slot_idx = ((), {})
@@ -525,7 +539,11 @@ class PagedPool(nn.Module):
         return [(self.w1, self.w3, self.w2)]
 
     def invalidate(self):
-        pass
+        self._infer = None
+
+    def _apply(self, fn, recurse=True):
+        self.invalidate()  # release old-device storage when moving the module
+        return super()._apply(fn, recurse=recurse)
 
     # -- causal admission -------------------------------------------------
 
@@ -538,7 +556,6 @@ class PagedPool(nn.Module):
         self._balance = None
         self._trains = bool(explore)
         if self._trains:
-            self._infer = None
             self.recent[:self._n] *= 1.0 - 1.0 / self.usage_steps
             # The running share counts admissions per training forward,
             # including experts carried from its preceding cached frame.
@@ -717,28 +734,40 @@ class PagedPool(nn.Module):
         return loads
 
     def inference_weights(self, dtype):
-        """
-        Every slot's weights in `dtype`, for a forward that computes no
-        gradient: a character being written, a held-out chunk.
+        """Detached casts, reused until an update, load or storage change.
 
-        The batched dispatch casts the slots' fp32 weights to the compute dtype
-        inside every expert call - all 32 slots, at every row, about 600 MB of
-        memory traffic a row on a GPU, 24 rows a character - although nothing
-        about them changes while a reply is written. Cast once here instead,
-        and kept until something does change: an optimiser step (counted by
-        the step hook, and advancing the version counters), a load into a slot
-        (which drops the copy, since loads write through .data), or the start
-        of a forward that trains (which drops it, so training's memory is what
-        it always was). The key checks all of them, so a stale copy cannot be
-        served even if a path that changes a slot forgets to say so.
+        Ordinary in-place edits/load_state_dict advance version counters.
+        Paging writes through .data and explicitly invalidates instead. Other
+        external .data writes must call invalidate(), just as for inference.
+        All slab identities/storage properties are checked, including when
+        load_state_dict(assign=True) replaces a parameter.
         """
-        key = (dtype, self.w1._version, self.w3._version, self.w2._version,
-               self._stepped, self.swaps, tuple(self.slots),
-               self.w1.data_ptr())
+        weights = (self.w1, self.w3, self.w2)
+        key = (dtype, self._stepped, self.swaps, tuple(self.slots),
+               tuple((id(t), t.data_ptr(), t._version, t.device, t.dtype,
+                      tuple(t.shape), t.stride()) for t in weights))
         if self._infer is None or self._infer[0] != key:
-            self._infer = (key, tuple(t.detach().to(dtype)
-                                      for t in (self.w1, self.w3, self.w2)))
+            # An inference-mode-created tensor cannot be saved by autograd.
+            # Make normal detached tensors so a later training call can reuse
+            # this generation, including inside activation checkpointing.
+            with torch.inference_mode(False), torch.no_grad():
+                self._infer = (key, tuple(t.detach().to(dtype) for t in weights))
         return self._infer[1]
+
+    def training_weights(self, dtype):
+        """Reuse cast data, never a differentiable cast shared across uses.
+
+        A shared .to(dtype) graph would add gradients in the compute dtype
+        before converting to FP32. Separate edges preserve the original
+        cast-per-dispatch accumulation, also with activation checkpointing.
+        The switch provides an uncached reference path for A/B verification.
+        """
+        weights = (self.w1, self.w3, self.w2)
+        if not self.cache_training_weights or all(t.dtype == dtype for t in weights):
+            return weights
+        data = self.inference_weights(dtype)
+        return tuple(_CachedCast.apply(t, d) if t.dtype != dtype else t
+                     for t, d in zip(weights, data))
 
     def admitted_mask(self, positions=None):
         """Per-position availability; without positions, physical membership."""
@@ -795,7 +824,7 @@ class PagedPool(nn.Module):
         self.slots = list(plan)
         # Loads write through .data, which does not advance the slots'
         # version counters - so the cast copy is dropped here explicitly
-        self._infer = None
+        self.invalidate()
 
     def _entry(self, s, e, st):
         """
@@ -879,6 +908,7 @@ class PagedPool(nn.Module):
 
     def _count_step(self, *_):
         self._stepped += 1
+        self.invalidate()
         # whatever each slot's moments were going in - its own, or the zeros
         # an optimiser's first step starts from - they are its expert's now
         sts = self._moment_state()
