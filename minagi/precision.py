@@ -35,7 +35,8 @@ same way:
 
 float16 destroys them outright: both sit far below its smallest subnormal.
 bfloat16 costs a thousandth of their magnitude and two thirds of the file, so
-the moments are stored bf16 and the weights fp32. Nothing re-derives a weight,
+the disk moments are stored bf16 and the weights fp32. The default live AdamW
+moment buffers on the GPU remain fp32. Nothing re-derives a weight,
 but Adam re-derives its moments continuously, which is the other reason the
 error does not accumulate there.
 

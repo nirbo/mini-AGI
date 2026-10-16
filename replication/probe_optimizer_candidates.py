@@ -11,6 +11,7 @@ import importlib.metadata
 import json
 from pathlib import Path
 import subprocess
+import tempfile
 import time
 import traceback
 
@@ -132,9 +133,56 @@ def update_retention(args):
             "limits": "Artificial constant-gradient update retention; optimizer directions/scaling differ. Not matched learning quality."}
 
 
+def contracts(args):
+    """Fused/reference updates and concrete application compatibility checks."""
+    from gefen import Gefen
+    from minagi.paged import PagedPool
+    p = torch.nn.Parameter(torch.randn(128, 256, device="cuda") * .02)
+    p.grad = torch.randn_like(p) * .001
+    fused = Gefen([p], lr=1e-4, betas=(.9, .95), fused=True)
+    fused.step()
+    q = torch.nn.Parameter(p.detach().clone())
+    reference = Gefen([q], lr=1e-4, betas=(.9, .95), fused=False)
+    reference.load_state_dict(copy.deepcopy(fused.state_dict()))
+    errors = []
+    for zero in (False, True, False, False):
+        g = torch.zeros_like(p) if zero else torch.randn_like(p) * .001
+        old_p, old_q = p.detach().clone(), q.detach().clone()
+        p.grad, q.grad = g, g.clone()
+        fused.step()
+        reference.step()
+        a, b = p - old_p, q - old_q
+        relative = float((a - b).norm() / b.norm().clamp_min(1e-30))
+        if not bool(torch.isfinite(a).all()) or relative > .005:
+            raise AssertionError(f"Gefen fused/reference update error {relative}")
+        errors.append(relative)
+    with tempfile.TemporaryDirectory(prefix="minagi-optimizer-contract-") as directory:
+        pool = PagedPool(directory, 32, 64, 4, resident=2, ram_capacity=4, device="cuda", read_only=True).to("cuda")
+        optimizer = Gefen(pool.parameters(), lr=1e-5, fused=True)
+        pool.attach_optimiser(optimizer)
+        for parameter in (pool.w1, pool.w3, pool.w2):
+            parameter.grad = torch.randn_like(parameter) * .001
+        optimizer.step()
+        paging_recognizes_state = pool._moment_state() is not None
+        actual_keys = sorted(optimizer.state[pool.w1])
+        if paging_recognizes_state:
+            raise AssertionError("Re-evaluate the documented Adam-specific paging limitation")
+    rejections = {}
+    for name in ("muon", "gefen_muon"):
+        try:
+            make_optimizer(name, [torch.nn.Parameter(torch.ones(2, 32, 64, device="cuda"))])
+        except ValueError as exc:
+            rejections[name] = str(exc)
+        else:
+            raise AssertionError(f"Re-evaluate the documented {name} 2D restriction")
+    return {"gefen_fused_vs_nonfused_relative_update_errors": errors,
+            "pool_recognizes_gefen_moment_state": paging_recognizes_state,
+            "gefen_state_keys": actual_keys, "three_dimensional_parameter_rejections": rejections}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--mode", choices=("latency", "retention"), required=True)
+    parser.add_argument("--mode", choices=("latency", "retention", "contracts"), required=True)
     parser.add_argument("--optimizer", choices=("adamw", "gefen", "muon", "gefen_muon"), required=True)
     parser.add_argument("--dtype", choices=("fp32", "bf16"), default="fp32")
     parser.add_argument("--layout", choices=("matrices", "slabs"), default="matrices")
@@ -158,7 +206,7 @@ def main():
             torch.set_num_threads(4)
             torch.backends.cuda.matmul.allow_tf32 = False
             torch.cuda.set_per_process_memory_fraction(.75)
-            report["result"] = {"latency": latency, "retention": update_retention}[args.mode](args)
+            report["result"] = {"latency": latency, "retention": update_retention, "contracts": contracts}[args.mode](args)
             report["status"] = "passed"
         except BaseException as exc:
             report.update(status="failed", error=repr(exc), traceback=traceback.format_exc())
