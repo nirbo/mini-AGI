@@ -34,3 +34,8 @@
 - For benchmarks, report average and peak sampled board power, estimated board energy per new token, throughput, and peak allocated VRAM. Record sampling limitations; short runs may not resolve power accurately.
 - Include GPU utilization, clocks, temperature, and power/thermal limiting indicators when available. Use read-only monitoring; the desktop safety rules above still apply.
 - Treat low power draw as evidence to investigate alongside traces, not as a direct measure of unused compute or a promise of proportional speedup. Optimize verified throughput and efficiency, rather than power draw itself.
+
+## Precision direction
+
+- Native NVFP4 W4A4 training is the user's preferred target when correctness, learning stability, and measured performance support it. Evaluate quantized forward and backward computation; distinguish it from fake-quant QAT, post-training quantization, and frozen quantized bases with adapters.
+- Preserve a verified higher-precision reference and a replaceable expert-compute interface while evaluating low-precision backends. Do not assume training quality improves simply because computation uses NVFP4.

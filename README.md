@@ -427,6 +427,20 @@ restores the reference training path. Use `--deterministic --state-digests
 performance measurements. Detailed results, commands, hashes and limits are in
 [`replication/results/bf16_weight_cache_verification.json`](replication/results/bf16_weight_cache_verification.json).
 
+#### Native FP4 and fused expert backend experiment
+
+Standalone RTX 5090 probes now validate native NVFP4 forward, input-gradient
+and weight-gradient GEMMs, grouped FP4 forward, and SonicMoE BF16 expert
+forward/backward. They monitor board power and preserve raw telemetry.
+Production training still uses the existing BF16 path.
+
+Native FP4 performance depends strongly on matrix size; the stock linear path
+is slower at the current expert sizes. Default whole-matrix activation scaling
+also needs a causal replacement before integration. The controlled synthetic
+learning check does not demonstrate an advantage over PTQ. Measurements,
+limitations, optional venv-only setup and reproduction commands are in
+[`replication/NVFP4_FEASIBILITY.md`](replication/NVFP4_FEASIBILITY.md).
+
 ## How growth and pruning work
 
 The pool grows when it is short of capacity and shrinks when parts of it stop being asked for.
