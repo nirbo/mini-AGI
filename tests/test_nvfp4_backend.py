@@ -167,6 +167,21 @@ class NativeFP4Tests(unittest.TestCase):
         for a, b in zip(results[0][1], results[1][1]):
             torch.testing.assert_close(a, b, rtol=0, atol=0)
 
+    def test_bf16_residual_with_fp32_route_scores(self):
+        x = torch.randn(4, 128, device="cuda", dtype=torch.bfloat16, requires_grad=True)
+        weights = tuple((torch.randn(*s, device="cuda") / s[-1]**.5).requires_grad_()
+                        for s in ((1, 256, 128), (1, 256, 128), (1, 128, 256)))
+        scores = torch.tensor([0., -.3, .2, .4], device="cuda", requires_grad=True)
+        with amp("cuda"):
+            y = compute_experts(x, [weights], torch.zeros(4, device="cuda", dtype=torch.long),
+                                torch.arange(4, device="cuda"), scores, backend="nvfp4")
+        y.backward(torch.randn_like(y))
+        self.assertEqual(y.dtype, x.dtype)
+        self.assertEqual(int(y[0].count_nonzero()), 0)
+        self.assertNotEqual(float(scores.grad[0]), 0)
+        for t in (x, *weights, scores):
+            self.assertTrue(bool(torch.isfinite(t.grad).all()))
+
     def test_recurrent_model_causality_training_eval_capacity_and_batch(self):
         for training, capacity, batch in itertools.product((False, True), (0, 1.5), (1, 2)):
             with self.subTest(training=training, capacity=capacity, batch=batch):

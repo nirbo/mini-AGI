@@ -38,10 +38,14 @@ accepts a common K per call. Segmented SFA storage uses the kernel's required
 physical offsets, including inter-expert gaps. Unequal per-expert alpha values
 are exercised explicitly.
 
-Quantization, expert-major packing and backward transforms are currently eager
-per-expert operations. No differentiable packed-weight cache is shared across
-recurrent uses. This implementation establishes a reference for subsequent
-fusion work; grouped GEMM speed alone does not predict its complete-layer cost.
+Activation forward quantization is batched across the 128-aligned expert
+segments; its normalized bound is constant, so this preserves each segment's
+quantized representation exactly. Per-expert weight maxima are reduced in one
+operation. Scale packing uses concatenation and vectorized alpha multiplication.
+Weight quantization and backward transforms still use per-expert eager calls.
+No differentiable packed-weight cache is shared across recurrent uses. This
+implementation establishes a reference for subsequent fusion work; grouped
+GEMM speed alone does not predict its complete-layer cost.
 
 ## Verification
 

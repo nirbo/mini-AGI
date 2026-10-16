@@ -9,7 +9,9 @@ import hashlib
 import importlib.metadata
 import json
 from pathlib import Path
+import subprocess
 import traceback
+import types
 from unittest.mock import patch
 
 import torch
@@ -21,6 +23,43 @@ from minagi.precision import amp, set_compute_dtype
 from replication.gpu_monitor import PowerMonitor
 from replication.probe_nvfp4 import (attach_power, benchmark, dequantize,
                                      error_metrics, provenance)
+
+
+def equivalence(args):
+    """Exact old/new proof for arithmetic-preserving batching changes."""
+    source = subprocess.check_output(["git", "show", f"{args.baseline}:minagi/nvfp4.py"])
+    baseline = types.ModuleType("minagi._nvfp4_baseline")
+    baseline.__package__ = "minagi"
+    exec(compile(source, f"{args.baseline}:minagi/nvfp4.py", "exec"), baseline.__dict__)
+    cases = []
+    for e, t, d, f in ((4, 19, 128, 256), (32, 257, 512, 2048)):
+        for recompute in (False, True):
+            for dtype in (torch.float32, torch.bfloat16):
+                x = torch.randn(t, d, device="cuda", dtype=dtype, requires_grad=True)
+                weights = tuple((torch.randn(*s, device="cuda", dtype=dtype) / s[-1]**.5).requires_grad_()
+                                for s in ((e, f, d), (e, f, d), (e, d, f)))
+                tokens = torch.arange(t, device="cuda").repeat_interleave(2)
+                ids = torch.stack((torch.arange(t, device="cuda") % (e - 1),
+                                   (torch.arange(t, device="cuda") + 1) % (e - 1)), -1).flatten()
+                scores = torch.randn(2 * t, device="cuda", dtype=dtype, requires_grad=True)
+                with torch.no_grad():
+                    scores[0] = 0
+                g = torch.randn_like(x)
+                results = []
+                for module in (baseline, nvfp4):
+                    torch.manual_seed(314)
+                    with amp("cuda"):
+                        y = module.experts(x, [weights], ids, tokens, scores, recompute=recompute)
+                        y2 = module.experts(x * .5, [weights], ids, tokens, scores, recompute=recompute)
+                    grads = torch.autograd.grad(y + y2, (x, *weights, scores), g)
+                    results.append((y, grads, torch.get_rng_state(), torch.cuda.get_rng_state()))
+                for a, b in zip((results[0][0], *results[0][1], *results[0][2:]),
+                                (results[1][0], *results[1][1], *results[1][2:])):
+                    torch.testing.assert_close(a, b, rtol=0, atol=0)
+                cases.append({"shape_etdf": [e, t, d, f], "recompute": recompute,
+                              "dtype": str(dtype), "output_gradients_rng_bit_identical": True})
+    return {"baseline": args.baseline, "baseline_source_sha256": hashlib.sha256(source).hexdigest(),
+            "cases": cases}
 
 
 def gradients(args):
@@ -142,11 +181,12 @@ def layer_benchmark(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--mode", choices=("gradients", "learning", "benchmark"), required=True)
+    parser.add_argument("--mode", choices=("gradients", "learning", "benchmark", "equivalence"), required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--samples", type=int, default=64)
     parser.add_argument("--steps", type=int, default=400)
     parser.add_argument("--seconds", type=float, default=3.)
+    parser.add_argument("--baseline", default="c4bb969", help="qualified pre-batching source commit for equivalence")
     args = parser.parse_args()
     if args.samples < 1 or args.steps < 1 or args.seconds <= 0:
         parser.error("samples, steps and seconds must be positive")
@@ -163,7 +203,7 @@ def main():
             torch.set_num_threads(1)
             torch.backends.cuda.matmul.allow_tf32 = False
             set_compute_dtype("bf16")
-            report["result"] = {"gradients": gradients, "learning": learning,
+            report["result"] = {"gradients": gradients, "learning": learning, "equivalence": equivalence,
                                 "benchmark": layer_benchmark}[args.mode](args)
             torch.cuda.synchronize()
             report["status"] = "passed"

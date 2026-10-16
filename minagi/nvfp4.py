@@ -56,15 +56,20 @@ def grouped_mm(left, right):
     for m in counts:
         starts.append(starts[-1] + m)
     sf_starts = [(s + e * 127) // 128 * 128 for e, s in enumerate(starts[:-1])]
-    sf = torch.zeros(sf_starts[-1] + counts[-1], k // 16,
-                     device=left[0].fp4.device, dtype=torch.uint8)
+    zero = torch.zeros(128, k // 16, device=left[0].fp4.device, dtype=torch.uint8)
+    scale_chunks, end = [], 0
     for start, a in zip(sf_starts, left):
-        sf[start:start + a.fp4.shape[0]].copy_(a.micro_scales.view(torch.uint8))
+        if start != end:
+            scale_chunks.append(zero[:start - end])
+        scale_chunks.append(a.micro_scales.view(torch.uint8))
+        end = start + a.fp4.shape[0]
+    sf = torch.cat(scale_chunks)
     return group_gemm_nvfp4_nt_groupwise(
         torch.cat([a.fp4 for a in left]), torch.stack([b.fp4 for b in right]),
         sf, torch.stack([b.micro_scales.view(torch.uint8) for b in right]),
         torch.tensor(starts, device=sf.device, dtype=torch.int32),
-        alpha=torch.stack([a.tensor_scale * b.tensor_scale for a, b in zip(left, right)]))
+        alpha=torch.stack([a.tensor_scale for a in left]) *
+              torch.stack([b.tensor_scale for b in right]))
 
 
 class _GroupedLinear(torch.autograd.Function):
@@ -77,14 +82,20 @@ class _GroupedLinear(torch.autograd.Function):
 
     @staticmethod
     def forward(ctx, x, weight, counts, had):
-        from quartet2.quant import quant_fp4, NVFP4QuantMode
+        from quartet2.quant import quant_fp4, NVFP4Quant, NVFP4QuantMode
         bound = torch.full((), 2., device=x.device, dtype=torch.float32)
-        qx = [quant_fp4(a.contiguous(), amax=bound, scale_override=1., mode=NVFP4QuantMode.FOUR_SIX)
-              for a in x.split(counts)]
+        # All activation segments have the same fixed normalized bound and
+        # 128-aligned boundaries. One quantizer launch produces exactly the
+        # same bytes/scales as independently quantizing every segment.
+        all_x = quant_fp4(x.contiguous(), amax=bound, scale_override=1., mode=NVFP4QuantMode.FOUR_SIX)
+        qx = [NVFP4Quant(a, s, all_x.tensor_scale) for a, s in
+              zip(all_x.fp4.split(counts), all_x.micro_scales.split(counts))]
         # A separate maximum for each expert: changing the resident bank cannot
         # change the representation of an existing expert's weights.
-        qw = [quant_fp4(w.to(torch.bfloat16).contiguous(), scale_override=1.,
-                        mode=NVFP4QuantMode.FOUR_SIX) for w in weight.unbind()]
+        wb = weight.to(torch.bfloat16)
+        maxima = wb.abs().amax((-1, -2)).float().unbind()
+        qw = [quant_fp4(w.contiguous(), amax=maximum, scale_override=1.,
+                        mode=NVFP4QuantMode.FOUR_SIX) for w, maximum in zip(wb.unbind(), maxima)]
         ctx.counts, ctx.x_dtype, ctx.w_dtype = counts, x.dtype, weight.dtype
         ctx.save_for_backward(had, *(t for q in (*qx, *qw) for t in q))
         return grouped_mm(qx, qw)
@@ -172,4 +183,4 @@ def experts(src, levels, expert_ids, tokens, scores, *, recompute):
 
     args = (src, w1, w3, w2)
     gathered = checkpoint(run, *args, use_reentrant=False) if recompute else run(*args)
-    return torch.zeros_like(src).index_add(0, tokens, gathered * scores[:, None])
+    return torch.zeros_like(src).index_add(0, tokens, (gathered * scores[:, None]).to(src.dtype))
