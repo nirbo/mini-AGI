@@ -6,9 +6,10 @@ files are loaded or written. Run as a module with the repository's Python.
 
 import argparse
 import hashlib
+import importlib.metadata
 import json
 from pathlib import Path
-import time
+import traceback
 from unittest.mock import patch
 
 import torch
@@ -147,11 +148,15 @@ def main():
     parser.add_argument("--steps", type=int, default=400)
     parser.add_argument("--seconds", type=float, default=3.)
     args = parser.parse_args()
+    if args.samples < 1 or args.steps < 1 or args.seconds <= 0:
+        parser.error("samples, steps and seconds must be positive")
     args.out.parent.mkdir(parents=True, exist_ok=True)
     report = {"configuration": {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()},
               "provenance": provenance(),
               "sources_sha256": {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in
                                  (Path(__file__), Path(nvfp4.__file__), Path("minagi/expert_compute.py"))}}
+    report["dependencies"] = {name: importlib.metadata.version(name) for name in
+                              ("torch", "quartet2", "flashinfer-python", "sonic-moe", "quack-kernels")}
     with PowerMonitor() as monitor:
         try:
             torch.manual_seed(42)
@@ -162,6 +167,9 @@ def main():
                                 "benchmark": layer_benchmark}[args.mode](args)
             torch.cuda.synchronize()
             report["status"] = "passed"
+        except BaseException as exc:
+            report.update(status="failed", error=repr(exc), traceback=traceback.format_exc())
+            raise
         finally:
             # The last sample brackets every measured interval.
             monitor.sample()
