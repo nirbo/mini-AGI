@@ -1,0 +1,2143 @@
+{
+  "optimizer_summary": [
+    {
+      "layout": "matrices",
+      "optimizer": "adamw",
+      "runs": 2,
+      "median_step_ms_range": [
+        0.5034389978391118,
+        0.5037390001234598
+      ],
+      "state_bytes_per_parameter_range": [
+        8.000003814697266,
+        8.000003814697266
+      ],
+      "average_board_power_w": 365.25960105081913,
+      "peak_sampled_board_power_w": 375.237,
+      "board_joules_per_optimizer_step": 0.18514903259090926,
+      "peak_allocated_gib": 0.38185691833496094
+    },
+    {
+      "layout": "matrices",
+      "optimizer": "gefen",
+      "runs": 2,
+      "median_step_ms_range": [
+        0.4441380006028339,
+        0.4449990010471083
+      ],
+      "state_bytes_per_parameter_range": [
+        1.0117594401041667,
+        1.0117594401041667
+      ],
+      "average_board_power_w": 481.79972886638603,
+      "peak_sampled_board_power_w": 489.944,
+      "board_joules_per_optimizer_step": 0.21453239762195375,
+      "peak_allocated_gib": 0.21805858612060547
+    },
+    {
+      "layout": "matrices",
+      "optimizer": "gefen_muon",
+      "runs": 2,
+      "median_step_ms_range": [
+        5.424711998784915,
+        5.425882001873106
+      ],
+      "state_bytes_per_parameter_range": [
+        1.0059000651041667,
+        1.0059000651041667
+      ],
+      "average_board_power_w": 358.28364970052735,
+      "peak_sampled_board_power_w": 364.889,
+      "board_joules_per_optimizer_step": 1.9453816231368453,
+      "peak_allocated_gib": 0.25112438201904297
+    },
+    {
+      "layout": "matrices",
+      "optimizer": "muon",
+      "runs": 2,
+      "median_step_ms_range": [
+        5.324052996002138,
+        5.324461999407504
+      ],
+      "state_bytes_per_parameter_range": [
+        4.0,
+        4.0
+      ],
+      "average_board_power_w": 357.07657192161525,
+      "peak_sampled_board_power_w": 362.581,
+      "board_joules_per_optimizer_step": 1.9037591922659858,
+      "peak_allocated_gib": 0.32129859924316406
+    },
+    {
+      "layout": "slabs",
+      "optimizer": "adamw",
+      "runs": 2,
+      "median_step_ms_range": [
+        0.482497998746112,
+        0.4835579966311343
+      ],
+      "state_bytes_per_parameter_range": [
+        8.000000476837158,
+        8.000000476837158
+      ],
+      "average_board_power_w": 374.9515704702422,
+      "peak_sampled_board_power_w": 380.568,
+      "board_joules_per_optimizer_step": 0.18219441094664957,
+      "peak_allocated_gib": 0.42971181869506836
+    },
+    {
+      "layout": "slabs",
+      "optimizer": "gefen",
+      "runs": 2,
+      "median_step_ms_range": [
+        0.30909899942344055,
+        0.30925899773137644
+      ],
+      "state_bytes_per_parameter_range": [
+        1.0117594401041667,
+        1.0117594401041667
+      ],
+      "average_board_power_w": 593.6619918691786,
+      "peak_sampled_board_power_w": 602.038,
+      "board_joules_per_optimizer_step": 0.18395292213183587,
+      "peak_allocated_gib": 0.26592350006103516
+    }
+  ],
+  "results": {
+    "contracts-gefen-patched": {
+      "configuration": {
+        "mode": "contracts",
+        "optimizer": "gefen",
+        "dtype": "fp32",
+        "layout": "matrices",
+        "hidden": 512,
+        "width": 2048,
+        "experts": 8,
+        "seconds": 3.0,
+        "out": "/home/nir/ml-tools/mini-AGI/runs/performance/optimizers/contracts-gefen-patched.json"
+      },
+      "source_sha256": "dcbc173d08ee85e73a7d604dbc65f1473ca78aec0e8e426516be2af0c6faccc9",
+      "torch": "2.14.1+cu130",
+      "gefen": "1.2.3",
+      "gefen_commit": "e735f851a7ebdf0106da87126458c86e3e583d99",
+      "limits": [
+        "Optimizer-only synthetic fixed gradients; matrix list preserves independent experts.",
+        "No model forward/backward, paging or convergence measurement. Optimizer latency is not end-to-end throughput.",
+        "Different optimizer mathematics cannot be compared as a correctness-equivalent replacement."
+      ],
+      "gefen_source_sha256": {
+        "__init__.py": "3b823e459444c907d25775eeb1cb31cdeb8a3a3df2e7fc5015d43a2029dd53b0",
+        "setup.py": "ef7b23c3468c8130483cd7578c14e977b39b372fd088f0e163b47be196d1291e",
+        "gefen.py": "f453acf4afae97715304f58f0132a5a95abe9b61c6490abb0f1dc15691f31203",
+        "partitioning.py": "0c9867c08f292ce54e39d0f05ef2e0e872a68b90dd746710f3574813ab7fe692",
+        "quantization.py": "e9477c63b712b78a1544d511c31371b903a79cac9e2ca57ff3f28cc3e560d68a",
+        "gefen_muon.py": "64dbda3cc6e65fe32ec6b0457aba975a0e87c0a48389d7ef187fa851e9736215",
+        "kernels/period_variance_kernel.cu": "b5421de233d5b35a3ee6cb6401af662a5bdd7e30669824bf389b1b8aa6a7cd43",
+        "kernels/exact_histogram_fused_kernel.cu": "d4695da5813522b695c4baa9d45c2c359f69d66e34ee8b937b88d37868e494f6",
+        "kernels/lloyd_max_fused_kernel.cu": "d0b0288ace1d03886a4975b286fc5f32f38c956988c8f8a0194296d4c3cf9219",
+        "kernels/__init__.py": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "kernels/gefen_cuda_binding.cpp": "64619a2978b0aa2ff17babfffb60ce9783d1f2bef1c3bd88d1dd7a2492a53f3c",
+        "kernels/automatic_vmean_kernel.cu": "2dd6f35442e3f89a88984ef34bdc00d84e821b7562e8adc39ebf7a913f8e8300",
+        "kernels/_build_notice.py": "d15ed796c28df4c0a44a2c1ef340a709f924c485f48b9a9e29efee443c3486f9",
+        "kernels/automatic_gefen_fused.py": "0aa4d4947e9c14ca7c947cdba63ec4c106fe929ec0e8399c1ce789cc0ba39483",
+        "kernels/gefen_cuda.py": "0bca891ae33d886c417e4c9e53f10cad691c34ffd9ace04d4c3f5511fcc7a97d",
+        "kernels/period_variance.py": "45d640e9851f8b2953fcd95b39f9fbb899efbca6b6697fea242e79f05ecaf4f5",
+        "kernels/automatic_gefen_fused_kernel.cu": "eb7cd6b14464535ed1f4e5387cb01c979e2222b403b3e9671b7259ade0edc729",
+        "kernels/lloyd_max_fused.py": "8c0b1f47df77d98fc279924186ab9cc79956745b2ef6f08a3d8a2605d8593192",
+        "kernels/exact_histogram_fused.py": "e77c5263679490d5ffbd10c142fce1ec0f0742bcd8acbee8d22212230cc7f330",
+        "kernels/automatic_vmean.py": "789d13de7a6517fc4260b327b5b0c98c7e20916ad5058163e0b06f6712a7ca09"
+      },
+      "cuda_build_environment": {
+        "MAX_JOBS": "2",
+        "TORCH_CUDA_ARCH_LIST": "12.0",
+        "MINAGI_GEFEN_ALLOW_CUDA_MINOR_MISMATCH": "1"
+      },
+      "result": {
+        "gefen_fused_vs_nonfused_relative_update_errors": [
+          2.643234324750665e-07,
+          2.96614160788522e-07,
+          5.595820198323054e-07,
+          8.259140713562374e-07
+        ],
+        "pool_recognizes_gefen_moment_state": false,
+        "gefen_state_keys": [
+          "automatic_period",
+          "m_codebook",
+          "m_codebook_shape",
+          "m_magnitude",
+          "period_one_divisor",
+          "step",
+          "vmean"
+        ],
+        "three_dimensional_parameter_rejections": {
+          "muon": "Muon only supports 2D parameters whereas we found a parameter with size: torch.Size([2, 32, 64])",
+          "gefen_muon": "GefenMuon only supports 2D parameters whereas we found a parameter with size: torch.Size([2, 32, 64])"
+        }
+      },
+      "status": "passed"
+    },
+    "contracts-gefen": {
+      "configuration": {
+        "mode": "contracts",
+        "optimizer": "gefen",
+        "dtype": "fp32",
+        "layout": "matrices",
+        "hidden": 512,
+        "width": 2048,
+        "experts": 1,
+        "seconds": 3.0,
+        "out": "/home/nir/ml-tools/mini-AGI/runs/performance/optimizers/contracts-gefen.json"
+      },
+      "source_sha256": "d8aa3ac9ae53f27f59a0afb5a81a1bb1f23f9f51732efa8a86b1f10dbd6f640f",
+      "torch": "2.14.1+cu130",
+      "gefen": "1.2.3",
+      "gefen_commit": "e735f851a7ebdf0106da87126458c86e3e583d99",
+      "limits": [
+        "Optimizer-only synthetic fixed gradients; matrix list preserves independent experts.",
+        "No model forward/backward, paging or convergence measurement. Optimizer latency is not end-to-end throughput.",
+        "Different optimizer mathematics cannot be compared as a correctness-equivalent replacement."
+      ],
+      "status": "failed",
+      "error": "RuntimeError('Gefen CUDA toolkit version mismatch: nvcc reports 13.1, but PyTorch was built with CUDA 13.0.\\nInstall an nvcc toolkit that exactly matches torch.version.cuda and point CUDA_HOME to that toolkit.\\nGefen CUDA build diagnostic:\\n  python: /home/nir/ml-tools/mini-AGI/.venv/bin/python\\n  python_version: 3.12.14\\n  torch: 2.14.1+cu130\\n  torch.version.cuda: 13.0\\n  torch.cuda.is_available: True\\n  CONDA_PREFIX: None\\n  CUDA_HOME: /usr/local/cuda\\n  nvcc: /usr/local/cuda/bin/nvcc\\n  nvcc --version: nvcc: NVIDIA (R) Cuda compiler driver | Copyright (c) 2005-2025 NVIDIA Corporation | Built on Tue_Dec_16_07:23:41_PM_PST_2025 | Cuda compilation tools, release 13.1, V13.1.115 | Build cuda_13.1.r13.1/compiler.37061995_0\\n  host_compiler: /usr/bin/gcc | gcc (Ubuntu 15.2.0-16ubuntu1) 15.2.0\\n  cuda_runtime.h: /usr/local/cuda/include/cuda_runtime.h\\n\\nGefen needs a CUDA toolkit with nvcc and cuda_runtime.h that exactly matches torch.version.cuda.\\nThe recommended and tested setup is to install the CUDA build environment with conda:\\n\\n    conda install -c nvidia/label/cuda-13.0.0 -c conda-forge cuda-nvcc=13.0 cuda-cudart-dev=13.0 gcc_linux-64=13 gxx_linux-64=13\\n    export CUDA_HOME=\"$CONDA_PREFIX\"\\n    export PATH=\"$CUDA_HOME/bin:$PATH\"\\n    export CC=\"$CONDA_PREFIX/bin/x86_64-conda-linux-gnu-cc\"\\n    export CXX=\"$CONDA_PREFIX/bin/x86_64-conda-linux-gnu-c++\"\\n    hash -r\\n    which nvcc\\n    nvcc --version\\n    \"$CC\" --version\\n    test -f \"$CUDA_HOME/include/cuda_runtime.h\" && echo \"cuda_runtime.h found\"\\n    test -f \"$CUDA_HOME/targets/x86_64-linux/include/cuda_runtime.h\" && echo \"conda cuda_runtime.h found\"\\n    conda list | grep -E \\'cuda|nvcc|cudart\\'\\n    find \"$CONDA_PREFIX\" -name cuda_runtime.h\\n    export TORCH_CUDA_ARCH_LIST=\"12.0+PTX\"\\n    GEFEN_FORCE_REBUILD=1 GEFEN_VERBOSE_BUILD=1 python your_training_script.py\\n\\nIf you do not use conda, install CUDA Toolkit 13.0 by any method supported by your operating system or package manager, then set CUDA_HOME to that toolkit before rebuilding.\\n')",
+      "traceback": "Traceback (most recent call last):\n  File \"/home/nir/ml-tools/mini-AGI/runs/worktrees/optimizer-survey/replication/probe_optimizer_candidates.py\", line 209, in main\n    report[\"result\"] = {\"latency\": latency, \"retention\": update_retention, \"contracts\": contracts}[args.mode](args)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/nir/ml-tools/mini-AGI/runs/worktrees/optimizer-survey/replication/probe_optimizer_candidates.py\", line 143, in contracts\n    fused.step()\n  File \"/home/nir/ml-tools/mini-AGI/.venv/lib/python3.12/site-packages/torch/optim/optimizer.py\", line 549, in wrapper\n    out = func(*args, **kwargs)\n          ^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/nir/ml-tools/mini-AGI/.venv/lib/python3.12/site-packages/torch/utils/_contextlib.py\", line 124, in decorate_context\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/nir/ml-tools/mini-AGI/.venv/lib/python3.12/site-packages/gefen/gefen.py\", line 1401, in step\n    self._maybe_refresh_gefen_codebook()\n  File \"/home/nir/ml-tools/mini-AGI/.venv/lib/python3.12/site-packages/gefen/gefen.py\", line 980, in _maybe_refresh_gefen_codebook\n    self._ensure_gefen_codebook(reuse_existing_periods=restored_periods)\n  File \"/home/nir/ml-tools/mini-AGI/.venv/lib/python3.12/site-packages/gefen/gefen.py\", line 954, in _ensure_gefen_codebook\n    codebook = self._learn_gefen_exact_codebook(\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/nir/ml-tools/mini-AGI/.venv/lib/python3.12/site-packages/gefen/gefen.py\", line 932, in _learn_gefen_exact_codebook\n    codebook = learn_gefen_exact_codebook_from_grad_periods(\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/nir/ml-tools/mini-AGI/.venv/lib/python3.12/site-packages/gefen/gefen.py\", line 337, in learn_gefen_exact_codebook_from_grad_periods\n    for _, flat, period, _ in grad_periods:\n                              ^^^^^^^^^^^^\n  File \"/home/nir/ml-tools/mini-AGI/.venv/lib/python3.12/site-packages/gefen/gefen.py\", line 911, in _iter_gefen_grad_periods\n    period = self._predict_period_from_grad_sq(group[\"name\"], p, grad)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/nir/ml-tools/mini-AGI/.venv/lib/python3.12/site-packages/gefen/gefen.py\", line 780, in _predict_period_from_grad_sq\n    return find_period_by_block_variance(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/nir/ml-tools/mini-AGI/.venv/lib/python3.12/site-packages/gefen/partitioning.py\", line 387, in find_period_by_block_variance\n    return _find_period_by_block_variance_cuda_kernel(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/nir/ml-tools/mini-AGI/.venv/lib/python3.12/site-packages/gefen/partitioning.py\", line 262, in _find_period_by_block_variance_cuda_kernel\n    score = average_adjacent_log_block_mean_difference_cuda_kernel(\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/nir/ml-tools/mini-AGI/.venv/lib/python3.12/site-packages/gefen/kernels/period_variance.py\", line 155, in average_adjacent_log_block_mean_difference_cuda_kernel\n    result = _average_adjacent_log_block_mean_difference_cuda_impl(\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/nir/ml-tools/mini-AGI/.venv/lib/python3.12/site-packages/gefen/kernels/period_variance.py\", line 42, in _average_adjacent_log_block_mean_difference_cuda_impl\n    module = _load_extension()\n             ^^^^^^^^^^^^^^^^^\n  File \"/home/nir/ml-tools/mini-AGI/.venv/lib/python3.12/site-packages/gefen/kernels/period_variance.py\", line 9, in _load_extension\n    return load_extension()\n           ^^^^^^^^^^^^^^^^\n  File \"/home/nir/ml-tools/mini-AGI/.venv/lib/python3.12/site-packages/gefen/kernels/gefen_cuda.py\", line 11, in load_extension\n    _EXTENSION_MODULE = load_gefen_cuda_extension(\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/nir/ml-tools/mini-AGI/.venv/lib/python3.12/site-packages/gefen/kernels/_build_notice.py\", line 382, in load_gefen_cuda_extension\n    nvcc, nvcc_output = _check_cuda_toolkit()\n                        ^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/nir/ml-tools/mini-AGI/.venv/lib/python3.12/site-packages/gefen/kernels/_build_notice.py\", line 290, in _check_cuda_toolkit\n    raise RuntimeError(\nRuntimeError: Gefen CUDA toolkit version mismatch: nvcc reports 13.1, but PyTorch was built with CUDA 13.0.\nInstall an nvcc toolkit that exactly matches torch.version.cuda and point CUDA_HOME to that toolkit.\nGefen CUDA build diagnostic:\n  python: /home/nir/ml-tools/mini-AGI/.venv/bin/python\n  python_version: 3.12.14\n  torch: 2.14.1+cu130\n  torch.version.cuda: 13.0\n  torch.cuda.is_available: True\n  CONDA_PREFIX: None\n  CUDA_HOME: /usr/local/cuda\n  nvcc: /usr/local/cuda/bin/nvcc\n  nvcc --version: nvcc: NVIDIA (R) Cuda compiler driver | Copyright (c) 2005-2025 NVIDIA Corporation | Built on Tue_Dec_16_07:23:41_PM_PST_2025 | Cuda compilation tools, release 13.1, V13.1.115 | Build cuda_13.1.r13.1/compiler.37061995_0\n  host_compiler: /usr/bin/gcc | gcc (Ubuntu 15.2.0-16ubuntu1) 15.2.0\n  cuda_runtime.h: /usr/local/cuda/include/cuda_runtime.h\n\nGefen needs a CUDA toolkit with nvcc and cuda_runtime.h that exactly matches torch.version.cuda.\nThe recommended and tested setup is to install the CUDA build environment with conda:\n\n    conda install -c nvidia/label/cuda-13.0.0 -c conda-forge cuda-nvcc=13.0 cuda-cudart-dev=13.0 gcc_linux-64=13 gxx_linux-64=13\n    export CUDA_HOME=\"$CONDA_PREFIX\"\n    export PATH=\"$CUDA_HOME/bin:$PATH\"\n    export CC=\"$CONDA_PREFIX/bin/x86_64-conda-linux-gnu-cc\"\n    export CXX=\"$CONDA_PREFIX/bin/x86_64-conda-linux-gnu-c++\"\n    hash -r\n    which nvcc\n    nvcc --version\n    \"$CC\" --version\n    test -f \"$CUDA_HOME/include/cuda_runtime.h\" && echo \"cuda_runtime.h found\"\n    test -f \"$CUDA_HOME/targets/x86_64-linux/include/cuda_runtime.h\" && echo \"conda cuda_runtime.h found\"\n    conda list | grep -E 'cuda|nvcc|cudart'\n    find \"$CONDA_PREFIX\" -name cuda_runtime.h\n    export TORCH_CUDA_ARCH_LIST=\"12.0+PTX\"\n    GEFEN_FORCE_REBUILD=1 GEFEN_VERBOSE_BUILD=1 python your_training_script.py\n\nIf you do not use conda, install CUDA Toolkit 13.0 by any method supported by your operating system or package manager, then set CUDA_HOME to that toolkit before rebuilding.\n\n"
+    },
+    "latency-matrices-1-adamw": {
+      "configuration": {
+        "mode": "latency",
+        "optimizer": "adamw",
+        "dtype": "fp32",
+        "layout": "matrices",
+        "hidden": 512,
+        "width": 2048,
+        "experts": 8,
+        "seconds": 3.0,
+        "out": "/home/nir/ml-tools/mini-AGI/runs/performance/optimizers/latency-matrices-1-adamw.json"
+      },
+      "source_sha256": "dcbc173d08ee85e73a7d604dbc65f1473ca78aec0e8e426516be2af0c6faccc9",
+      "torch": "2.14.1+cu130",
+      "gefen": "1.2.3",
+      "gefen_commit": "e735f851a7ebdf0106da87126458c86e3e583d99",
+      "limits": [
+        "Optimizer-only synthetic fixed gradients; matrix list preserves independent experts.",
+        "No model forward/backward, paging or convergence measurement. Optimizer latency is not end-to-end throughput.",
+        "Different optimizer mathematics cannot be compared as a correctness-equivalent replacement."
+      ],
+      "gefen_source_sha256": {
+        "__init__.py": "3b823e459444c907d25775eeb1cb31cdeb8a3a3df2e7fc5015d43a2029dd53b0",
+        "setup.py": "ef7b23c3468c8130483cd7578c14e977b39b372fd088f0e163b47be196d1291e",
+        "gefen.py": "f453acf4afae97715304f58f0132a5a95abe9b61c6490abb0f1dc15691f31203",
+        "partitioning.py": "0c9867c08f292ce54e39d0f05ef2e0e872a68b90dd746710f3574813ab7fe692",
+        "quantization.py": "e9477c63b712b78a1544d511c31371b903a79cac9e2ca57ff3f28cc3e560d68a",
+        "gefen_muon.py": "64dbda3cc6e65fe32ec6b0457aba975a0e87c0a48389d7ef187fa851e9736215",
+        "kernels/period_variance_kernel.cu": "b5421de233d5b35a3ee6cb6401af662a5bdd7e30669824bf389b1b8aa6a7cd43",
+        "kernels/exact_histogram_fused_kernel.cu": "d4695da5813522b695c4baa9d45c2c359f69d66e34ee8b937b88d37868e494f6",
+        "kernels/lloyd_max_fused_kernel.cu": "d0b0288ace1d03886a4975b286fc5f32f38c956988c8f8a0194296d4c3cf9219",
+        "kernels/__init__.py": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "kernels/gefen_cuda_binding.cpp": "64619a2978b0aa2ff17babfffb60ce9783d1f2bef1c3bd88d1dd7a2492a53f3c",
+        "kernels/automatic_vmean_kernel.cu": "2dd6f35442e3f89a88984ef34bdc00d84e821b7562e8adc39ebf7a913f8e8300",
+        "kernels/_build_notice.py": "d15ed796c28df4c0a44a2c1ef340a709f924c485f48b9a9e29efee443c3486f9",
+        "kernels/automatic_gefen_fused.py": "0aa4d4947e9c14ca7c947cdba63ec4c106fe929ec0e8399c1ce789cc0ba39483",
+        "kernels/gefen_cuda.py": "0bca891ae33d886c417e4c9e53f10cad691c34ffd9ace04d4c3f5511fcc7a97d",
+        "kernels/period_variance.py": "45d640e9851f8b2953fcd95b39f9fbb899efbca6b6697fea242e79f05ecaf4f5",
+        "kernels/automatic_gefen_fused_kernel.cu": "eb7cd6b14464535ed1f4e5387cb01c979e2222b403b3e9671b7259ade0edc729",
+        "kernels/lloyd_max_fused.py": "8c0b1f47df77d98fc279924186ab9cc79956745b2ef6f08a3d8a2605d8593192",
+        "kernels/exact_histogram_fused.py": "e77c5263679490d5ffbd10c142fce1ec0f0742bcd8acbee8d22212230cc7f330",
+        "kernels/automatic_vmean.py": "789d13de7a6517fc4260b327b5b0c98c7e20916ad5058163e0b06f6712a7ca09"
+      },
+      "cuda_build_environment": {
+        "MAX_JOBS": "2",
+        "TORCH_CUDA_ARCH_LIST": "12.0",
+        "MINAGI_GEFEN_ALLOW_CUDA_MINOR_MISMATCH": "1"
+      },
+      "result": {
+        "parameter_count": 25165824,
+        "optimizer_state_bytes": 201326688,
+        "state_bytes_per_parameter": 8.000003814697266,
+        "moved_fraction_on_second_update": 1.0,
+        "first_step_including_jit_seconds": 0.008600310997280758,
+        "median_step_seconds": 0.0005034389978391118,
+        "iterations": 5921,
+        "start_monotonic": 65222.592056712,
+        "end_monotonic": 65225.592183759,
+        "peak_allocated_gib": 0.38185691833496094,
+        "state_keys": [
+          "exp_avg",
+          "exp_avg_sq",
+          "step"
+        ],
+        "automatic_periods": [],
+        "power": {
+          "start_monotonic": 65222.592056712,
+          "end_monotonic": 65225.592183759,
+          "duration_seconds": 3.0001270470020245,
+          "sample_count_inside": 30,
+          "average_board_power_w": 363.0848974685184,
+          "peak_sampled_board_power_w": 371.254,
+          "estimated_board_energy_j": 1089.300821253259,
+          "max_sample_gap_seconds": 0.10065231799671892,
+          "gpu_busy_percent": {
+            "median": 93.0,
+            "min": 93,
+            "max": 93
+          },
+          "memory_busy_percent": {
+            "median": 80.0,
+            "min": 80,
+            "max": 81
+          },
+          "sm_clock_mhz": {
+            "median": 2940.0,
+            "min": 2917,
+            "max": 2947
+          },
+          "memory_clock_mhz": {
+            "median": 13801.0,
+            "min": 13801,
+            "max": 13801
+          },
+          "temperature_c": {
+            "median": 53.0,
+            "min": 51,
+            "max": 53
+          },
+          "memory_used_mib": {
+            "median": 2450.5625,
+            "min": 2450.5625,
+            "max": 2450.5625
+          },
+          "clock_event_reason_masks": [
+            4
+          ]
+        },
+        "estimated_board_joules_per_optimizer_step": 0.18397244067780089
+      },
+      "status": "passed"
+    },
+    "latency-matrices-2-gefen": {
+      "configuration": {
+        "mode": "latency",
+        "optimizer": "gefen",
+        "dtype": "fp32",
+        "layout": "matrices",
+        "hidden": 512,
+        "width": 2048,
+        "experts": 8,
+        "seconds": 3.0,
+        "out": "/home/nir/ml-tools/mini-AGI/runs/performance/optimizers/latency-matrices-2-gefen.json"
+      },
+      "source_sha256": "dcbc173d08ee85e73a7d604dbc65f1473ca78aec0e8e426516be2af0c6faccc9",
+      "torch": "2.14.1+cu130",
+      "gefen": "1.2.3",
+      "gefen_commit": "e735f851a7ebdf0106da87126458c86e3e583d99",
+      "limits": [
+        "Optimizer-only synthetic fixed gradients; matrix list preserves independent experts.",
+        "No model forward/backward, paging or convergence measurement. Optimizer latency is not end-to-end throughput.",
+        "Different optimizer mathematics cannot be compared as a correctness-equivalent replacement."
+      ],
+      "gefen_source_sha256": {
+        "__init__.py": "3b823e459444c907d25775eeb1cb31cdeb8a3a3df2e7fc5015d43a2029dd53b0",
+        "setup.py": "ef7b23c3468c8130483cd7578c14e977b39b372fd088f0e163b47be196d1291e",
+        "gefen.py": "f453acf4afae97715304f58f0132a5a95abe9b61c6490abb0f1dc15691f31203",
+        "partitioning.py": "0c9867c08f292ce54e39d0f05ef2e0e872a68b90dd746710f3574813ab7fe692",
+        "quantization.py": "e9477c63b712b78a1544d511c31371b903a79cac9e2ca57ff3f28cc3e560d68a",
+        "gefen_muon.py": "64dbda3cc6e65fe32ec6b0457aba975a0e87c0a48389d7ef187fa851e9736215",
+        "kernels/period_variance_kernel.cu": "b5421de233d5b35a3ee6cb6401af662a5bdd7e30669824bf389b1b8aa6a7cd43",
+        "kernels/exact_histogram_fused_kernel.cu": "d4695da5813522b695c4baa9d45c2c359f69d66e34ee8b937b88d37868e494f6",
+        "kernels/lloyd_max_fused_kernel.cu": "d0b0288ace1d03886a4975b286fc5f32f38c956988c8f8a0194296d4c3cf9219",
+        "kernels/__init__.py": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "kernels/gefen_cuda_binding.cpp": "64619a2978b0aa2ff17babfffb60ce9783d1f2bef1c3bd88d1dd7a2492a53f3c",
+        "kernels/automatic_vmean_kernel.cu": "2dd6f35442e3f89a88984ef34bdc00d84e821b7562e8adc39ebf7a913f8e8300",
+        "kernels/_build_notice.py": "d15ed796c28df4c0a44a2c1ef340a709f924c485f48b9a9e29efee443c3486f9",
+        "kernels/automatic_gefen_fused.py": "0aa4d4947e9c14ca7c947cdba63ec4c106fe929ec0e8399c1ce789cc0ba39483",
+        "kernels/gefen_cuda.py": "0bca891ae33d886c417e4c9e53f10cad691c34ffd9ace04d4c3f5511fcc7a97d",
+        "kernels/period_variance.py": "45d640e9851f8b2953fcd95b39f9fbb899efbca6b6697fea242e79f05ecaf4f5",
+        "kernels/automatic_gefen_fused_kernel.cu": "eb7cd6b14464535ed1f4e5387cb01c979e2222b403b3e9671b7259ade0edc729",
+        "kernels/lloyd_max_fused.py": "8c0b1f47df77d98fc279924186ab9cc79956745b2ef6f08a3d8a2605d8593192",
+        "kernels/exact_histogram_fused.py": "e77c5263679490d5ffbd10c142fce1ec0f0742bcd8acbee8d22212230cc7f330",
+        "kernels/automatic_vmean.py": "789d13de7a6517fc4260b327b5b0c98c7e20916ad5058163e0b06f6712a7ca09"
+      },
+      "cuda_build_environment": {
+        "MAX_JOBS": "2",
+        "TORCH_CUDA_ARCH_LIST": "12.0",
+        "MINAGI_GEFEN_ALLOW_CUDA_MINOR_MISMATCH": "1"
+      },
+      "result": {
+        "parameter_count": 25165824,
+        "optimizer_state_bytes": 25461760,
+        "state_bytes_per_parameter": 1.0117594401041667,
+        "moved_fraction_on_second_update": 1.0,
+        "first_step_including_jit_seconds": 2.6262654700040002,
+        "median_step_seconds": 0.0004441380006028339,
+        "iterations": 6744,
+        "start_monotonic": 65230.837721462,
+        "end_monotonic": 65233.837795019,
+        "peak_allocated_gib": 0.21805858612060547,
+        "state_keys": [
+          "automatic_period",
+          "m_codebook",
+          "m_codebook_shape",
+          "m_magnitude",
+          "step",
+          "vmean"
+        ],
+        "automatic_periods": [
+          512,
+          512,
+          2048,
+          512,
+          512,
+          2048,
+          512,
+          512,
+          2048,
+          512,
+          512,
+          2048,
+          512,
+          512,
+          2048,
+          512,
+          512,
+          2048,
+          512,
+          512,
+          2048,
+          512,
+          512,
+          2048
+        ],
+        "power": {
+          "start_monotonic": 65230.837721462,
+          "end_monotonic": 65233.837795019,
+          "duration_seconds": 3.0000735569992685,
+          "sample_count_inside": 30,
+          "average_board_power_w": 482.65628849583914,
+          "peak_sampled_board_power_w": 489.944,
+          "estimated_board_energy_j": 1448.0043682357773,
+          "max_sample_gap_seconds": 0.10037672900216421,
+          "gpu_busy_percent": {
+            "median": 98.0,
+            "min": 98,
+            "max": 98
+          },
+          "memory_busy_percent": {
+            "median": 47.0,
+            "min": 47,
+            "max": 47
+          },
+          "sm_clock_mhz": {
+            "median": 2910.0,
+            "min": 2910,
+            "max": 2910
+          },
+          "memory_clock_mhz": {
+            "median": 13801.0,
+            "min": 13801,
+            "max": 13801
+          },
+          "temperature_c": {
+            "median": 61.0,
+            "min": 61,
+            "max": 62
+          },
+          "memory_used_mib": {
+            "median": 2274.5625,
+            "min": 2274.5625,
+            "max": 2274.5625
+          },
+          "clock_event_reason_masks": [
+            0
+          ]
+        },
+        "estimated_board_joules_per_optimizer_step": 0.21471001901479497
+      },
+      "status": "passed"
+    },
+    "latency-matrices-3-gefen": {
+      "configuration": {
+        "mode": "latency",
+        "optimizer": "gefen",
+        "dtype": "fp32",
+        "layout": "matrices",
+        "hidden": 512,
+        "width": 2048,
+        "experts": 8,
+        "seconds": 3.0,
+        "out": "/home/nir/ml-tools/mini-AGI/runs/performance/optimizers/latency-matrices-3-gefen.json"
+      },
+      "source_sha256": "dcbc173d08ee85e73a7d604dbc65f1473ca78aec0e8e426516be2af0c6faccc9",
+      "torch": "2.14.1+cu130",
+      "gefen": "1.2.3",
+      "gefen_commit": "e735f851a7ebdf0106da87126458c86e3e583d99",
+      "limits": [
+        "Optimizer-only synthetic fixed gradients; matrix list preserves independent experts.",
+        "No model forward/backward, paging or convergence measurement. Optimizer latency is not end-to-end throughput.",
+        "Different optimizer mathematics cannot be compared as a correctness-equivalent replacement."
+      ],
+      "gefen_source_sha256": {
+        "__init__.py": "3b823e459444c907d25775eeb1cb31cdeb8a3a3df2e7fc5015d43a2029dd53b0",
+        "setup.py": "ef7b23c3468c8130483cd7578c14e977b39b372fd088f0e163b47be196d1291e",
+        "gefen.py": "f453acf4afae97715304f58f0132a5a95abe9b61c6490abb0f1dc15691f31203",
+        "partitioning.py": "0c9867c08f292ce54e39d0f05ef2e0e872a68b90dd746710f3574813ab7fe692",
+        "quantization.py": "e9477c63b712b78a1544d511c31371b903a79cac9e2ca57ff3f28cc3e560d68a",
+        "gefen_muon.py": "64dbda3cc6e65fe32ec6b0457aba975a0e87c0a48389d7ef187fa851e9736215",
+        "kernels/period_variance_kernel.cu": "b5421de233d5b35a3ee6cb6401af662a5bdd7e30669824bf389b1b8aa6a7cd43",
+        "kernels/exact_histogram_fused_kernel.cu": "d4695da5813522b695c4baa9d45c2c359f69d66e34ee8b937b88d37868e494f6",
+        "kernels/lloyd_max_fused_kernel.cu": "d0b0288ace1d03886a4975b286fc5f32f38c956988c8f8a0194296d4c3cf9219",
+        "kernels/__init__.py": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "kernels/gefen_cuda_binding.cpp": "64619a2978b0aa2ff17babfffb60ce9783d1f2bef1c3bd88d1dd7a2492a53f3c",
+        "kernels/automatic_vmean_kernel.cu": "2dd6f35442e3f89a88984ef34bdc00d84e821b7562e8adc39ebf7a913f8e8300",
+        "kernels/_build_notice.py": "d15ed796c28df4c0a44a2c1ef340a709f924c485f48b9a9e29efee443c3486f9",
+        "kernels/automatic_gefen_fused.py": "0aa4d4947e9c14ca7c947cdba63ec4c106fe929ec0e8399c1ce789cc0ba39483",
+        "kernels/gefen_cuda.py": "0bca891ae33d886c417e4c9e53f10cad691c34ffd9ace04d4c3f5511fcc7a97d",
+        "kernels/period_variance.py": "45d640e9851f8b2953fcd95b39f9fbb899efbca6b6697fea242e79f05ecaf4f5",
+        "kernels/automatic_gefen_fused_kernel.cu": "eb7cd6b14464535ed1f4e5387cb01c979e2222b403b3e9671b7259ade0edc729",
+        "kernels/lloyd_max_fused.py": "8c0b1f47df77d98fc279924186ab9cc79956745b2ef6f08a3d8a2605d8593192",
+        "kernels/exact_histogram_fused.py": "e77c5263679490d5ffbd10c142fce1ec0f0742bcd8acbee8d22212230cc7f330",
+        "kernels/automatic_vmean.py": "789d13de7a6517fc4260b327b5b0c98c7e20916ad5058163e0b06f6712a7ca09"
+      },
+      "cuda_build_environment": {
+        "MAX_JOBS": "2",
+        "TORCH_CUDA_ARCH_LIST": "12.0",
+        "MINAGI_GEFEN_ALLOW_CUDA_MINOR_MISMATCH": "1"
+      },
+      "result": {
+        "parameter_count": 25165824,
+        "optimizer_state_bytes": 25461760,
+        "state_bytes_per_parameter": 1.0117594401041667,
+        "moved_fraction_on_second_update": 1.0,
+        "first_step_including_jit_seconds": 2.625362241997209,
+        "median_step_seconds": 0.0004449990010471083,
+        "iterations": 6732,
+        "start_monotonic": 65239.179794883,
+        "end_monotonic": 65242.180219909,
+        "peak_allocated_gib": 0.21805858612060547,
+        "state_keys": [
+          "automatic_period",
+          "m_codebook",
+          "m_codebook_shape",
+          "m_magnitude",
+          "step",
+          "vmean"
+        ],
+        "automatic_periods": [
+          512,
+          512,
+          2048,
+          512,
+          512,
+          2048,
+          512,
+          512,
+          2048,
+          512,
+          512,
+          2048,
+          512,
+          512,
+          2048,
+          512,
+          512,
+          2048,
+          512,
+          512,
+          2048,
+          512,
+          512,
+          2048
+        ],
+        "power": {
+          "start_monotonic": 65239.179794883,
+          "end_monotonic": 65242.180219909,
+          "duration_seconds": 3.000425026002631,
+          "sample_count_inside": 30,
+          "average_board_power_w": 480.9432695741041,
+          "peak_sampled_board_power_w": 488.00436348195745,
+          "estimated_board_energy_j": 1443.0342221176716,
+          "max_sample_gap_seconds": 0.10082334800245008,
+          "gpu_busy_percent": {
+            "median": 98.0,
+            "min": 98,
+            "max": 98
+          },
+          "memory_busy_percent": {
+            "median": 47.0,
+            "min": 47,
+            "max": 47
+          },
+          "sm_clock_mhz": {
+            "median": 2902.5,
+            "min": 2895,
+            "max": 2910
+          },
+          "memory_clock_mhz": {
+            "median": 13801.0,
+            "min": 13801,
+            "max": 13801
+          },
+          "temperature_c": {
+            "median": 62.5,
+            "min": 62,
+            "max": 63
+          },
+          "memory_used_mib": {
+            "median": 2274.5625,
+            "min": 2274.5625,
+            "max": 2274.5625
+          },
+          "clock_event_reason_masks": [
+            0
+          ]
+        },
+        "estimated_board_joules_per_optimizer_step": 0.21435445961343902
+      },
+      "status": "passed"
+    },
+    "latency-matrices-4-adamw": {
+      "configuration": {
+        "mode": "latency",
+        "optimizer": "adamw",
+        "dtype": "fp32",
+        "layout": "matrices",
+        "hidden": 512,
+        "width": 2048,
+        "experts": 8,
+        "seconds": 3.0,
+        "out": "/home/nir/ml-tools/mini-AGI/runs/performance/optimizers/latency-matrices-4-adamw.json"
+      },
+      "source_sha256": "dcbc173d08ee85e73a7d604dbc65f1473ca78aec0e8e426516be2af0c6faccc9",
+      "torch": "2.14.1+cu130",
+      "gefen": "1.2.3",
+      "gefen_commit": "e735f851a7ebdf0106da87126458c86e3e583d99",
+      "limits": [
+        "Optimizer-only synthetic fixed gradients; matrix list preserves independent experts.",
+        "No model forward/backward, paging or convergence measurement. Optimizer latency is not end-to-end throughput.",
+        "Different optimizer mathematics cannot be compared as a correctness-equivalent replacement."
+      ],
+      "gefen_source_sha256": {
+        "__init__.py": "3b823e459444c907d25775eeb1cb31cdeb8a3a3df2e7fc5015d43a2029dd53b0",
+        "setup.py": "ef7b23c3468c8130483cd7578c14e977b39b372fd088f0e163b47be196d1291e",
+        "gefen.py": "f453acf4afae97715304f58f0132a5a95abe9b61c6490abb0f1dc15691f31203",
+        "partitioning.py": "0c9867c08f292ce54e39d0f05ef2e0e872a68b90dd746710f3574813ab7fe692",
+        "quantization.py": "e9477c63b712b78a1544d511c31371b903a79cac9e2ca57ff3f28cc3e560d68a",
+        "gefen_muon.py": "64dbda3cc6e65fe32ec6b0457aba975a0e87c0a48389d7ef187fa851e9736215",
+        "kernels/period_variance_kernel.cu": "b5421de233d5b35a3ee6cb6401af662a5bdd7e30669824bf389b1b8aa6a7cd43",
+        "kernels/exact_histogram_fused_kernel.cu": "d4695da5813522b695c4baa9d45c2c359f69d66e34ee8b937b88d37868e494f6",
+        "kernels/lloyd_max_fused_kernel.cu": "d0b0288ace1d03886a4975b286fc5f32f38c956988c8f8a0194296d4c3cf9219",
+        "kernels/__init__.py": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "kernels/gefen_cuda_binding.cpp": "64619a2978b0aa2ff17babfffb60ce9783d1f2bef1c3bd88d1dd7a2492a53f3c",
+        "kernels/automatic_vmean_kernel.cu": "2dd6f35442e3f89a88984ef34bdc00d84e821b7562e8adc39ebf7a913f8e8300",
+        "kernels/_build_notice.py": "d15ed796c28df4c0a44a2c1ef340a709f924c485f48b9a9e29efee443c3486f9",
+        "kernels/automatic_gefen_fused.py": "0aa4d4947e9c14ca7c947cdba63ec4c106fe929ec0e8399c1ce789cc0ba39483",
+        "kernels/gefen_cuda.py": "0bca891ae33d886c417e4c9e53f10cad691c34ffd9ace04d4c3f5511fcc7a97d",
+        "kernels/period_variance.py": "45d640e9851f8b2953fcd95b39f9fbb899efbca6b6697fea242e79f05ecaf4f5",
+        "kernels/automatic_gefen_fused_kernel.cu": "eb7cd6b14464535ed1f4e5387cb01c979e2222b403b3e9671b7259ade0edc729",
+        "kernels/lloyd_max_fused.py": "8c0b1f47df77d98fc279924186ab9cc79956745b2ef6f08a3d8a2605d8593192",
+        "kernels/exact_histogram_fused.py": "e77c5263679490d5ffbd10c142fce1ec0f0742bcd8acbee8d22212230cc7f330",
+        "kernels/automatic_vmean.py": "789d13de7a6517fc4260b327b5b0c98c7e20916ad5058163e0b06f6712a7ca09"
+      },
+      "cuda_build_environment": {
+        "MAX_JOBS": "2",
+        "TORCH_CUDA_ARCH_LIST": "12.0",
+        "MINAGI_GEFEN_ALLOW_CUDA_MINOR_MISMATCH": "1"
+      },
+      "result": {
+        "parameter_count": 25165824,
+        "optimizer_state_bytes": 201326688,
+        "state_bytes_per_parameter": 8.000003814697266,
+        "moved_fraction_on_second_update": 1.0,
+        "first_step_including_jit_seconds": 0.008609441996668465,
+        "median_step_seconds": 0.0005037390001234598,
+        "iterations": 5916,
+        "start_monotonic": 65244.908304913,
+        "end_monotonic": 65247.908318841,
+        "peak_allocated_gib": 0.38185691833496094,
+        "state_keys": [
+          "exp_avg",
+          "exp_avg_sq",
+          "step"
+        ],
+        "automatic_periods": [],
+        "power": {
+          "start_monotonic": 65244.908304913,
+          "end_monotonic": 65247.908318841,
+          "duration_seconds": 3.000013928001863,
+          "sample_count_inside": 30,
+          "average_board_power_w": 367.43438663283735,
+          "peak_sampled_board_power_w": 375.237,
+          "estimated_board_energy_j": 1102.3082775253336,
+          "max_sample_gap_seconds": 0.10078469700238202,
+          "gpu_busy_percent": {
+            "median": 93.0,
+            "min": 93,
+            "max": 93
+          },
+          "memory_busy_percent": {
+            "median": 81.0,
+            "min": 80,
+            "max": 81
+          },
+          "sm_clock_mhz": {
+            "median": 2940.0,
+            "min": 2932,
+            "max": 2940
+          },
+          "memory_clock_mhz": {
+            "median": 13801.0,
+            "min": 13801,
+            "max": 13801
+          },
+          "temperature_c": {
+            "median": 56.0,
+            "min": 56,
+            "max": 56
+          },
+          "memory_used_mib": {
+            "median": 2450.5625,
+            "min": 2450.5625,
+            "max": 2450.5625
+          },
+          "clock_event_reason_masks": [
+            4
+          ]
+        },
+        "estimated_board_joules_per_optimizer_step": 0.1863266189190895
+      },
+      "status": "passed"
+    },
+    "latency-matrices-5-muon": {
+      "configuration": {
+        "mode": "latency",
+        "optimizer": "muon",
+        "dtype": "fp32",
+        "layout": "matrices",
+        "hidden": 512,
+        "width": 2048,
+        "experts": 8,
+        "seconds": 3.0,
+        "out": "/home/nir/ml-tools/mini-AGI/runs/performance/optimizers/latency-matrices-5-muon.json"
+      },
+      "source_sha256": "dcbc173d08ee85e73a7d604dbc65f1473ca78aec0e8e426516be2af0c6faccc9",
+      "torch": "2.14.1+cu130",
+      "gefen": "1.2.3",
+      "gefen_commit": "e735f851a7ebdf0106da87126458c86e3e583d99",
+      "limits": [
+        "Optimizer-only synthetic fixed gradients; matrix list preserves independent experts.",
+        "No model forward/backward, paging or convergence measurement. Optimizer latency is not end-to-end throughput.",
+        "Different optimizer mathematics cannot be compared as a correctness-equivalent replacement."
+      ],
+      "gefen_source_sha256": {
+        "__init__.py": "3b823e459444c907d25775eeb1cb31cdeb8a3a3df2e7fc5015d43a2029dd53b0",
+        "setup.py": "ef7b23c3468c8130483cd7578c14e977b39b372fd088f0e163b47be196d1291e",
+        "gefen.py": "f453acf4afae97715304f58f0132a5a95abe9b61c6490abb0f1dc15691f31203",
+        "partitioning.py": "0c9867c08f292ce54e39d0f05ef2e0e872a68b90dd746710f3574813ab7fe692",
+        "quantization.py": "e9477c63b712b78a1544d511c31371b903a79cac9e2ca57ff3f28cc3e560d68a",
+        "gefen_muon.py": "64dbda3cc6e65fe32ec6b0457aba975a0e87c0a48389d7ef187fa851e9736215",
+        "kernels/period_variance_kernel.cu": "b5421de233d5b35a3ee6cb6401af662a5bdd7e30669824bf389b1b8aa6a7cd43",
+        "kernels/exact_histogram_fused_kernel.cu": "d4695da5813522b695c4baa9d45c2c359f69d66e34ee8b937b88d37868e494f6",
+        "kernels/lloyd_max_fused_kernel.cu": "d0b0288ace1d03886a4975b286fc5f32f38c956988c8f8a0194296d4c3cf9219",
+        "kernels/__init__.py": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "kernels/gefen_cuda_binding.cpp": "64619a2978b0aa2ff17babfffb60ce9783d1f2bef1c3bd88d1dd7a2492a53f3c",
+        "kernels/automatic_vmean_kernel.cu": "2dd6f35442e3f89a88984ef34bdc00d84e821b7562e8adc39ebf7a913f8e8300",
+        "kernels/_build_notice.py": "d15ed796c28df4c0a44a2c1ef340a709f924c485f48b9a9e29efee443c3486f9",
+        "kernels/automatic_gefen_fused.py": "0aa4d4947e9c14ca7c947cdba63ec4c106fe929ec0e8399c1ce789cc0ba39483",
+        "kernels/gefen_cuda.py": "0bca891ae33d886c417e4c9e53f10cad691c34ffd9ace04d4c3f5511fcc7a97d",
+        "kernels/period_variance.py": "45d640e9851f8b2953fcd95b39f9fbb899efbca6b6697fea242e79f05ecaf4f5",
+        "kernels/automatic_gefen_fused_kernel.cu": "eb7cd6b14464535ed1f4e5387cb01c979e2222b403b3e9671b7259ade0edc729",
+        "kernels/lloyd_max_fused.py": "8c0b1f47df77d98fc279924186ab9cc79956745b2ef6f08a3d8a2605d8593192",
+        "kernels/exact_histogram_fused.py": "e77c5263679490d5ffbd10c142fce1ec0f0742bcd8acbee8d22212230cc7f330",
+        "kernels/automatic_vmean.py": "789d13de7a6517fc4260b327b5b0c98c7e20916ad5058163e0b06f6712a7ca09"
+      },
+      "cuda_build_environment": {
+        "MAX_JOBS": "2",
+        "TORCH_CUDA_ARCH_LIST": "12.0",
+        "MINAGI_GEFEN_ALLOW_CUDA_MINOR_MISMATCH": "1"
+      },
+      "result": {
+        "parameter_count": 25165824,
+        "optimizer_state_bytes": 100663296,
+        "state_bytes_per_parameter": 4.0,
+        "moved_fraction_on_second_update": 0.9995550314585367,
+        "first_step_including_jit_seconds": 0.08812490999844158,
+        "median_step_seconds": 0.005324052996002138,
+        "iterations": 563,
+        "start_monotonic": 65250.627225255,
+        "end_monotonic": 65253.627573141,
+        "peak_allocated_gib": 0.32129859924316406,
+        "state_keys": [
+          "momentum_buffer"
+        ],
+        "automatic_periods": [],
+        "power": {
+          "start_monotonic": 65250.627225255,
+          "end_monotonic": 65253.627573141,
+          "duration_seconds": 3.0003478860016912,
+          "sample_count_inside": 30,
+          "average_board_power_w": 357.86786803299526,
+          "peak_sampled_board_power_w": 361.763,
+          "estimated_board_energy_j": 1073.7281013207296,
+          "max_sample_gap_seconds": 0.10029110899631632,
+          "gpu_busy_percent": {
+            "median": 97.0,
+            "min": 97,
+            "max": 97
+          },
+          "memory_busy_percent": {
+            "median": 6.0,
+            "min": 6,
+            "max": 6
+          },
+          "sm_clock_mhz": {
+            "median": 2932.0,
+            "min": 2932,
+            "max": 2940
+          },
+          "memory_clock_mhz": {
+            "median": 13801.0,
+            "min": 13801,
+            "max": 13801
+          },
+          "temperature_c": {
+            "median": 60.0,
+            "min": 60,
+            "max": 60
+          },
+          "memory_used_mib": {
+            "median": 2392.5625,
+            "min": 2392.5625,
+            "max": 2392.5625
+          },
+          "clock_event_reason_masks": [
+            0
+          ]
+        },
+        "estimated_board_joules_per_optimizer_step": 1.9071547092730543
+      },
+      "status": "passed"
+    },
+    "latency-matrices-6-gefen_muon": {
+      "configuration": {
+        "mode": "latency",
+        "optimizer": "gefen_muon",
+        "dtype": "fp32",
+        "layout": "matrices",
+        "hidden": 512,
+        "width": 2048,
+        "experts": 8,
+        "seconds": 3.0,
+        "out": "/home/nir/ml-tools/mini-AGI/runs/performance/optimizers/latency-matrices-6-gefen_muon.json"
+      },
+      "source_sha256": "dcbc173d08ee85e73a7d604dbc65f1473ca78aec0e8e426516be2af0c6faccc9",
+      "torch": "2.14.1+cu130",
+      "gefen": "1.2.3",
+      "gefen_commit": "e735f851a7ebdf0106da87126458c86e3e583d99",
+      "limits": [
+        "Optimizer-only synthetic fixed gradients; matrix list preserves independent experts.",
+        "No model forward/backward, paging or convergence measurement. Optimizer latency is not end-to-end throughput.",
+        "Different optimizer mathematics cannot be compared as a correctness-equivalent replacement."
+      ],
+      "gefen_source_sha256": {
+        "__init__.py": "3b823e459444c907d25775eeb1cb31cdeb8a3a3df2e7fc5015d43a2029dd53b0",
+        "setup.py": "ef7b23c3468c8130483cd7578c14e977b39b372fd088f0e163b47be196d1291e",
+        "gefen.py": "f453acf4afae97715304f58f0132a5a95abe9b61c6490abb0f1dc15691f31203",
+        "partitioning.py": "0c9867c08f292ce54e39d0f05ef2e0e872a68b90dd746710f3574813ab7fe692",
+        "quantization.py": "e9477c63b712b78a1544d511c31371b903a79cac9e2ca57ff3f28cc3e560d68a",
+        "gefen_muon.py": "64dbda3cc6e65fe32ec6b0457aba975a0e87c0a48389d7ef187fa851e9736215",
+        "kernels/period_variance_kernel.cu": "b5421de233d5b35a3ee6cb6401af662a5bdd7e30669824bf389b1b8aa6a7cd43",
+        "kernels/exact_histogram_fused_kernel.cu": "d4695da5813522b695c4baa9d45c2c359f69d66e34ee8b937b88d37868e494f6",
+        "kernels/lloyd_max_fused_kernel.cu": "d0b0288ace1d03886a4975b286fc5f32f38c956988c8f8a0194296d4c3cf9219",
+        "kernels/__init__.py": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "kernels/gefen_cuda_binding.cpp": "64619a2978b0aa2ff17babfffb60ce9783d1f2bef1c3bd88d1dd7a2492a53f3c",
+        "kernels/automatic_vmean_kernel.cu": "2dd6f35442e3f89a88984ef34bdc00d84e821b7562e8adc39ebf7a913f8e8300",
+        "kernels/_build_notice.py": "d15ed796c28df4c0a44a2c1ef340a709f924c485f48b9a9e29efee443c3486f9",
+        "kernels/automatic_gefen_fused.py": "0aa4d4947e9c14ca7c947cdba63ec4c106fe929ec0e8399c1ce789cc0ba39483",
+        "kernels/gefen_cuda.py": "0bca891ae33d886c417e4c9e53f10cad691c34ffd9ace04d4c3f5511fcc7a97d",
+        "kernels/period_variance.py": "45d640e9851f8b2953fcd95b39f9fbb899efbca6b6697fea242e79f05ecaf4f5",
+        "kernels/automatic_gefen_fused_kernel.cu": "eb7cd6b14464535ed1f4e5387cb01c979e2222b403b3e9671b7259ade0edc729",
+        "kernels/lloyd_max_fused.py": "8c0b1f47df77d98fc279924186ab9cc79956745b2ef6f08a3d8a2605d8593192",
+        "kernels/exact_histogram_fused.py": "e77c5263679490d5ffbd10c142fce1ec0f0742bcd8acbee8d22212230cc7f330",
+        "kernels/automatic_vmean.py": "789d13de7a6517fc4260b327b5b0c98c7e20916ad5058163e0b06f6712a7ca09"
+      },
+      "cuda_build_environment": {
+        "MAX_JOBS": "2",
+        "TORCH_CUDA_ARCH_LIST": "12.0",
+        "MINAGI_GEFEN_ALLOW_CUDA_MINOR_MISMATCH": "1"
+      },
+      "result": {
+        "parameter_count": 25165824,
+        "optimizer_state_bytes": 25314304,
+        "state_bytes_per_parameter": 1.0059000651041667,
+        "moved_fraction_on_second_update": 0.9995611906051636,
+        "first_step_including_jit_seconds": 2.708452279002813,
+        "median_step_seconds": 0.005425882001873106,
+        "iterations": 553,
+        "start_monotonic": 65259.008095169,
+        "end_monotonic": 65262.010990895,
+        "peak_allocated_gib": 0.25112438201904297,
+        "state_keys": [
+          "automatic_period",
+          "m_codebook",
+          "m_codebook_shape",
+          "m_magnitude",
+          "step"
+        ],
+        "automatic_periods": [
+          512,
+          512,
+          2048,
+          512,
+          512,
+          2048,
+          512,
+          512,
+          2048,
+          512,
+          512,
+          2048,
+          512,
+          512,
+          2048,
+          512,
+          512,
+          2048,
+          512,
+          512,
+          2048,
+          512,
+          512,
+          2048
+        ],
+        "power": {
+          "start_monotonic": 65259.008095169,
+          "end_monotonic": 65262.010990895,
+          "duration_seconds": 3.0028957260001334,
+          "sample_count_inside": 30,
+          "average_board_power_w": 357.0533176388684,
+          "peak_sampled_board_power_w": 364.889,
+          "estimated_board_energy_j": 1072.193881491926,
+          "max_sample_gap_seconds": 0.10079637700255262,
+          "gpu_busy_percent": {
+            "median": 97.0,
+            "min": 97,
+            "max": 97
+          },
+          "memory_busy_percent": {
+            "median": 4.0,
+            "min": 4,
+            "max": 4
+          },
+          "sm_clock_mhz": {
+            "median": 2932.0,
+            "min": 2932,
+            "max": 2932
+          },
+          "memory_clock_mhz": {
+            "median": 13801.0,
+            "min": 13801,
+            "max": 13801
+          },
+          "temperature_c": {
+            "median": 60.0,
+            "min": 60,
+            "max": 61
+          },
+          "memory_used_mib": {
+            "median": 2316.5625,
+            "min": 2316.5625,
+            "max": 2316.5625
+          },
+          "clock_event_reason_masks": [
+            0
+          ]
+        },
+        "estimated_board_joules_per_optimizer_step": 1.9388677784664123
+      },
+      "status": "passed"
+    },
+    "latency-matrices-7-gefen_muon": {
+      "configuration": {
+        "mode": "latency",
+        "optimizer": "gefen_muon",
+        "dtype": "fp32",
+        "layout": "matrices",
+        "hidden": 512,
+        "width": 2048,
+        "experts": 8,
+        "seconds": 3.0,
+        "out": "/home/nir/ml-tools/mini-AGI/runs/performance/optimizers/latency-matrices-7-gefen_muon.json"
+      },
+      "source_sha256": "dcbc173d08ee85e73a7d604dbc65f1473ca78aec0e8e426516be2af0c6faccc9",
+      "torch": "2.14.1+cu130",
+      "gefen": "1.2.3",
+      "gefen_commit": "e735f851a7ebdf0106da87126458c86e3e583d99",
+      "limits": [
+        "Optimizer-only synthetic fixed gradients; matrix list preserves independent experts.",
+        "No model forward/backward, paging or convergence measurement. Optimizer latency is not end-to-end throughput.",
+        "Different optimizer mathematics cannot be compared as a correctness-equivalent replacement."
+      ],
+      "gefen_source_sha256": {
+        "__init__.py": "3b823e459444c907d25775eeb1cb31cdeb8a3a3df2e7fc5015d43a2029dd53b0",
+        "setup.py": "ef7b23c3468c8130483cd7578c14e977b39b372fd088f0e163b47be196d1291e",
+        "gefen.py": "f453acf4afae97715304f58f0132a5a95abe9b61c6490abb0f1dc15691f31203",
+        "partitioning.py": "0c9867c08f292ce54e39d0f05ef2e0e872a68b90dd746710f3574813ab7fe692",
+        "quantization.py": "e9477c63b712b78a1544d511c31371b903a79cac9e2ca57ff3f28cc3e560d68a",
+        "gefen_muon.py": "64dbda3cc6e65fe32ec6b0457aba975a0e87c0a48389d7ef187fa851e9736215",
+        "kernels/period_variance_kernel.cu": "b5421de233d5b35a3ee6cb6401af662a5bdd7e30669824bf389b1b8aa6a7cd43",
+        "kernels/exact_histogram_fused_kernel.cu": "d4695da5813522b695c4baa9d45c2c359f69d66e34ee8b937b88d37868e494f6",
+        "kernels/lloyd_max_fused_kernel.cu": "d0b0288ace1d03886a4975b286fc5f32f38c956988c8f8a0194296d4c3cf9219",
+        "kernels/__init__.py": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "kernels/gefen_cuda_binding.cpp": "64619a2978b0aa2ff17babfffb60ce9783d1f2bef1c3bd88d1dd7a2492a53f3c",
+        "kernels/automatic_vmean_kernel.cu": "2dd6f35442e3f89a88984ef34bdc00d84e821b7562e8adc39ebf7a913f8e8300",
+        "kernels/_build_notice.py": "d15ed796c28df4c0a44a2c1ef340a709f924c485f48b9a9e29efee443c3486f9",
+        "kernels/automatic_gefen_fused.py": "0aa4d4947e9c14ca7c947cdba63ec4c106fe929ec0e8399c1ce789cc0ba39483",
+        "kernels/gefen_cuda.py": "0bca891ae33d886c417e4c9e53f10cad691c34ffd9ace04d4c3f5511fcc7a97d",
+        "kernels/period_variance.py": "45d640e9851f8b2953fcd95b39f9fbb899efbca6b6697fea242e79f05ecaf4f5",
+        "kernels/automatic_gefen_fused_kernel.cu": "eb7cd6b14464535ed1f4e5387cb01c979e2222b403b3e9671b7259ade0edc729",
+        "kernels/lloyd_max_fused.py": "8c0b1f47df77d98fc279924186ab9cc79956745b2ef6f08a3d8a2605d8593192",
+        "kernels/exact_histogram_fused.py": "e77c5263679490d5ffbd10c142fce1ec0f0742bcd8acbee8d22212230cc7f330",
+        "kernels/automatic_vmean.py": "789d13de7a6517fc4260b327b5b0c98c7e20916ad5058163e0b06f6712a7ca09"
+      },
+      "cuda_build_environment": {
+        "MAX_JOBS": "2",
+        "TORCH_CUDA_ARCH_LIST": "12.0",
+        "MINAGI_GEFEN_ALLOW_CUDA_MINOR_MISMATCH": "1"
+      },
+      "result": {
+        "parameter_count": 25165824,
+        "optimizer_state_bytes": 25314304,
+        "state_bytes_per_parameter": 1.0059000651041667,
+        "moved_fraction_on_second_update": 0.9995611906051636,
+        "first_step_including_jit_seconds": 2.706183015994611,
+        "median_step_seconds": 0.005424711998784915,
+        "iterations": 553,
+        "start_monotonic": 65267.472287985,
+        "end_monotonic": 65270.474667903,
+        "peak_allocated_gib": 0.25112438201904297,
+        "state_keys": [
+          "automatic_period",
+          "m_codebook",
+          "m_codebook_shape",
+          "m_magnitude",
+          "step"
+        ],
+        "automatic_periods": [
+          512,
+          512,
+          2048,
+          512,
+          512,
+          2048,
+          512,
+          512,
+          2048,
+          512,
+          512,
+          2048,
+          512,
+          512,
+          2048,
+          512,
+          512,
+          2048,
+          512,
+          512,
+          2048,
+          512,
+          512,
+          2048
+        ],
+        "power": {
+          "start_monotonic": 65267.472287985,
+          "end_monotonic": 65270.474667903,
+          "duration_seconds": 3.0023799179980415,
+          "sample_count_inside": 30,
+          "average_board_power_w": 359.5141931328789,
+          "peak_sampled_board_power_w": 364.828,
+          "estimated_board_energy_j": 1079.398193697425,
+          "max_sample_gap_seconds": 0.1006092180032283,
+          "gpu_busy_percent": {
+            "median": 97.0,
+            "min": 97,
+            "max": 97
+          },
+          "memory_busy_percent": {
+            "median": 4.0,
+            "min": 4,
+            "max": 4
+          },
+          "sm_clock_mhz": {
+            "median": 2932.0,
+            "min": 2932,
+            "max": 2932
+          },
+          "memory_clock_mhz": {
+            "median": 13801.0,
+            "min": 13801,
+            "max": 13801
+          },
+          "temperature_c": {
+            "median": 61.0,
+            "min": 60,
+            "max": 61
+          },
+          "memory_used_mib": {
+            "median": 2316.5625,
+            "min": 2316.5625,
+            "max": 2316.5625
+          },
+          "clock_event_reason_masks": [
+            0
+          ]
+        },
+        "estimated_board_joules_per_optimizer_step": 1.9518954678072786
+      },
+      "status": "passed"
+    },
+    "latency-matrices-8-muon": {
+      "configuration": {
+        "mode": "latency",
+        "optimizer": "muon",
+        "dtype": "fp32",
+        "layout": "matrices",
+        "hidden": 512,
+        "width": 2048,
+        "experts": 8,
+        "seconds": 3.0,
+        "out": "/home/nir/ml-tools/mini-AGI/runs/performance/optimizers/latency-matrices-8-muon.json"
+      },
+      "source_sha256": "dcbc173d08ee85e73a7d604dbc65f1473ca78aec0e8e426516be2af0c6faccc9",
+      "torch": "2.14.1+cu130",
+      "gefen": "1.2.3",
+      "gefen_commit": "e735f851a7ebdf0106da87126458c86e3e583d99",
+      "limits": [
+        "Optimizer-only synthetic fixed gradients; matrix list preserves independent experts.",
+        "No model forward/backward, paging or convergence measurement. Optimizer latency is not end-to-end throughput.",
+        "Different optimizer mathematics cannot be compared as a correctness-equivalent replacement."
+      ],
+      "gefen_source_sha256": {
+        "__init__.py": "3b823e459444c907d25775eeb1cb31cdeb8a3a3df2e7fc5015d43a2029dd53b0",
+        "setup.py": "ef7b23c3468c8130483cd7578c14e977b39b372fd088f0e163b47be196d1291e",
+        "gefen.py": "f453acf4afae97715304f58f0132a5a95abe9b61c6490abb0f1dc15691f31203",
+        "partitioning.py": "0c9867c08f292ce54e39d0f05ef2e0e872a68b90dd746710f3574813ab7fe692",
+        "quantization.py": "e9477c63b712b78a1544d511c31371b903a79cac9e2ca57ff3f28cc3e560d68a",
+        "gefen_muon.py": "64dbda3cc6e65fe32ec6b0457aba975a0e87c0a48389d7ef187fa851e9736215",
+        "kernels/period_variance_kernel.cu": "b5421de233d5b35a3ee6cb6401af662a5bdd7e30669824bf389b1b8aa6a7cd43",
+        "kernels/exact_histogram_fused_kernel.cu": "d4695da5813522b695c4baa9d45c2c359f69d66e34ee8b937b88d37868e494f6",
+        "kernels/lloyd_max_fused_kernel.cu": "d0b0288ace1d03886a4975b286fc5f32f38c956988c8f8a0194296d4c3cf9219",
+        "kernels/__init__.py": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "kernels/gefen_cuda_binding.cpp": "64619a2978b0aa2ff17babfffb60ce9783d1f2bef1c3bd88d1dd7a2492a53f3c",
+        "kernels/automatic_vmean_kernel.cu": "2dd6f35442e3f89a88984ef34bdc00d84e821b7562e8adc39ebf7a913f8e8300",
+        "kernels/_build_notice.py": "d15ed796c28df4c0a44a2c1ef340a709f924c485f48b9a9e29efee443c3486f9",
+        "kernels/automatic_gefen_fused.py": "0aa4d4947e9c14ca7c947cdba63ec4c106fe929ec0e8399c1ce789cc0ba39483",
+        "kernels/gefen_cuda.py": "0bca891ae33d886c417e4c9e53f10cad691c34ffd9ace04d4c3f5511fcc7a97d",
+        "kernels/period_variance.py": "45d640e9851f8b2953fcd95b39f9fbb899efbca6b6697fea242e79f05ecaf4f5",
+        "kernels/automatic_gefen_fused_kernel.cu": "eb7cd6b14464535ed1f4e5387cb01c979e2222b403b3e9671b7259ade0edc729",
+        "kernels/lloyd_max_fused.py": "8c0b1f47df77d98fc279924186ab9cc79956745b2ef6f08a3d8a2605d8593192",
+        "kernels/exact_histogram_fused.py": "e77c5263679490d5ffbd10c142fce1ec0f0742bcd8acbee8d22212230cc7f330",
+        "kernels/automatic_vmean.py": "789d13de7a6517fc4260b327b5b0c98c7e20916ad5058163e0b06f6712a7ca09"
+      },
+      "cuda_build_environment": {
+        "MAX_JOBS": "2",
+        "TORCH_CUDA_ARCH_LIST": "12.0",
+        "MINAGI_GEFEN_ALLOW_CUDA_MINOR_MISMATCH": "1"
+      },
+      "result": {
+        "parameter_count": 25165824,
+        "optimizer_state_bytes": 100663296,
+        "state_bytes_per_parameter": 4.0,
+        "moved_fraction_on_second_update": 0.9995550314585367,
+        "first_step_including_jit_seconds": 0.08855909900012193,
+        "median_step_seconds": 0.005324461999407504,
+        "iterations": 563,
+        "start_monotonic": 65273.311863746,
+        "end_monotonic": 65276.314802043,
+        "peak_allocated_gib": 0.32129859924316406,
+        "state_keys": [
+          "momentum_buffer"
+        ],
+        "automatic_periods": [],
+        "power": {
+          "start_monotonic": 65273.311863746,
+          "end_monotonic": 65276.314802043,
+          "duration_seconds": 3.0029382970024017,
+          "sample_count_inside": 30,
+          "average_board_power_w": 356.28595840239956,
+          "peak_sampled_board_power_w": 362.581,
+          "estimated_board_energy_j": 1069.9047491707702,
+          "max_sample_gap_seconds": 0.10030389900202863,
+          "gpu_busy_percent": {
+            "median": 97.0,
+            "min": 97,
+            "max": 97
+          },
+          "memory_busy_percent": {
+            "median": 6.0,
+            "min": 6,
+            "max": 6
+          },
+          "sm_clock_mhz": {
+            "median": 2932.0,
+            "min": 2932,
+            "max": 2932
+          },
+          "memory_clock_mhz": {
+            "median": 13801.0,
+            "min": 13801,
+            "max": 13801
+          },
+          "temperature_c": {
+            "median": 61.0,
+            "min": 60,
+            "max": 61
+          },
+          "memory_used_mib": {
+            "median": 2392.5625,
+            "min": 2392.5625,
+            "max": 2392.5625
+          },
+          "clock_event_reason_masks": [
+            0
+          ]
+        },
+        "estimated_board_joules_per_optimizer_step": 1.9003636752589168
+      },
+      "status": "passed"
+    },
+    "latency-slabs-1-adamw": {
+      "configuration": {
+        "mode": "latency",
+        "optimizer": "adamw",
+        "dtype": "fp32",
+        "layout": "slabs",
+        "hidden": 512,
+        "width": 2048,
+        "experts": 8,
+        "seconds": 3.0,
+        "out": "/home/nir/ml-tools/mini-AGI/runs/performance/optimizers/latency-slabs-1-adamw.json"
+      },
+      "source_sha256": "dcbc173d08ee85e73a7d604dbc65f1473ca78aec0e8e426516be2af0c6faccc9",
+      "torch": "2.14.1+cu130",
+      "gefen": "1.2.3",
+      "gefen_commit": "e735f851a7ebdf0106da87126458c86e3e583d99",
+      "limits": [
+        "Optimizer-only synthetic fixed gradients; matrix list preserves independent experts.",
+        "No model forward/backward, paging or convergence measurement. Optimizer latency is not end-to-end throughput.",
+        "Different optimizer mathematics cannot be compared as a correctness-equivalent replacement."
+      ],
+      "gefen_source_sha256": {
+        "__init__.py": "3b823e459444c907d25775eeb1cb31cdeb8a3a3df2e7fc5015d43a2029dd53b0",
+        "setup.py": "ef7b23c3468c8130483cd7578c14e977b39b372fd088f0e163b47be196d1291e",
+        "gefen.py": "f453acf4afae97715304f58f0132a5a95abe9b61c6490abb0f1dc15691f31203",
+        "partitioning.py": "0c9867c08f292ce54e39d0f05ef2e0e872a68b90dd746710f3574813ab7fe692",
+        "quantization.py": "e9477c63b712b78a1544d511c31371b903a79cac9e2ca57ff3f28cc3e560d68a",
+        "gefen_muon.py": "64dbda3cc6e65fe32ec6b0457aba975a0e87c0a48389d7ef187fa851e9736215",
+        "kernels/period_variance_kernel.cu": "b5421de233d5b35a3ee6cb6401af662a5bdd7e30669824bf389b1b8aa6a7cd43",
+        "kernels/exact_histogram_fused_kernel.cu": "d4695da5813522b695c4baa9d45c2c359f69d66e34ee8b937b88d37868e494f6",
+        "kernels/lloyd_max_fused_kernel.cu": "d0b0288ace1d03886a4975b286fc5f32f38c956988c8f8a0194296d4c3cf9219",
+        "kernels/__init__.py": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "kernels/gefen_cuda_binding.cpp": "64619a2978b0aa2ff17babfffb60ce9783d1f2bef1c3bd88d1dd7a2492a53f3c",
+        "kernels/automatic_vmean_kernel.cu": "2dd6f35442e3f89a88984ef34bdc00d84e821b7562e8adc39ebf7a913f8e8300",
+        "kernels/_build_notice.py": "d15ed796c28df4c0a44a2c1ef340a709f924c485f48b9a9e29efee443c3486f9",
+        "kernels/automatic_gefen_fused.py": "0aa4d4947e9c14ca7c947cdba63ec4c106fe929ec0e8399c1ce789cc0ba39483",
+        "kernels/gefen_cuda.py": "0bca891ae33d886c417e4c9e53f10cad691c34ffd9ace04d4c3f5511fcc7a97d",
+        "kernels/period_variance.py": "45d640e9851f8b2953fcd95b39f9fbb899efbca6b6697fea242e79f05ecaf4f5",
+        "kernels/automatic_gefen_fused_kernel.cu": "eb7cd6b14464535ed1f4e5387cb01c979e2222b403b3e9671b7259ade0edc729",
+        "kernels/lloyd_max_fused.py": "8c0b1f47df77d98fc279924186ab9cc79956745b2ef6f08a3d8a2605d8593192",
+        "kernels/exact_histogram_fused.py": "e77c5263679490d5ffbd10c142fce1ec0f0742bcd8acbee8d22212230cc7f330",
+        "kernels/automatic_vmean.py": "789d13de7a6517fc4260b327b5b0c98c7e20916ad5058163e0b06f6712a7ca09"
+      },
+      "cuda_build_environment": {
+        "MAX_JOBS": "2",
+        "TORCH_CUDA_ARCH_LIST": "12.0",
+        "MINAGI_GEFEN_ALLOW_CUDA_MINOR_MISMATCH": "1"
+      },
+      "result": {
+        "parameter_count": 25165824,
+        "optimizer_state_bytes": 201326604,
+        "state_bytes_per_parameter": 8.000000476837158,
+        "moved_fraction_on_second_update": 1.0,
+        "first_step_including_jit_seconds": 0.008380572005989961,
+        "median_step_seconds": 0.000482497998746112,
+        "iterations": 6178,
+        "start_monotonic": 65278.934602303,
+        "end_monotonic": 65281.934951618,
+        "peak_allocated_gib": 0.42971181869506836,
+        "state_keys": [
+          "exp_avg",
+          "exp_avg_sq",
+          "step"
+        ],
+        "automatic_periods": [],
+        "power": {
+          "start_monotonic": 65278.934602303,
+          "end_monotonic": 65281.934951618,
+          "duration_seconds": 3.0003493149997666,
+          "sample_count_inside": 30,
+          "average_board_power_w": 371.2653119218039,
+          "peak_sampled_board_power_w": 377.546,
+          "estimated_board_energy_j": 1113.925624307759,
+          "max_sample_gap_seconds": 0.10084442699735519,
+          "gpu_busy_percent": {
+            "median": 96.0,
+            "min": 96,
+            "max": 96
+          },
+          "memory_busy_percent": {
+            "median": 84.0,
+            "min": 84,
+            "max": 85
+          },
+          "sm_clock_mhz": {
+            "median": 2895.0,
+            "min": 2887,
+            "max": 2895
+          },
+          "memory_clock_mhz": {
+            "median": 13801.0,
+            "min": 13801,
+            "max": 13801
+          },
+          "temperature_c": {
+            "median": 57.0,
+            "min": 57,
+            "max": 58
+          },
+          "memory_used_mib": {
+            "median": 2514.5625,
+            "min": 2514.5625,
+            "max": 2514.5625
+          },
+          "clock_event_reason_masks": [
+            4
+          ]
+        },
+        "estimated_board_joules_per_optimizer_step": 0.18030521597729995
+      },
+      "status": "passed"
+    },
+    "latency-slabs-2-gefen": {
+      "configuration": {
+        "mode": "latency",
+        "optimizer": "gefen",
+        "dtype": "fp32",
+        "layout": "slabs",
+        "hidden": 512,
+        "width": 2048,
+        "experts": 8,
+        "seconds": 3.0,
+        "out": "/home/nir/ml-tools/mini-AGI/runs/performance/optimizers/latency-slabs-2-gefen.json"
+      },
+      "source_sha256": "dcbc173d08ee85e73a7d604dbc65f1473ca78aec0e8e426516be2af0c6faccc9",
+      "torch": "2.14.1+cu130",
+      "gefen": "1.2.3",
+      "gefen_commit": "e735f851a7ebdf0106da87126458c86e3e583d99",
+      "limits": [
+        "Optimizer-only synthetic fixed gradients; matrix list preserves independent experts.",
+        "No model forward/backward, paging or convergence measurement. Optimizer latency is not end-to-end throughput.",
+        "Different optimizer mathematics cannot be compared as a correctness-equivalent replacement."
+      ],
+      "gefen_source_sha256": {
+        "__init__.py": "3b823e459444c907d25775eeb1cb31cdeb8a3a3df2e7fc5015d43a2029dd53b0",
+        "setup.py": "ef7b23c3468c8130483cd7578c14e977b39b372fd088f0e163b47be196d1291e",
+        "gefen.py": "f453acf4afae97715304f58f0132a5a95abe9b61c6490abb0f1dc15691f31203",
+        "partitioning.py": "0c9867c08f292ce54e39d0f05ef2e0e872a68b90dd746710f3574813ab7fe692",
+        "quantization.py": "e9477c63b712b78a1544d511c31371b903a79cac9e2ca57ff3f28cc3e560d68a",
+        "gefen_muon.py": "64dbda3cc6e65fe32ec6b0457aba975a0e87c0a48389d7ef187fa851e9736215",
+        "kernels/period_variance_kernel.cu": "b5421de233d5b35a3ee6cb6401af662a5bdd7e30669824bf389b1b8aa6a7cd43",
+        "kernels/exact_histogram_fused_kernel.cu": "d4695da5813522b695c4baa9d45c2c359f69d66e34ee8b937b88d37868e494f6",
+        "kernels/lloyd_max_fused_kernel.cu": "d0b0288ace1d03886a4975b286fc5f32f38c956988c8f8a0194296d4c3cf9219",
+        "kernels/__init__.py": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "kernels/gefen_cuda_binding.cpp": "64619a2978b0aa2ff17babfffb60ce9783d1f2bef1c3bd88d1dd7a2492a53f3c",
+        "kernels/automatic_vmean_kernel.cu": "2dd6f35442e3f89a88984ef34bdc00d84e821b7562e8adc39ebf7a913f8e8300",
+        "kernels/_build_notice.py": "d15ed796c28df4c0a44a2c1ef340a709f924c485f48b9a9e29efee443c3486f9",
+        "kernels/automatic_gefen_fused.py": "0aa4d4947e9c14ca7c947cdba63ec4c106fe929ec0e8399c1ce789cc0ba39483",
+        "kernels/gefen_cuda.py": "0bca891ae33d886c417e4c9e53f10cad691c34ffd9ace04d4c3f5511fcc7a97d",
+        "kernels/period_variance.py": "45d640e9851f8b2953fcd95b39f9fbb899efbca6b6697fea242e79f05ecaf4f5",
+        "kernels/automatic_gefen_fused_kernel.cu": "eb7cd6b14464535ed1f4e5387cb01c979e2222b403b3e9671b7259ade0edc729",
+        "kernels/lloyd_max_fused.py": "8c0b1f47df77d98fc279924186ab9cc79956745b2ef6f08a3d8a2605d8593192",
+        "kernels/exact_histogram_fused.py": "e77c5263679490d5ffbd10c142fce1ec0f0742bcd8acbee8d22212230cc7f330",
+        "kernels/automatic_vmean.py": "789d13de7a6517fc4260b327b5b0c98c7e20916ad5058163e0b06f6712a7ca09"
+      },
+      "cuda_build_environment": {
+        "MAX_JOBS": "2",
+        "TORCH_CUDA_ARCH_LIST": "12.0",
+        "MINAGI_GEFEN_ALLOW_CUDA_MINOR_MISMATCH": "1"
+      },
+      "result": {
+        "parameter_count": 25165824,
+        "optimizer_state_bytes": 25461760,
+        "state_bytes_per_parameter": 1.0117594401041667,
+        "moved_fraction_on_second_update": 1.0,
+        "first_step_including_jit_seconds": 2.633077876002062,
+        "median_step_seconds": 0.00030909899942344055,
+        "iterations": 9685,
+        "start_monotonic": 65287.185072464,
+        "end_monotonic": 65290.185332789,
+        "peak_allocated_gib": 0.26592350006103516,
+        "state_keys": [
+          "automatic_period",
+          "m_codebook",
+          "m_codebook_shape",
+          "m_magnitude",
+          "step",
+          "vmean"
+        ],
+        "automatic_periods": [
+          512,
+          512,
+          2048
+        ],
+        "power": {
+          "start_monotonic": 65287.185072464,
+          "end_monotonic": 65290.185332789,
+          "duration_seconds": 3.0002603249959066,
+          "sample_count_inside": 30,
+          "average_board_power_w": 593.4759278682085,
+          "peak_sampled_board_power_w": 600.129,
+          "estimated_board_energy_j": 1780.5822802231185,
+          "max_sample_gap_seconds": 0.10059405799984233,
+          "gpu_busy_percent": {
+            "median": 97.0,
+            "min": 97,
+            "max": 97
+          },
+          "memory_busy_percent": {
+            "median": 66.0,
+            "min": 66,
+            "max": 66
+          },
+          "sm_clock_mhz": {
+            "median": 2827.0,
+            "min": 2820,
+            "max": 2827
+          },
+          "memory_clock_mhz": {
+            "median": 13801.0,
+            "min": 13801,
+            "max": 13801
+          },
+          "temperature_c": {
+            "median": 66.0,
+            "min": 66,
+            "max": 66
+          },
+          "memory_used_mib": {
+            "median": 2334.5625,
+            "min": 2334.5625,
+            "max": 2334.5625
+          },
+          "clock_event_reason_masks": [
+            4
+          ]
+        },
+        "estimated_board_joules_per_optimizer_step": 0.18384948685834987
+      },
+      "status": "passed"
+    },
+    "latency-slabs-3-gefen": {
+      "configuration": {
+        "mode": "latency",
+        "optimizer": "gefen",
+        "dtype": "fp32",
+        "layout": "slabs",
+        "hidden": 512,
+        "width": 2048,
+        "experts": 8,
+        "seconds": 3.0,
+        "out": "/home/nir/ml-tools/mini-AGI/runs/performance/optimizers/latency-slabs-3-gefen.json"
+      },
+      "source_sha256": "dcbc173d08ee85e73a7d604dbc65f1473ca78aec0e8e426516be2af0c6faccc9",
+      "torch": "2.14.1+cu130",
+      "gefen": "1.2.3",
+      "gefen_commit": "e735f851a7ebdf0106da87126458c86e3e583d99",
+      "limits": [
+        "Optimizer-only synthetic fixed gradients; matrix list preserves independent experts.",
+        "No model forward/backward, paging or convergence measurement. Optimizer latency is not end-to-end throughput.",
+        "Different optimizer mathematics cannot be compared as a correctness-equivalent replacement."
+      ],
+      "gefen_source_sha256": {
+        "__init__.py": "3b823e459444c907d25775eeb1cb31cdeb8a3a3df2e7fc5015d43a2029dd53b0",
+        "setup.py": "ef7b23c3468c8130483cd7578c14e977b39b372fd088f0e163b47be196d1291e",
+        "gefen.py": "f453acf4afae97715304f58f0132a5a95abe9b61c6490abb0f1dc15691f31203",
+        "partitioning.py": "0c9867c08f292ce54e39d0f05ef2e0e872a68b90dd746710f3574813ab7fe692",
+        "quantization.py": "e9477c63b712b78a1544d511c31371b903a79cac9e2ca57ff3f28cc3e560d68a",
+        "gefen_muon.py": "64dbda3cc6e65fe32ec6b0457aba975a0e87c0a48389d7ef187fa851e9736215",
+        "kernels/period_variance_kernel.cu": "b5421de233d5b35a3ee6cb6401af662a5bdd7e30669824bf389b1b8aa6a7cd43",
+        "kernels/exact_histogram_fused_kernel.cu": "d4695da5813522b695c4baa9d45c2c359f69d66e34ee8b937b88d37868e494f6",
+        "kernels/lloyd_max_fused_kernel.cu": "d0b0288ace1d03886a4975b286fc5f32f38c956988c8f8a0194296d4c3cf9219",
+        "kernels/__init__.py": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "kernels/gefen_cuda_binding.cpp": "64619a2978b0aa2ff17babfffb60ce9783d1f2bef1c3bd88d1dd7a2492a53f3c",
+        "kernels/automatic_vmean_kernel.cu": "2dd6f35442e3f89a88984ef34bdc00d84e821b7562e8adc39ebf7a913f8e8300",
+        "kernels/_build_notice.py": "d15ed796c28df4c0a44a2c1ef340a709f924c485f48b9a9e29efee443c3486f9",
+        "kernels/automatic_gefen_fused.py": "0aa4d4947e9c14ca7c947cdba63ec4c106fe929ec0e8399c1ce789cc0ba39483",
+        "kernels/gefen_cuda.py": "0bca891ae33d886c417e4c9e53f10cad691c34ffd9ace04d4c3f5511fcc7a97d",
+        "kernels/period_variance.py": "45d640e9851f8b2953fcd95b39f9fbb899efbca6b6697fea242e79f05ecaf4f5",
+        "kernels/automatic_gefen_fused_kernel.cu": "eb7cd6b14464535ed1f4e5387cb01c979e2222b403b3e9671b7259ade0edc729",
+        "kernels/lloyd_max_fused.py": "8c0b1f47df77d98fc279924186ab9cc79956745b2ef6f08a3d8a2605d8593192",
+        "kernels/exact_histogram_fused.py": "e77c5263679490d5ffbd10c142fce1ec0f0742bcd8acbee8d22212230cc7f330",
+        "kernels/automatic_vmean.py": "789d13de7a6517fc4260b327b5b0c98c7e20916ad5058163e0b06f6712a7ca09"
+      },
+      "cuda_build_environment": {
+        "MAX_JOBS": "2",
+        "TORCH_CUDA_ARCH_LIST": "12.0",
+        "MINAGI_GEFEN_ALLOW_CUDA_MINOR_MISMATCH": "1"
+      },
+      "result": {
+        "parameter_count": 25165824,
+        "optimizer_state_bytes": 25461760,
+        "state_bytes_per_parameter": 1.0117594401041667,
+        "moved_fraction_on_second_update": 1.0,
+        "first_step_including_jit_seconds": 2.6218282429981628,
+        "median_step_seconds": 0.00030925899773137644,
+        "iterations": 9680,
+        "start_monotonic": 65295.526858003,
+        "end_monotonic": 65298.527063239,
+        "peak_allocated_gib": 0.26592350006103516,
+        "state_keys": [
+          "automatic_period",
+          "m_codebook",
+          "m_codebook_shape",
+          "m_magnitude",
+          "step",
+          "vmean"
+        ],
+        "automatic_periods": [
+          512,
+          512,
+          2048
+        ],
+        "power": {
+          "start_monotonic": 65295.526858003,
+          "end_monotonic": 65298.527063239,
+          "duration_seconds": 3.0002052359996014,
+          "sample_count_inside": 30,
+          "average_board_power_w": 593.8480592866081,
+          "peak_sampled_board_power_w": 602.038,
+          "estimated_board_energy_j": 1781.6660568598832,
+          "max_sample_gap_seconds": 0.10056210800394183,
+          "gpu_busy_percent": {
+            "median": 97.0,
+            "min": 97,
+            "max": 97
+          },
+          "memory_busy_percent": {
+            "median": 66.0,
+            "min": 66,
+            "max": 66
+          },
+          "sm_clock_mhz": {
+            "median": 2820.0,
+            "min": 2820,
+            "max": 2820
+          },
+          "memory_clock_mhz": {
+            "median": 13801.0,
+            "min": 13801,
+            "max": 13801
+          },
+          "temperature_c": {
+            "median": 67.0,
+            "min": 67,
+            "max": 67
+          },
+          "memory_used_mib": {
+            "median": 2334.5625,
+            "min": 2334.5625,
+            "max": 2334.5625
+          },
+          "clock_event_reason_masks": [
+            4
+          ]
+        },
+        "estimated_board_joules_per_optimizer_step": 0.18405641083263255
+      },
+      "status": "passed"
+    },
+    "latency-slabs-4-adamw": {
+      "configuration": {
+        "mode": "latency",
+        "optimizer": "adamw",
+        "dtype": "fp32",
+        "layout": "slabs",
+        "hidden": 512,
+        "width": 2048,
+        "experts": 8,
+        "seconds": 3.0,
+        "out": "/home/nir/ml-tools/mini-AGI/runs/performance/optimizers/latency-slabs-4-adamw.json"
+      },
+      "source_sha256": "dcbc173d08ee85e73a7d604dbc65f1473ca78aec0e8e426516be2af0c6faccc9",
+      "torch": "2.14.1+cu130",
+      "gefen": "1.2.3",
+      "gefen_commit": "e735f851a7ebdf0106da87126458c86e3e583d99",
+      "limits": [
+        "Optimizer-only synthetic fixed gradients; matrix list preserves independent experts.",
+        "No model forward/backward, paging or convergence measurement. Optimizer latency is not end-to-end throughput.",
+        "Different optimizer mathematics cannot be compared as a correctness-equivalent replacement."
+      ],
+      "gefen_source_sha256": {
+        "__init__.py": "3b823e459444c907d25775eeb1cb31cdeb8a3a3df2e7fc5015d43a2029dd53b0",
+        "setup.py": "ef7b23c3468c8130483cd7578c14e977b39b372fd088f0e163b47be196d1291e",
+        "gefen.py": "f453acf4afae97715304f58f0132a5a95abe9b61c6490abb0f1dc15691f31203",
+        "partitioning.py": "0c9867c08f292ce54e39d0f05ef2e0e872a68b90dd746710f3574813ab7fe692",
+        "quantization.py": "e9477c63b712b78a1544d511c31371b903a79cac9e2ca57ff3f28cc3e560d68a",
+        "gefen_muon.py": "64dbda3cc6e65fe32ec6b0457aba975a0e87c0a48389d7ef187fa851e9736215",
+        "kernels/period_variance_kernel.cu": "b5421de233d5b35a3ee6cb6401af662a5bdd7e30669824bf389b1b8aa6a7cd43",
+        "kernels/exact_histogram_fused_kernel.cu": "d4695da5813522b695c4baa9d45c2c359f69d66e34ee8b937b88d37868e494f6",
+        "kernels/lloyd_max_fused_kernel.cu": "d0b0288ace1d03886a4975b286fc5f32f38c956988c8f8a0194296d4c3cf9219",
+        "kernels/__init__.py": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "kernels/gefen_cuda_binding.cpp": "64619a2978b0aa2ff17babfffb60ce9783d1f2bef1c3bd88d1dd7a2492a53f3c",
+        "kernels/automatic_vmean_kernel.cu": "2dd6f35442e3f89a88984ef34bdc00d84e821b7562e8adc39ebf7a913f8e8300",
+        "kernels/_build_notice.py": "d15ed796c28df4c0a44a2c1ef340a709f924c485f48b9a9e29efee443c3486f9",
+        "kernels/automatic_gefen_fused.py": "0aa4d4947e9c14ca7c947cdba63ec4c106fe929ec0e8399c1ce789cc0ba39483",
+        "kernels/gefen_cuda.py": "0bca891ae33d886c417e4c9e53f10cad691c34ffd9ace04d4c3f5511fcc7a97d",
+        "kernels/period_variance.py": "45d640e9851f8b2953fcd95b39f9fbb899efbca6b6697fea242e79f05ecaf4f5",
+        "kernels/automatic_gefen_fused_kernel.cu": "eb7cd6b14464535ed1f4e5387cb01c979e2222b403b3e9671b7259ade0edc729",
+        "kernels/lloyd_max_fused.py": "8c0b1f47df77d98fc279924186ab9cc79956745b2ef6f08a3d8a2605d8593192",
+        "kernels/exact_histogram_fused.py": "e77c5263679490d5ffbd10c142fce1ec0f0742bcd8acbee8d22212230cc7f330",
+        "kernels/automatic_vmean.py": "789d13de7a6517fc4260b327b5b0c98c7e20916ad5058163e0b06f6712a7ca09"
+      },
+      "cuda_build_environment": {
+        "MAX_JOBS": "2",
+        "TORCH_CUDA_ARCH_LIST": "12.0",
+        "MINAGI_GEFEN_ALLOW_CUDA_MINOR_MISMATCH": "1"
+      },
+      "result": {
+        "parameter_count": 25165824,
+        "optimizer_state_bytes": 201326604,
+        "state_bytes_per_parameter": 8.000000476837158,
+        "moved_fraction_on_second_update": 1.0,
+        "first_step_including_jit_seconds": 0.008359263003512751,
+        "median_step_seconds": 0.0004835579966311343,
+        "iterations": 6171,
+        "start_monotonic": 65301.249146922,
+        "end_monotonic": 65304.249355967,
+        "peak_allocated_gib": 0.42971181869506836,
+        "state_keys": [
+          "exp_avg",
+          "exp_avg_sq",
+          "step"
+        ],
+        "automatic_periods": [],
+        "power": {
+          "start_monotonic": 65301.249146922,
+          "end_monotonic": 65304.249355967,
+          "duration_seconds": 3.0002090449997922,
+          "sample_count_inside": 30,
+          "average_board_power_w": 378.6380013638332,
+          "peak_sampled_board_power_w": 380.568,
+          "estimated_board_energy_j": 1135.993156472416,
+          "max_sample_gap_seconds": 0.10120403600012651,
+          "gpu_busy_percent": {
+            "median": 96.0,
+            "min": 96,
+            "max": 96
+          },
+          "memory_busy_percent": {
+            "median": 84.0,
+            "min": 83,
+            "max": 84
+          },
+          "sm_clock_mhz": {
+            "median": 2895.0,
+            "min": 2895,
+            "max": 2895
+          },
+          "memory_clock_mhz": {
+            "median": 13801.0,
+            "min": 13801,
+            "max": 13801
+          },
+          "temperature_c": {
+            "median": 59.0,
+            "min": 59,
+            "max": 59
+          },
+          "memory_used_mib": {
+            "median": 2514.5625,
+            "min": 2514.5625,
+            "max": 2514.5625
+          },
+          "clock_event_reason_masks": [
+            4
+          ]
+        },
+        "estimated_board_joules_per_optimizer_step": 0.18408574890170412
+      },
+      "status": "passed"
+    },
+    "master-precision": {
+      "initial_bf16_value": 0.01300048828125,
+      "bf16_spacing_here": 6.103515625e-05,
+      "update": 1.8e-05,
+      "updates": 32,
+      "bf16_final": 0.01300048828125,
+      "fp32_final": 0.012424498796463013,
+      "one_update_fp32_target": 0.012982488609850407,
+      "one_update_round_nearest": 0.01300048828125,
+      "one_update_exhaustive_stochastic_mean": 0.012982488609850407,
+      "limits": "Numerical example at historical repo weight/update scales, not current-model update statistics or convergence."
+    },
+    "real-gradients": {
+      "source_sha256": "1034e0d3d9e67a0a911f9db5f02b062e86351e09b86e151ddad93e2f7013626c",
+      "limits": [
+        "Single first-batch gradient snapshot, Sonic BF16, fixed depth 24 and context 4096, no parameter learning comparison.",
+        "Gefen steps detached copies, not the live paged model. Calibration/state sizes may change with data, gradients and architecture."
+      ],
+      "loss": 1.0823577642440796,
+      "resident_expert_ids": [
+        17,
+        94,
+        102,
+        147,
+        71,
+        89,
+        73,
+        86,
+        8,
+        242,
+        262,
+        68,
+        36,
+        220,
+        184,
+        169,
+        40,
+        257,
+        255,
+        379,
+        44,
+        272,
+        7,
+        312,
+        260,
+        298,
+        335,
+        4,
+        18,
+        29,
+        14,
+        9
+      ],
+      "manifest_sha256": "f0ade4a3127971b20edc35d58b1ae66241af914aecd3ca8e9c0a2939ef8a74f3",
+      "gradient_nonzero_fractions": [
+        0.9999995231628418,
+        0.9999995231628418,
+        0.999999463558197
+      ],
+      "status": "passed",
+      "cases": [
+        {
+          "layout": "slabs",
+          "parameter_count": 100663296,
+          "state_bytes": 101057536,
+          "state_bytes_per_parameter": 1.0039164225260417,
+          "first_step_calibration_seconds": 3.662689450997277,
+          "periods": [
+            2048,
+            2048,
+            2048
+          ]
+        },
+        {
+          "layout": "matrices",
+          "parameter_count": 100663296,
+          "state_bytes": 101843968,
+          "state_bytes_per_parameter": 1.0117289225260417,
+          "first_step_calibration_seconds": 3.493956327001797,
+          "periods": [
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            512,
+            2048,
+            2048,
+            2048,
+            2048,
+            2048,
+            2048,
+            2048,
+            2048,
+            2048,
+            2048,
+            2048,
+            2048,
+            2048,
+            2048,
+            2048,
+            2048,
+            2048,
+            2048,
+            2048,
+            2048,
+            2048,
+            2048,
+            2048,
+            2048,
+            2048,
+            2048,
+            2048,
+            2048,
+            2048,
+            2048,
+            2048,
+            2048
+          ]
+        }
+      ]
+    },
+    "retention-adamw": {
+      "configuration": {
+        "mode": "retention",
+        "optimizer": "adamw",
+        "dtype": "fp32",
+        "layout": "matrices",
+        "hidden": 512,
+        "width": 2048,
+        "experts": 1,
+        "seconds": 3.0,
+        "out": "/home/nir/ml-tools/mini-AGI/runs/performance/optimizers/retention-adamw.json"
+      },
+      "source_sha256": "dcbc173d08ee85e73a7d604dbc65f1473ca78aec0e8e426516be2af0c6faccc9",
+      "torch": "2.14.1+cu130",
+      "gefen": "1.2.3",
+      "gefen_commit": "e735f851a7ebdf0106da87126458c86e3e583d99",
+      "limits": [
+        "Optimizer-only synthetic fixed gradients; matrix list preserves independent experts.",
+        "No model forward/backward, paging or convergence measurement. Optimizer latency is not end-to-end throughput.",
+        "Different optimizer mathematics cannot be compared as a correctness-equivalent replacement."
+      ],
+      "gefen_source_sha256": {
+        "__init__.py": "3b823e459444c907d25775eeb1cb31cdeb8a3a3df2e7fc5015d43a2029dd53b0",
+        "setup.py": "ef7b23c3468c8130483cd7578c14e977b39b372fd088f0e163b47be196d1291e",
+        "gefen.py": "f453acf4afae97715304f58f0132a5a95abe9b61c6490abb0f1dc15691f31203",
+        "partitioning.py": "0c9867c08f292ce54e39d0f05ef2e0e872a68b90dd746710f3574813ab7fe692",
+        "quantization.py": "e9477c63b712b78a1544d511c31371b903a79cac9e2ca57ff3f28cc3e560d68a",
+        "gefen_muon.py": "64dbda3cc6e65fe32ec6b0457aba975a0e87c0a48389d7ef187fa851e9736215",
+        "kernels/period_variance_kernel.cu": "b5421de233d5b35a3ee6cb6401af662a5bdd7e30669824bf389b1b8aa6a7cd43",
+        "kernels/exact_histogram_fused_kernel.cu": "d4695da5813522b695c4baa9d45c2c359f69d66e34ee8b937b88d37868e494f6",
+        "kernels/lloyd_max_fused_kernel.cu": "d0b0288ace1d03886a4975b286fc5f32f38c956988c8f8a0194296d4c3cf9219",
+        "kernels/__init__.py": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "kernels/gefen_cuda_binding.cpp": "64619a2978b0aa2ff17babfffb60ce9783d1f2bef1c3bd88d1dd7a2492a53f3c",
+        "kernels/automatic_vmean_kernel.cu": "2dd6f35442e3f89a88984ef34bdc00d84e821b7562e8adc39ebf7a913f8e8300",
+        "kernels/_build_notice.py": "d15ed796c28df4c0a44a2c1ef340a709f924c485f48b9a9e29efee443c3486f9",
+        "kernels/automatic_gefen_fused.py": "0aa4d4947e9c14ca7c947cdba63ec4c106fe929ec0e8399c1ce789cc0ba39483",
+        "kernels/gefen_cuda.py": "0bca891ae33d886c417e4c9e53f10cad691c34ffd9ace04d4c3f5511fcc7a97d",
+        "kernels/period_variance.py": "45d640e9851f8b2953fcd95b39f9fbb899efbca6b6697fea242e79f05ecaf4f5",
+        "kernels/automatic_gefen_fused_kernel.cu": "eb7cd6b14464535ed1f4e5387cb01c979e2222b403b3e9671b7259ade0edc729",
+        "kernels/lloyd_max_fused.py": "8c0b1f47df77d98fc279924186ab9cc79956745b2ef6f08a3d8a2605d8593192",
+        "kernels/exact_histogram_fused.py": "e77c5263679490d5ffbd10c142fce1ec0f0742bcd8acbee8d22212230cc7f330",
+        "kernels/automatic_vmean.py": "789d13de7a6517fc4260b327b5b0c98c7e20916ad5058163e0b06f6712a7ca09"
+      },
+      "cuda_build_environment": {
+        "MAX_JOBS": "2",
+        "TORCH_CUDA_ARCH_LIST": "12.0",
+        "MINAGI_GEFEN_ALLOW_CUDA_MINOR_MISMATCH": "1"
+      },
+      "result": {
+        "cases": [
+          {
+            "dtype": "torch.float32",
+            "changed_fraction": 1.0,
+            "mean_delta": -0.0005939891561865807,
+            "state_bytes_per_parameter": 8.000244140625,
+            "standard_checkpoint_next_update_bit_identical": true
+          },
+          {
+            "dtype": "torch.bfloat16",
+            "changed_fraction": 0.0,
+            "mean_delta": 0.0,
+            "state_bytes_per_parameter": 4.000244140625,
+            "standard_checkpoint_next_update_bit_identical": true
+          }
+        ],
+        "updates": 33,
+        "limits": "Artificial constant-gradient update retention; optimizer directions/scaling differ. Not matched learning quality."
+      },
+      "status": "passed"
+    },
+    "retention-gefen": {
+      "configuration": {
+        "mode": "retention",
+        "optimizer": "gefen",
+        "dtype": "fp32",
+        "layout": "matrices",
+        "hidden": 512,
+        "width": 2048,
+        "experts": 1,
+        "seconds": 3.0,
+        "out": "/home/nir/ml-tools/mini-AGI/runs/performance/optimizers/retention-gefen.json"
+      },
+      "source_sha256": "dcbc173d08ee85e73a7d604dbc65f1473ca78aec0e8e426516be2af0c6faccc9",
+      "torch": "2.14.1+cu130",
+      "gefen": "1.2.3",
+      "gefen_commit": "e735f851a7ebdf0106da87126458c86e3e583d99",
+      "limits": [
+        "Optimizer-only synthetic fixed gradients; matrix list preserves independent experts.",
+        "No model forward/backward, paging or convergence measurement. Optimizer latency is not end-to-end throughput.",
+        "Different optimizer mathematics cannot be compared as a correctness-equivalent replacement."
+      ],
+      "gefen_source_sha256": {
+        "__init__.py": "3b823e459444c907d25775eeb1cb31cdeb8a3a3df2e7fc5015d43a2029dd53b0",
+        "setup.py": "ef7b23c3468c8130483cd7578c14e977b39b372fd088f0e163b47be196d1291e",
+        "gefen.py": "f453acf4afae97715304f58f0132a5a95abe9b61c6490abb0f1dc15691f31203",
+        "partitioning.py": "0c9867c08f292ce54e39d0f05ef2e0e872a68b90dd746710f3574813ab7fe692",
+        "quantization.py": "e9477c63b712b78a1544d511c31371b903a79cac9e2ca57ff3f28cc3e560d68a",
+        "gefen_muon.py": "64dbda3cc6e65fe32ec6b0457aba975a0e87c0a48389d7ef187fa851e9736215",
+        "kernels/period_variance_kernel.cu": "b5421de233d5b35a3ee6cb6401af662a5bdd7e30669824bf389b1b8aa6a7cd43",
+        "kernels/exact_histogram_fused_kernel.cu": "d4695da5813522b695c4baa9d45c2c359f69d66e34ee8b937b88d37868e494f6",
+        "kernels/lloyd_max_fused_kernel.cu": "d0b0288ace1d03886a4975b286fc5f32f38c956988c8f8a0194296d4c3cf9219",
+        "kernels/__init__.py": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "kernels/gefen_cuda_binding.cpp": "64619a2978b0aa2ff17babfffb60ce9783d1f2bef1c3bd88d1dd7a2492a53f3c",
+        "kernels/automatic_vmean_kernel.cu": "2dd6f35442e3f89a88984ef34bdc00d84e821b7562e8adc39ebf7a913f8e8300",
+        "kernels/_build_notice.py": "d15ed796c28df4c0a44a2c1ef340a709f924c485f48b9a9e29efee443c3486f9",
+        "kernels/automatic_gefen_fused.py": "0aa4d4947e9c14ca7c947cdba63ec4c106fe929ec0e8399c1ce789cc0ba39483",
+        "kernels/gefen_cuda.py": "0bca891ae33d886c417e4c9e53f10cad691c34ffd9ace04d4c3f5511fcc7a97d",
+        "kernels/period_variance.py": "45d640e9851f8b2953fcd95b39f9fbb899efbca6b6697fea242e79f05ecaf4f5",
+        "kernels/automatic_gefen_fused_kernel.cu": "eb7cd6b14464535ed1f4e5387cb01c979e2222b403b3e9671b7259ade0edc729",
+        "kernels/lloyd_max_fused.py": "8c0b1f47df77d98fc279924186ab9cc79956745b2ef6f08a3d8a2605d8593192",
+        "kernels/exact_histogram_fused.py": "e77c5263679490d5ffbd10c142fce1ec0f0742bcd8acbee8d22212230cc7f330",
+        "kernels/automatic_vmean.py": "789d13de7a6517fc4260b327b5b0c98c7e20916ad5058163e0b06f6712a7ca09"
+      },
+      "cuda_build_environment": {
+        "MAX_JOBS": "2",
+        "TORCH_CUDA_ARCH_LIST": "12.0",
+        "MINAGI_GEFEN_ALLOW_CUDA_MINOR_MISMATCH": "1"
+      },
+      "result": {
+        "cases": [
+          {
+            "dtype": "torch.float32",
+            "changed_fraction": 1.0,
+            "mean_delta": -0.0005939891561865807,
+            "state_bytes_per_parameter": 5.078125,
+            "standard_checkpoint_next_update_bit_identical": true
+          },
+          {
+            "dtype": "torch.bfloat16",
+            "changed_fraction": 0.0,
+            "mean_delta": 0.0,
+            "state_bytes_per_parameter": 3.0703125,
+            "standard_checkpoint_next_update_bit_identical": true
+          }
+        ],
+        "updates": 33,
+        "limits": "Artificial constant-gradient update retention; optimizer directions/scaling differ. Not matched learning quality."
+      },
+      "status": "passed"
+    },
+    "retention-gefen_muon": {
+      "configuration": {
+        "mode": "retention",
+        "optimizer": "gefen_muon",
+        "dtype": "fp32",
+        "layout": "matrices",
+        "hidden": 512,
+        "width": 2048,
+        "experts": 1,
+        "seconds": 3.0,
+        "out": "/home/nir/ml-tools/mini-AGI/runs/performance/optimizers/retention-gefen_muon.json"
+      },
+      "source_sha256": "dcbc173d08ee85e73a7d604dbc65f1473ca78aec0e8e426516be2af0c6faccc9",
+      "torch": "2.14.1+cu130",
+      "gefen": "1.2.3",
+      "gefen_commit": "e735f851a7ebdf0106da87126458c86e3e583d99",
+      "limits": [
+        "Optimizer-only synthetic fixed gradients; matrix list preserves independent experts.",
+        "No model forward/backward, paging or convergence measurement. Optimizer latency is not end-to-end throughput.",
+        "Different optimizer mathematics cannot be compared as a correctness-equivalent replacement."
+      ],
+      "gefen_source_sha256": {
+        "__init__.py": "3b823e459444c907d25775eeb1cb31cdeb8a3a3df2e7fc5015d43a2029dd53b0",
+        "setup.py": "ef7b23c3468c8130483cd7578c14e977b39b372fd088f0e163b47be196d1291e",
+        "gefen.py": "f453acf4afae97715304f58f0132a5a95abe9b61c6490abb0f1dc15691f31203",
+        "partitioning.py": "0c9867c08f292ce54e39d0f05ef2e0e872a68b90dd746710f3574813ab7fe692",
+        "quantization.py": "e9477c63b712b78a1544d511c31371b903a79cac9e2ca57ff3f28cc3e560d68a",
+        "gefen_muon.py": "64dbda3cc6e65fe32ec6b0457aba975a0e87c0a48389d7ef187fa851e9736215",
+        "kernels/period_variance_kernel.cu": "b5421de233d5b35a3ee6cb6401af662a5bdd7e30669824bf389b1b8aa6a7cd43",
+        "kernels/exact_histogram_fused_kernel.cu": "d4695da5813522b695c4baa9d45c2c359f69d66e34ee8b937b88d37868e494f6",
+        "kernels/lloyd_max_fused_kernel.cu": "d0b0288ace1d03886a4975b286fc5f32f38c956988c8f8a0194296d4c3cf9219",
+        "kernels/__init__.py": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "kernels/gefen_cuda_binding.cpp": "64619a2978b0aa2ff17babfffb60ce9783d1f2bef1c3bd88d1dd7a2492a53f3c",
+        "kernels/automatic_vmean_kernel.cu": "2dd6f35442e3f89a88984ef34bdc00d84e821b7562e8adc39ebf7a913f8e8300",
+        "kernels/_build_notice.py": "d15ed796c28df4c0a44a2c1ef340a709f924c485f48b9a9e29efee443c3486f9",
+        "kernels/automatic_gefen_fused.py": "0aa4d4947e9c14ca7c947cdba63ec4c106fe929ec0e8399c1ce789cc0ba39483",
+        "kernels/gefen_cuda.py": "0bca891ae33d886c417e4c9e53f10cad691c34ffd9ace04d4c3f5511fcc7a97d",
+        "kernels/period_variance.py": "45d640e9851f8b2953fcd95b39f9fbb899efbca6b6697fea242e79f05ecaf4f5",
+        "kernels/automatic_gefen_fused_kernel.cu": "eb7cd6b14464535ed1f4e5387cb01c979e2222b403b3e9671b7259ade0edc729",
+        "kernels/lloyd_max_fused.py": "8c0b1f47df77d98fc279924186ab9cc79956745b2ef6f08a3d8a2605d8593192",
+        "kernels/exact_histogram_fused.py": "e77c5263679490d5ffbd10c142fce1ec0f0742bcd8acbee8d22212230cc7f330",
+        "kernels/automatic_vmean.py": "789d13de7a6517fc4260b327b5b0c98c7e20916ad5058163e0b06f6712a7ca09"
+      },
+      "cuda_build_environment": {
+        "MAX_JOBS": "2",
+        "TORCH_CUDA_ARCH_LIST": "12.0",
+        "MINAGI_GEFEN_ALLOW_CUDA_MINOR_MISMATCH": "1"
+      },
+      "result": {
+        "cases": [
+          {
+            "dtype": "torch.float32",
+            "changed_fraction": 1.0,
+            "mean_delta": -7.222406566143036e-06,
+            "state_bytes_per_parameter": 1.078125,
+            "standard_checkpoint_next_update_bit_identical": true
+          },
+          {
+            "dtype": "torch.bfloat16",
+            "changed_fraction": 0.0,
+            "mean_delta": 0.0,
+            "state_bytes_per_parameter": 1.0703125,
+            "standard_checkpoint_next_update_bit_identical": true
+          }
+        ],
+        "updates": 33,
+        "limits": "Artificial constant-gradient update retention; optimizer directions/scaling differ. Not matched learning quality."
+      },
+      "status": "passed"
+    },
+    "retention-muon": {
+      "configuration": {
+        "mode": "retention",
+        "optimizer": "muon",
+        "dtype": "fp32",
+        "layout": "matrices",
+        "hidden": 512,
+        "width": 2048,
+        "experts": 1,
+        "seconds": 3.0,
+        "out": "/home/nir/ml-tools/mini-AGI/runs/performance/optimizers/retention-muon.json"
+      },
+      "source_sha256": "dcbc173d08ee85e73a7d604dbc65f1473ca78aec0e8e426516be2af0c6faccc9",
+      "torch": "2.14.1+cu130",
+      "gefen": "1.2.3",
+      "gefen_commit": "e735f851a7ebdf0106da87126458c86e3e583d99",
+      "limits": [
+        "Optimizer-only synthetic fixed gradients; matrix list preserves independent experts.",
+        "No model forward/backward, paging or convergence measurement. Optimizer latency is not end-to-end throughput.",
+        "Different optimizer mathematics cannot be compared as a correctness-equivalent replacement."
+      ],
+      "gefen_source_sha256": {
+        "__init__.py": "3b823e459444c907d25775eeb1cb31cdeb8a3a3df2e7fc5015d43a2029dd53b0",
+        "setup.py": "ef7b23c3468c8130483cd7578c14e977b39b372fd088f0e163b47be196d1291e",
+        "gefen.py": "f453acf4afae97715304f58f0132a5a95abe9b61c6490abb0f1dc15691f31203",
+        "partitioning.py": "0c9867c08f292ce54e39d0f05ef2e0e872a68b90dd746710f3574813ab7fe692",
+        "quantization.py": "e9477c63b712b78a1544d511c31371b903a79cac9e2ca57ff3f28cc3e560d68a",
+        "gefen_muon.py": "64dbda3cc6e65fe32ec6b0457aba975a0e87c0a48389d7ef187fa851e9736215",
+        "kernels/period_variance_kernel.cu": "b5421de233d5b35a3ee6cb6401af662a5bdd7e30669824bf389b1b8aa6a7cd43",
+        "kernels/exact_histogram_fused_kernel.cu": "d4695da5813522b695c4baa9d45c2c359f69d66e34ee8b937b88d37868e494f6",
+        "kernels/lloyd_max_fused_kernel.cu": "d0b0288ace1d03886a4975b286fc5f32f38c956988c8f8a0194296d4c3cf9219",
+        "kernels/__init__.py": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "kernels/gefen_cuda_binding.cpp": "64619a2978b0aa2ff17babfffb60ce9783d1f2bef1c3bd88d1dd7a2492a53f3c",
+        "kernels/automatic_vmean_kernel.cu": "2dd6f35442e3f89a88984ef34bdc00d84e821b7562e8adc39ebf7a913f8e8300",
+        "kernels/_build_notice.py": "d15ed796c28df4c0a44a2c1ef340a709f924c485f48b9a9e29efee443c3486f9",
+        "kernels/automatic_gefen_fused.py": "0aa4d4947e9c14ca7c947cdba63ec4c106fe929ec0e8399c1ce789cc0ba39483",
+        "kernels/gefen_cuda.py": "0bca891ae33d886c417e4c9e53f10cad691c34ffd9ace04d4c3f5511fcc7a97d",
+        "kernels/period_variance.py": "45d640e9851f8b2953fcd95b39f9fbb899efbca6b6697fea242e79f05ecaf4f5",
+        "kernels/automatic_gefen_fused_kernel.cu": "eb7cd6b14464535ed1f4e5387cb01c979e2222b403b3e9671b7259ade0edc729",
+        "kernels/lloyd_max_fused.py": "8c0b1f47df77d98fc279924186ab9cc79956745b2ef6f08a3d8a2605d8593192",
+        "kernels/exact_histogram_fused.py": "e77c5263679490d5ffbd10c142fce1ec0f0742bcd8acbee8d22212230cc7f330",
+        "kernels/automatic_vmean.py": "789d13de7a6517fc4260b327b5b0c98c7e20916ad5058163e0b06f6712a7ca09"
+      },
+      "cuda_build_environment": {
+        "MAX_JOBS": "2",
+        "TORCH_CUDA_ARCH_LIST": "12.0",
+        "MINAGI_GEFEN_ALLOW_CUDA_MINOR_MISMATCH": "1"
+      },
+      "result": {
+        "cases": [
+          {
+            "dtype": "torch.float32",
+            "changed_fraction": 1.0,
+            "mean_delta": -7.222406566143036e-06,
+            "state_bytes_per_parameter": 4.0,
+            "standard_checkpoint_next_update_bit_identical": true
+          },
+          {
+            "dtype": "torch.bfloat16",
+            "changed_fraction": 0.0,
+            "mean_delta": 0.0,
+            "state_bytes_per_parameter": 2.0,
+            "standard_checkpoint_next_update_bit_identical": true
+          }
+        ],
+        "updates": 33,
+        "limits": "Artificial constant-gradient update retention; optimizer directions/scaling differ. Not matched learning quality."
+      },
+      "status": "passed"
+    }
+  },
+  "precision_executable_ast_unchanged": true,
+  "tests_passed": 81,
+  "disposition": "Research only; no training optimizer replacement. Existing pager cannot preserve candidate states.",
+  "limits": [
+    "Synthetic optimizer-only timings cannot establish end-to-end speed or time to a target validation loss.",
+    "Real-gradient state sizes use one checkpoint batch, not a convergence experiment or guaranteed compression ratio.",
+    "The Gefen build uses a documented opt-in same-major CUDA minor-version patch; no kernel arithmetic is modified.",
+    "No model checkpoint is written. Current production weights, moments, optimizer and paging behavior remain unchanged."
+  ],
+  "evidence": {
+    "path": "replication/results/optimizer_survey_evidence.tar.gz",
+    "files": 61,
+    "sha256": "1d6b4d8eca76180a5de33f4af358fd3004c3bd6e99a5be2631ec9ea7c830910e"
+  }
+}
