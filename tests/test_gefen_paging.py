@@ -221,6 +221,33 @@ class GefenPagingTests(unittest.TestCase):
             for p in row:
                 self.assertEqual(opt._gefen.state[p]["step"], 1)
 
+    def test_evicted_history_has_recoverable_codebook_before_first_checkpoint(self):
+        model, _ = self.pool_model()
+        pool, opt = model.pool, self.optimizer(model)
+        self.select(pool, (0, 1))
+        for name in NAMES:
+            getattr(pool, name).grad = torch.randn_like(getattr(pool, name))
+        opt.step()
+        self.assertTrue(opt._codebook_path.exists())
+        self.assertFalse(os.path.exists(os.path.join(self.tmp.name, "optim.npz")))
+        self.select(pool, (2, 3))  # forces trained history to disk
+        resumed = torch.nn.Module()
+        resumed.pool = PagedPool(pool.path, 16, 32, 5, resident=2, ram_capacity=1).to(self.device)
+        resumed.aux = torch.nn.Parameter(model.aux.detach().clone())
+        resumed_opt = self.optimizer(resumed)
+        self.assertTrue(torch.equal(opt._gefen._gefen_codebook, resumed_opt._gefen._gefen_codebook))
+        for candidate, candidate_opt in ((model, opt), (resumed, resumed_opt)):
+            self.select(candidate.pool, (0, 1))
+            for name in NAMES:
+                slab = getattr(candidate.pool, name)
+                slab.grad = torch.full_like(slab, .02)
+            candidate_opt.step()
+        for name in NAMES:
+            self.assertTrue(torch.equal(getattr(pool, name), getattr(resumed.pool, name)))
+        for row, resumed_row in zip(opt._views, resumed_opt._views):
+            for p, q in zip(row, resumed_row):
+                assert_tree(self, opt._gefen.state[p], resumed_opt._gefen.state[q])
+
     def test_corrupt_geometry_and_partition_rejected_before_update(self):
         model, _ = self.pool_model()
         pool, opt = model.pool, self.optimizer(model)
