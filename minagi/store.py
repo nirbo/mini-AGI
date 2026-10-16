@@ -274,6 +274,8 @@ def _save_optim(opt, model, path):
     that is where they belong - an expert is not fully described by its weights
     alone. This bundle holds the rest: the trunk, the routers, the gates.
     """
+    if hasattr(opt, "checkpoint_arrays"):
+        return _savez(os.path.join(path, "optim.npz"), opt.checkpoint_arrays(model))
     name_of = {id(p): n for n, p in model.named_parameters()}
     out = {}
     for group in opt.param_groups:
@@ -313,7 +315,7 @@ def load(model, path, opt=None, device=None, strict=False, verbose=False):
         if f.endswith(".npz"):
             z = np.load(f)
             for leaf in z.files:
-                if leaf.endswith(("_m", "_v")):
+                if leaf.endswith(("_m", "_v")) or leaf.startswith("__gefen_"):
                     continue                       # optimiser state, not weights
                 if leaf.startswith("b") and "_" in leaf:
                     b, nm = leaf[1:].split("_", 1)
@@ -339,14 +341,23 @@ def load(model, path, opt=None, device=None, strict=False, verbose=False):
 
 def _load_optim(opt, model, path):
     """Trunk moments from the bundle, expert moments from each expert's file."""
-    _load_expert_moments(opt, model, path)
     f = os.path.join(path, "optim.npz")
+    if os.path.exists(f):
+        with np.load(f, allow_pickle=False) as saved:
+            if "__optim_json" in saved.files:
+                if not hasattr(opt, "restore_checkpoint"):
+                    raise ValueError("checkpoint contains Gefen history; select the Gefen optimizer")
+                opt.restore_checkpoint(model, saved)
+                return
+    _load_expert_moments(opt, model, path)
     if not os.path.exists(f):
         return
     z = np.load(f)
     name_of = {id(p): n for n, p in model.named_parameters()}
     for group in opt.param_groups:
         for p in group["params"]:
+            if hasattr(opt, "uses_gefen_parameter") and opt.uses_gefen_parameter(p):
+                continue   # explicit first adoption starts fresh expert history
             n = name_of.get(id(p))
             if n is None or (n + "|m") not in z.files:
                 continue

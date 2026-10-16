@@ -44,7 +44,7 @@ class LiveLearner:
 
     def __init__(self, model, lr=3e-4, trunk_lr_mult=0.2, wd=0.1, clip=1.0,
                  aux_weight=0.0, save_every=8, weights_dir=None, manifest=None,
-                 chunk=512, context=None):
+                 chunk=512, context=None, optimizer="adamw"):
         self.model = model
         # What the model was loaded as. save() writes the manifest that names
         # every tensor's shape, and without this it writes an empty one: the
@@ -70,11 +70,13 @@ class LiveLearner:
                  if not n.startswith("pool.")]
         pool_ps = [p for n, p in model.named_parameters()
                    if n.startswith("pool.")]
-        self.opt = torch.optim.AdamW(
+        from .optimizers import make_optimizer
+        self.opt = make_optimizer(
             [{"params": trunk, "name": "trunk", "weight_decay": wd,
               "lr": lr * trunk_lr_mult, "base_lr": lr * trunk_lr_mult},
              {"params": pool_ps, "name": "pool", "weight_decay": wd,
               "lr": lr, "base_lr": lr}],
+            pool=getattr(model, "pool", None), optimizer=optimizer,
             lr=lr, betas=(0.9, 0.95), fused=(dev.type == "cuda"))
         pool = getattr(model, "pool", None)
         if pool is not None and hasattr(pool, "attach_optimiser"):
@@ -91,6 +93,8 @@ class LiveLearner:
             try:
                 weights_store._load_optim(self.opt, model, weights_dir)
             except Exception as e:             # never stop the server for it
+                if optimizer == "gefen" or "Gefen" in str(e):
+                    raise
                 print(f"  [note] optimiser moments not restored: {e}")
 
     def feed(self, text, tok, note=""):
