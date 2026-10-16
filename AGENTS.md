@@ -27,3 +27,10 @@
 - Investigate thoroughly and use as much reasoning as the task requires. Do not reduce functionality or omit relevant evidence to save effort or tokens.
 - Use meaningful tests and verification appropriate to the change. Report what was tested and any important limitations.
 - Keep answers and progress updates concise, direct, and easy to read. Lead with the result; avoid repetition and routine tool narration.
+
+## GPU measurements
+
+- Monitor GPU power consumption during all future GPU tests and runs. Preserve timestamped samples and align summaries with the measured workload interval.
+- For benchmarks, report average and peak sampled board power, estimated board energy per new token, throughput, and peak allocated VRAM. Record sampling limitations; short runs may not resolve power accurately.
+- Include GPU utilization, clocks, temperature, and power/thermal limiting indicators when available. Use read-only monitoring; the desktop safety rules above still apply.
+- Treat low power draw as evidence to investigate alongside traces, not as a direct measure of unused compute or a promise of proportional speedup. Optimize verified throughput and efficiency, rather than power draw itself.
