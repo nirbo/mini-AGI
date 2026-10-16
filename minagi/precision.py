@@ -4,19 +4,24 @@ What precision the model computes in.
 One setting for the whole process, because reading and generating are the same
 code path and must not differ in what they cost or what they compute.
 
-Only the arithmetic and the activations move. WEIGHTS stay fp32, on disk as
-well as in memory, and that is not caution: an expert here pages out to RAM
-and back several times per chunk, and every page-out in a shorter format
-would be a fresh rounding. Measured on the real pool, against a typical Adam
-update of 1.8e-05 (weight |w| median 1.3e-02):
+Arithmetic and activations use the configured precision. Master WEIGHTS stay
+fp32 on disk and in memory so small optimizer updates can accumulate before
+the compute representation changes. Historical measurements recorded on the
+original pool, against a typical Adam update of 1.8e-05 (weight |w| median
+1.3e-02), were:
 
     weights bfloat16   err 1.4e-05    0.80x one update
     weights float16    err 1.8e-06    0.10x one update
 
-bfloat16 would round away most of what an expert had just learned, over and
-over. float16 looks affordable and is not: its resolution at a typical weight
-is 1.3e-05 against an update of 1.8e-05, so updates land barely above the
-grid, and an expert is rewritten a median of 406 times.
+At |w| around 0.013, adjacent bf16 values are about 6.1e-05 apart. Ordinary
+nearest-rounded bf16 master updates smaller than half that spacing can vanish
+on every step. Casting an unchanged bf16 value through fp32 and back is
+idempotent: repeated paging alone does not accumulate additional weight error.
+The loss comes from the initial narrowing and from rounding subsequent updates.
+The float16 spacing here is about 7.6e-06; it is finer but has a smaller exponent
+range. Neither dtype is a validated replacement for this model's master weights.
+Stochastic rounding or compensated updates could make bf16 masters viable, but
+require optimizer, paging and learning qualification.
 
 Adam's MOMENTS are a different question with a different answer, and holding
 them to the weights' standard would cost gigabytes for nothing. They are tiny
