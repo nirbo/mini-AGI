@@ -55,7 +55,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from minagi.recur import RecurConfig, RecurCoder, load_recur
+from minagi.recur import RecurConfig, RecurCoder, load_recur, PREDICTIVE_METRIC
 from minagi.pool import PooledMLP, AutoGrow
 from minagi.stream import StreamSet, Evaluator, detach_caches, ramp_context
 from minagi.plasticity import Plasticity
@@ -238,7 +238,7 @@ def cmd_stream(args):
 
     # the directory's own score, not infinity - resuming must not let a worse
     # state call itself the best merely because this process just started
-    best = weights_store.best_val(wdir)
+    best = weights_store.best_val(wdir, metric=PREDICTIVE_METRIC)
     if best < float("inf"):
         print(f"best on disk: val {best:.4f} - weights/ advances only past it")
     reverts = 0
@@ -289,7 +289,8 @@ def cmd_stream(args):
             v = evaluator.run(args.eval_chunks)
             se = v.pop("stderr", 0.0)
             val = float(np.mean(list(v.values())))
-            record("val", step=step, val=val, stderr=se, ppl=math.exp(val),
+            record("val", step=step, val=val, val_metric=PREDICTIVE_METRIC,
+                   stderr=se, ppl=math.exp(val),
                    per_domain=dict(v), experts=model.pool.n_experts())
             print(f"  val {val:.4f} +/-{se:.4f} ppl {math.exp(val):.2f}   "
                   + "  ".join(f"{k.replace('data_','').replace('_char','')} "
@@ -320,7 +321,8 @@ def cmd_stream(args):
             if val < best:
                 best = val
                 weights_store.save(model, wdir, step=step, val=val, opt=opt,
-                                   cfg=asdict(cfg), verbose=True)
+                                   cfg=asdict(cfg), verbose=True,
+                                   val_metric=PREDICTIVE_METRIC)
                 record("saved", step=step, val=val)
                 print(f"  improved - weights/ advanced to val {val:.4f}",
                       flush=True)
@@ -625,7 +627,7 @@ def cmd_read(args):
     ctx_grow_every_steps = _in_steps(args.context_grow_every)
     from minagi.ingest import collect, summarise
     from minagi.stream import FolderEvaluator
-    from minagi.precision import set_compute_dtype
+    from minagi.precision import set_compute_dtype, amp
 
     device = torch.device(args.device)
     torch.manual_seed(args.seed)
@@ -672,7 +674,7 @@ def cmd_read(args):
                                         args.ram_capacity, args.context)
     # the best held-out this run has seen, for the optional notifier below.
     # Reads the manifest, so it cannot move above build_paged.
-    best_val = float(man.get("val") or float("inf"))
+    best_val = weights_store.best_val(wdir, metric=PREDICTIVE_METRIC)
     print(f"  {pool.n_experts()} experts on disk, {pool.n_resident()} resident, "
           f"{pool.vram_params()/1e6:.1f}M in VRAM of "
           f"{pool.n_params()/1e6:.1f}M total")
@@ -996,6 +998,7 @@ def cmd_read(args):
             t = pool.telemetry()
             row = {"t": time.time(), "step": step,
                    "chars": base_chars + seen, "val": val,
+                   "val_metric": PREDICTIVE_METRIC,
                    "experts": pool.n_experts(), "segments": t["segments"],
                    "gate": t["gate"], "use": t["use"], "admits": t["admits"],
                    "born": t["born"],
@@ -1013,6 +1016,7 @@ def cmd_read(args):
         # where the reader had got to.
         weights_store.save(model, wdir, step=step, val=val, opt=opt,
                            cfg=asdict(cfg),
+                           val_metric=PREDICTIVE_METRIC,
                            extra={"read_chars": base_chars + seen,
                                   "read_nats": nats,
                                   "plasticity": plast.state(),
@@ -1022,20 +1026,18 @@ def cmd_read(args):
     stop = False
     swapped = 0
     recent = collections.deque(maxlen=400)     # the training loss lately
-    last_gap = None                            # held-out minus train, when known
-    # How much information has been read, as against how many characters were
-    # passed over: the loss IS the information content of what was read, so
-    # integrating it says what the model actually had to account for. A
-    # million characters of chess carries 0.744M nats and a million of
-    # wikipedia 1.686M - the same reading, worth 2.27x as much.
-    #
-    # Recorded because it is the honest way to describe a run, and NOT used to
-    # decide anything. Growth is judged on the network as it stands.
+    last_gap = None            # held-out CE minus training-window predictive CE
+    # Legacy read_nats integrates the training objective, including penalties.
+    # It is telemetry, not predictive information content or a growth signal.
     # The learning rate is governed by held-out loss, not by a horizon.
     # There is no lr_origin any more and nothing counts characters: see
     # minagi/plasticity.py for the two rules and why they are symmetric.
-    plast = Plasticity.restore((man or {}).get("plasticity"))
-    if ((man or {}).get("plasticity") and not plast.has_fits()
+    same_metric = (man or {}).get("val_metric") == PREDICTIVE_METRIC
+    plast = Plasticity.restore((man or {}).get("plasticity"),
+                               reset_fits=not same_metric)
+    if not same_metric:
+        print("  evaluation metric changed: historical best and controller fits reset")
+    if (same_metric and (man or {}).get("plasticity") and not plast.has_fits()
             and args.sample_log and os.path.exists(args.sample_log)):
         # A state with no fits - written by the controller that kept rotation
         # levels instead - would sit blind for two hours of rounds. The sample
@@ -1182,12 +1184,16 @@ def cmd_read(args):
                         d = ev.run(sample_eval_steps)
                         se_ = d.pop("stderr", None)
                         v_ = float(np.mean(list(d.values())))
-                        # The generalisation gap, kept for the growth
-                        # decision. It is the thing the density ceiling was
-                        # always a proxy for, and unlike density it is
-                        # measured rather than assumed.
-                        if recent:
-                            last_gap = v_ - float(np.mean(recent))
+                        # Compare like metrics: the learning objective has
+                        # regularizers and a sampled depth, so subtracting it
+                        # from inference CE is not a generalisation gap.
+                        if args.max_gap > 0:
+                            end = r.pos
+                            a = r.data[max(0, end - ctx_now):end + 1].astype(np.int64)
+                            ids = torch.from_numpy(a).to(device).unsqueeze(0)
+                            with amp(device):
+                                train_ce = model.predictive_loss(ids[:, :-1], ids[:, 1:])
+                            last_gap = v_ - float(train_ce)
                         dom = dict(d)
                         moved_lr = plast.observe(v_, se_)
                         if moved_lr:
@@ -1311,8 +1317,7 @@ def cmd_read(args):
                     if not may_grow and step % (args.grow_every * 10) == 0:
                         print(f"    growth held: train and held-out have "
                               f"separated by {last_gap:.3f}, over "
-                              f"{args.max_gap:.2f} - that is memorising, and "
-                              f"more capacity would make it worse", flush=True)
+                              f"{args.max_gap:.2f} in predictive CE", flush=True)
                     rec = (grower.step(float(loss), pool, step)
                            if (args.save and may_grow) else {"grew": 0})
                     if gone or rec["grew"]:
@@ -1401,6 +1406,7 @@ def cmd_read(args):
         # run killed between checkpoints resumed where it had got to.
         weights_store.save(model, wdir, step=step, val=None,
                            opt=opt, cfg=asdict(cfg), verbose=True,
+                           val_metric=PREDICTIVE_METRIC,
                            extra={"read_chars": base_chars + seen,
                                   "read_nats": nats,
                                   "plasticity": plast.state(),
@@ -1736,13 +1742,9 @@ def write_samples(path, step, chars, minutes, samples, val=None, se=None,
                         f"{'clipping' if gnorm > clip else 'under the clip'}")
             f.write("\n")
         if train is not None:
-            # The loss on the text being read, beside the loss on text held
-            # out. Reading draws fresh windows from a corpus far larger than
-            # any run gets through, so the training number is already a
-            # measure of unseen text - and a large gap between the two is
-            # therefore not overfitting but a sign the two are being measured
-            # differently.
-            f.write(f"train loss {train:.4f}")
+            # Includes expected depth CE, PonderNet KL and expert penalties.
+            # It is not the same metric as held-out predictive CE.
+            f.write(f"train objective {train:.4f}")
             if lr:
                 f.write(f"   lr {lr:.2e}")
             if plast:
@@ -1760,16 +1762,14 @@ def write_samples(path, step, chars, minutes, samples, val=None, se=None,
                         f"   rate x{plast.get('scale', 1):.3f}")
             f.write("\n")
         if val is not None:
-            f.write(f"held-out loss {val:.4f}")
+            f.write(f"held-out predictive CE {val:.4f}")
             if se:
                 f.write(f" +/-{se:.4f}")
             # Say the unit. This is a natural log; the benchmark reports the
             # same quantity in bits, and 1.30 nats against 1.88 bits looks
             # like a difference when it is the same number twice.
-            f.write(f" nats   {val / math.log(2):.4f} bits/char"
+            f.write(f" nats/token   {val / math.log(2):.4f} bits/token"
                     f"   perplexity {math.exp(val):.2f}")
-            if train is not None:
-                f.write(f"   gap {val - train:+.4f}")
             f.write("\n")
             if per_domain:
                 f.write("  " + "   ".join(
@@ -2145,9 +2145,9 @@ def main():
                          "nothing on that side can refuse")
     rd.add_argument("--max-gap", type=float,
                     default=_cfg(_c, "growth.max_gap", 0.4),
-                    help="hold growth when held-out minus train exceeds this; "
-                         "0 disables. This is the real guard - a model that "
-                         "generalises has earned more capacity")
+                    help="hold growth when held-out predictive CE minus a "
+                         "fresh predictive CE measurement of the current "
+                         "training window exceeds this; 0 disables")
     rd.add_argument("--max-disk-gb", type=float,
                     default=_cfg(_c, "growth.max_disk_gb", 16.0),
                     help="the pool may not grow past this many GB of expert "

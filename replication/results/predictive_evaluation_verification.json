@@ -1,0 +1,201 @@
+{
+  "base_commit": "41f0311a5a46075ddd0c2cb61e9db1e0fee63e7f",
+  "branch": "fix/predictive-evaluation",
+  "scope": "Predictive scoring matches threshold-selected generation logits; training objective and its return contract retained.",
+  "regression": {
+    "before": {
+      "generation_ce": 0.03597636893391609,
+      "measured_ce": 4.040911674499512,
+      "absolute_error": 4.004935264587402
+    },
+    "after": {
+      "generation_ce": 0.03597636893391609,
+      "measured_ce": 0.03597636893391609,
+      "absolute_error": 0.0
+    }
+  },
+  "tests": {
+    "command": ".venv/bin/python -m unittest discover -s tests -v",
+    "count": 39,
+    "result": "PASS; no skips",
+    "log": "test_cached_training_gradients_match_full_window (test_causality.CausalityTests.test_cached_training_gradients_match_full_window) ... ok\ntest_capacity_ledger_handles_changed_expert_count (test_causality.CausalityTests.test_capacity_ledger_handles_changed_expert_count) ... ok\ntest_capacity_limit_is_causal (test_causality.CausalityTests.test_capacity_limit_is_causal) ... ok\ntest_capacity_matches_independent_sequential_oracle (test_causality.CausalityTests.test_capacity_matches_independent_sequential_oracle) ... ok\ntest_chunked_and_tokenwise_predictions_agree (test_causality.CausalityTests.test_chunked_and_tokenwise_predictions_agree) ... ok\ntest_configured_24_step_ceiling_is_causal (test_causality.CausalityTests.test_configured_24_step_ceiling_is_causal) ... ok\ntest_cuda_bf16_predictions_and_backward (test_causality.CausalityTests.test_cuda_bf16_predictions_and_backward) ... ok\ntest_cuda_predictions_and_gradients_are_causal (test_causality.CausalityTests.test_cuda_predictions_and_gradients_are_causal) ... ok\ntest_each_sequence_in_a_batch_is_causal (test_causality.CausalityTests.test_each_sequence_in_a_batch_is_causal) ... ok\ntest_existing_checkpoint_shapes_load_without_migration (test_causality.CausalityTests.test_existing_checkpoint_shapes_load_without_migration) ... ok\ntest_existing_directory_checkpoint_loads_into_causal_paging (test_causality.CausalityTests.test_existing_directory_checkpoint_loads_into_causal_paging) ... ok\ntest_fixed_pool_replication_control_prepares_new_masks (test_causality.CausalityTests.test_fixed_pool_replication_control_prepares_new_masks) ... ok\ntest_fully_resident_pool_capacity_is_causal (test_causality.CausalityTests.test_fully_resident_pool_capacity_is_causal) ... ok\ntest_future_text_does_not_change_prefix (test_causality.CausalityTests.test_future_text_does_not_change_prefix) ... ok\ntest_mixed_adaptive_halting_is_causal (test_causality.CausalityTests.test_mixed_adaptive_halting_is_causal) ... ok\ntest_multiple_recurrent_sites_and_small_resident_pools (test_causality.CausalityTests.test_multiple_recurrent_sites_and_small_resident_pools) ... ok\ntest_new_text_resets_admission_and_cached_text_keeps_slots (test_causality.CausalityTests.test_new_text_resets_admission_and_cached_text_keeps_slots) ... ok\ntest_other_batch_sequences_do_not_change_predictions (test_causality.CausalityTests.test_other_batch_sequences_do_not_change_predictions) ... ok\ntest_padded_dispatch_and_checkpointing_are_causal (test_causality.CausalityTests.test_padded_dispatch_and_checkpointing_are_causal) ... ok\ntest_paged_optimizer_restores_incoming_experts_moments (test_causality.CausalityTests.test_paged_optimizer_restores_incoming_experts_moments) ... ok\ntest_prefix_gradient_does_not_depend_on_future_text (test_causality.CausalityTests.test_prefix_gradient_does_not_depend_on_future_text) ... ok\ntest_random_pages_do_not_depend_on_chunk_boundaries (test_causality.CausalityTests.test_random_pages_do_not_depend_on_chunk_boundaries) ... ok\ntest_stochastic_routing_is_causal_with_fixed_seed (test_causality.CausalityTests.test_stochastic_routing_is_causal_with_fixed_seed) ... ok\ntest_training_predictions_are_causal (test_causality.CausalityTests.test_training_predictions_are_causal) ... ok\ntest_checkpoint_metric_prevents_historical_score_comparison (test_evaluation.EvaluationTests.test_checkpoint_metric_prevents_historical_score_comparison) ... ok\ntest_controller_seeding_excludes_historical_objective (test_evaluation.EvaluationTests.test_controller_seeding_excludes_historical_objective) ... ok\ntest_cuda_bf16_predictive_ce_matches_generation (test_evaluation.EvaluationTests.test_cuda_bf16_predictive_ce_matches_generation) ... ok\ntest_file_boundaries_and_last_single_token_are_scored (test_evaluation.EvaluationTests.test_file_boundaries_and_last_single_token_are_scored) ... ok\ntest_file_reader_uses_generation_predictions (test_evaluation.EvaluationTests.test_file_reader_uses_generation_predictions) ... ok\ntest_folder_weights_by_predictions_and_preserves_mode (test_evaluation.EvaluationTests.test_folder_weights_by_predictions_and_preserves_mode) ... ok\ntest_full_chunk_and_token_scoring_match (test_evaluation.EvaluationTests.test_full_chunk_and_token_scoring_match) ... ok\ntest_invalid_reader_bounds_and_empty_evaluation_fail_clearly (test_evaluation.EvaluationTests.test_invalid_reader_bounds_and_empty_evaluation_fail_clearly) ... ok\ntest_manual_training_objective_is_preserved (test_evaluation.EvaluationTests.test_manual_training_objective_is_preserved) ... ok\ntest_metric_migration_preserves_lr_scale_but_discards_fits (test_evaluation.EvaluationTests.test_metric_migration_preserves_lr_scale_but_discards_fits) ... ok\ntest_packed_evaluator_scores_predictive_ce (test_evaluation.EvaluationTests.test_packed_evaluator_scores_predictive_ce) ... ok\ntest_plots_parse_new_scores_and_keep_metric_eras_separate (test_evaluation.EvaluationTests.test_plots_parse_new_scores_and_keep_metric_eras_separate) ... ok\ntest_prediction_matches_generation_with_guards_disabled (test_evaluation.EvaluationTests.test_prediction_matches_generation_with_guards_disabled) ... ok\ntest_predictive_scoring_ignores_training_penalties_and_sampling (test_evaluation.EvaluationTests.test_predictive_scoring_ignores_training_penalties_and_sampling) ... ok\ntest_window_error_is_invariant_to_chunk_partition (test_evaluation.EvaluationTests.test_window_error_is_invariant_to_chunk_partition) ... ok\n\n----------------------------------------------------------------------\nRan 39 tests in 2.634s\n\nOK\n"
+  },
+  "trained_checkpoint_chunk_check": {
+    "checkpoint": "undertrained",
+    "precision": "CUDA FP32; TF32 disabled",
+    "context": "70 predictions, fixed weights and context boundary",
+    "results": [
+      {
+        "width": 1,
+        "max_token_ce_error": 2.4437904357910156e-06,
+        "mean_ce": 0.6537615656852722
+      },
+      {
+        "width": 7,
+        "max_token_ce_error": 3.874301910400391e-06,
+        "mean_ce": 0.6537616848945618
+      },
+      {
+        "width": 23,
+        "max_token_ce_error": 1.9073486328125e-06,
+        "mean_ce": 0.6537615656852722
+      },
+      {
+        "width": 70,
+        "max_token_ce_error": 2.384185791015625e-06,
+        "mean_ce": 0.6537616848945618
+      }
+    ]
+  },
+  "cli_verification": {
+    "read": {
+      "result": "PASS: train, held-out and training-window predictive CE, sample logging, save, reload, finite predictive CE",
+      "fixture": "/tmp/minagi-evaluation-cli-n_0bv9o9",
+      "saved_step": 34,
+      "saved_metric": "causal_halted_next_token_ce_v1",
+      "log": "1 files, 0.00M characters\n  16 experts on disk, 4 resident, 0.0M in VRAM of 0.1M total\n  computing in fp32; weights stay fp32 everywhere, Adam's moments store as bf16\n  [config] this checkpoint has 1 block(s) per row and 3 rows; config.yaml looks written for a different shape:\n    - bptt_window 24 exceeds max_steps 3, so nothing would be detached and the whole chain would be held. Clamping to 3.\n    - halt_prior 0.072 pulls toward 13.9 rows but the model only has 3.\n  gradient reaches back 3 of 3 rows\n  depth: up to 3 rows, halting prior pulls toward 13.9 rows, inference stops at 0.9 cumulative\n  first-pass prefix requests fill 4 slots; each character uses its top 2 experts available at its position, and the working set lasts until context reset\n  while training, the router pays for the probability it puts on each expert in proportion to that expert's share of recent admissions (balance 3.5e-05), so the whole pool gets used\n  trunk learns at 0.1x the pool's rate (0.0M trunk, 0.0M pool)\n  before: 5.5706 +/-0.0000 on /tmp/minagi-evaluation-cli-n_0bv9o9/val\n  optimiser moments restored (0 steps of history)\n  1 subjects, reading 32,768 characters from one before moving to the next (512 windows of 64): train\n  the window grows by 1 character(s) whenever the model is still gaining more than 0.015 deep into it, up to 128\n  evaluation metric changed: historical best and controller fits reset\n  learning rate is governed by held-out, not by a horizon - eased at every check unless held-out is clearly improving, by at most 0.4% a check: rate x1.000, floor x0.01\n/home/nir/ml-tools/mini-AGI/train.py:1168: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.\nConsider using tensor.detach() first. (Triggered internally at /__w/pytorch/pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:820.)\n  fl.append(float(loss))\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5387  held-out 5.5706  | 2.0 experts loaded onto the card per chunk, RAM hit rate 0.53  | context 64  reading 243 char/s, writing 546.6 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5611  held-out 5.5706  | 2.0 experts loaded onto the card per chunk, RAM hit rate 0.75  | context 64  reading 2,353 char/s, writing 594.1 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5688  held-out 5.5706  | 2.0 experts loaded onto the card per chunk, RAM hit rate 0.83  | context 64  reading 2,494 char/s, writing 594.6 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5763  held-out 5.5705  | 2.0 experts loaded onto the card per chunk, RAM hit rate 0.87  | context 64  reading 2,370 char/s, writing 597.7 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5804  held-out 5.5705  | 2.2 experts loaded onto the card per chunk, RAM hit rate 0.90  | context 64  reading 2,326 char/s, writing 596.9 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5818  held-out 5.5704  | 2.5 experts loaded onto the card per chunk, RAM hit rate 0.91  | context 64  reading 2,334 char/s, writing 600.3 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5842  held-out 5.5704  | 2.6 experts loaded onto the card per chunk, RAM hit rate 0.93  | context 64  reading 2,402 char/s, writing 598.8 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5850  held-out 5.5703  | 2.8 experts loaded onto the card per chunk, RAM hit rate 0.93  | context 64  reading 2,353 char/s, writing 596.4 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5881  held-out 5.5702  | 2.7 experts loaded onto the card per chunk, RAM hit rate 0.94  | context 64  reading 2,348 char/s, writing 598.1 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5887  held-out 5.5702  | 2.7 experts loaded onto the card per chunk, RAM hit rate 0.94  | context 64  reading 2,381 char/s, writing 602.8 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5898  held-out 5.5701  | 2.7 experts loaded onto the card per chunk, RAM hit rate 0.95  | context 64  reading 2,412 char/s, writing 598.4 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5905  held-out 5.5700  | 2.8 experts loaded onto the card per chunk, RAM hit rate 0.95  | context 64  reading 2,402 char/s, writing 596.2 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5910  held-out 5.5699  | 2.8 experts loaded onto the card per chunk, RAM hit rate 0.96  | context 64  reading 2,402 char/s, writing 603.5 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5913  held-out 5.5697  | 2.9 experts loaded onto the card per chunk, RAM hit rate 0.96  | context 64  reading 2,412 char/s, writing 599.4 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5912  held-out 5.5696  | 2.9 experts loaded onto the card per chunk, RAM hit rate 0.96  | context 64  reading 2,418 char/s, writing 602.0 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5916  held-out 5.5695  | 2.9 experts loaded onto the card per chunk, RAM hit rate 0.96  | context 64  reading 2,401 char/s, writing 602.2 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5913  held-out 5.5693  | 2.9 experts loaded onto the card per chunk, RAM hit rate 0.97  | context 64  reading 2,406 char/s, writing 601.9 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5924  held-out 5.5692  | 2.9 experts loaded onto the card per chunk, RAM hit rate 0.97  | context 64  reading 2,396 char/s, writing 601.0 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5923  held-out 5.5690  | 2.9 experts loaded onto the card per chunk, RAM hit rate 0.97  | context 64  reading 2,411 char/s, writing 600.8 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5922  held-out 5.5688  | 3.0 experts loaded onto the card per chunk, RAM hit rate 0.97  | context 64  reading 2,416 char/s, writing 597.0 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5921  held-out 5.5686  | 3.0 experts loaded onto the card per chunk, RAM hit rate 0.97  | context 64  reading 2,420 char/s, writing 600.5 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5924  held-out 5.5684  | 3.0 experts loaded onto the card per chunk, RAM hit rate 0.97  | context 64  reading 2,416 char/s, writing 597.9 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5923  held-out 5.5682  | 3.0 experts loaded onto the card per chunk, RAM hit rate 0.97  | context 64  reading 2,422 char/s, writing 600.4 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5924  held-out 5.5680  | 3.0 experts loaded onto the card per chunk, RAM hit rate 0.98  | context 64  reading 2,420 char/s, writing 599.2 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5926  held-out 5.5678  | 2.9 experts loaded onto the card per chunk, RAM hit rate 0.98  | context 64  reading 2,417 char/s, writing 602.5 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5924  held-out 5.5676  | 2.9 experts loaded onto the card per chunk, RAM hit rate 0.98  | context 64  reading 2,401 char/s, writing 598.4 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5926  held-out 5.5673  | 2.9 experts loaded onto the card per chunk, RAM hit rate 0.98  | context 64  reading 2,415 char/s, writing 594.8 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5925  held-out 5.5671  | 2.9 experts loaded onto the card per chunk, RAM hit rate 0.98  | context 64  reading 2,418 char/s, writing 603.5 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5924  held-out 5.5668  | 2.9 experts loaded onto the card per chunk, RAM hit rate 0.98  | context 64  reading 2,419 char/s, writing 599.2 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5920  held-out 5.5665  | 2.9 experts loaded onto the card per chunk, RAM hit rate 0.98  | context 64  reading 2,412 char/s, writing 597.1 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5923  held-out 5.5662  | 3.0 experts loaded onto the card per chunk, RAM hit rate 0.98  | context 64  reading 2,411 char/s, writing 600.1 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5920  held-out 5.5659  | 3.0 experts loaded onto the card per chunk, RAM hit rate 0.98  | context 64  reading 2,413 char/s, writing 601.1 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5920  held-out 5.5656  | 3.0 experts loaded onto the card per chunk, RAM hit rate 0.98  | context 64  reading 2,412 char/s, writing 594.6 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5919  held-out 5.5653  | 3.0 experts loaded onto the card per chunk, RAM hit rate 0.98  | context 64  reading 2,396 char/s, writing 599.2 char/s  (0 min)\n    weights/ checkpointed\n    samples -> /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt  train 5.5917  held-out 5.5649  | 3.0 experts loaded onto the card per chunk, RAM hit rate 0.98  | context 64  reading 2,418 char/s, writing 600.1 char/s  (0 min)\n    weights/ checkpointed\n  reached 0.02 minutes\n    weights/ checkpointed at step 34 (0.0M characters)\n\nread 0.00M characters in 0.0m (0.5k char/s over the whole session, checks and samples included)\n  mean loss over the files: 5.5917\n  after:  5.5649 +/-0.0000   -0.0057\n  final samples in /tmp/minagi-evaluation-cli-n_0bv9o9/samples.txt\n  weights/: 16 experts + 3 bundles, 1.2 MB (paged - experts were already on disk)\n  weights/ updated - the model has read this and kept it\n"
+    },
+    "stream": {
+      "result": "PASS: two fresh-start updates, evaluation and save; legacy score 0.01 excluded from best comparison",
+      "pool_max": 16,
+      "saved_step": 1,
+      "saved_metric": "causal_halted_next_token_ce_v1",
+      "log": "/home/nir/ml-tools/mini-AGI/train.py:278: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.\nConsider using tensor.detach() first. (Triggered internally at /__w/pytorch/pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:820.)\n  record(\"step\", step=step, loss=float(loss), lr=lr,\nparams 0.13M | 16 experts | block-applications 5\nbatch 1 | chunk 16 | context up to 128\n  the graph spans 16 characters; the cache spans the context. only the first costs activations.\ntrunk learns at 0.3x the pool's rate (0.04M trunk, 0.10M pool)\n  loaded weights/ at step -1: 16 experts, 0.6 MB\nresuming from /tmp/minagi-evaluation-cli-n_0bv9o9/stream-fresh at step 0\n  /tmp/minagi-evaluation-cli-n_0bv9o9/packed 100%       0.0M characters\ncontext ramps 64 -> 128 over the first third of the run\nstep      0/2 loss 5.6499 lr 1.00e-04 gn 2.18 ctx 0k 0.1k char/s\n  val 5.5604 +/-0.0000 ppl 259.91   /tmp/minagi-evaluation-cli-n_0bv9o9/packed 5.560\n  weights/: 16 experts + 3 bundles = 19 files, 1.5 MB\n  improved - weights/ advanced to val 5.5604\n  val 5.5603 +/-0.0000 ppl 259.91   /tmp/minagi-evaluation-cli-n_0bv9o9/packed 5.560\n  weights/: 16 experts + 3 bundles = 19 files, 1.5 MB\n  improved - weights/ advanced to val 5.5603\n\ndone in 0.0m best val 5.5603\nhistory: /tmp/minagi-evaluation-cli-n_0bv9o9/stream-fresh-run/history.jsonl\n"
+    },
+    "plots": "Both progress and dashboard tools rendered successfully from corrected sample logs; parser regression covers historical/new metric separation."
+  },
+  "known_preexisting_stream_resume_limitation": {
+    "baseline": "41f0311",
+    "returncode": 1,
+    "stderr": "Traceback (most recent call last):\n  File \"/tmp/minagi-stream-baseline-j87uonbi/train.py\", line 2317, in <module>\n    main()\n  File \"/tmp/minagi-stream-baseline-j87uonbi/train.py\", line 2313, in main\n    sys.exit(args.fn(args) or 0)\n             ^^^^^^^^^^^^^\n  File \"/tmp/minagi-stream-baseline-j87uonbi/train.py\", line 272, in cmd_stream\n    opt.step()\n  File \"/home/nir/ml-tools/mini-AGI/.venv/lib/python3.12/site-packages/torch/optim/optimizer.py\", line 549, in wrapper\n    out = func(*args, **kwargs)\n          ^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/nir/ml-tools/mini-AGI/.venv/lib/python3.12/site-packages/torch/optim/optimizer.py\", line 79, in _use_grad\n    ret = func(*args, **kwargs)\n          ^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/nir/ml-tools/mini-AGI/.venv/lib/python3.12/site-packages/torch/optim/adam.py\", line 238, in step\n    has_complex = self._init_group(\n                  ^^^^^^^^^^^^^^^^^\n  File \"/home/nir/ml-tools/mini-AGI/.venv/lib/python3.12/site-packages/torch/optim/adam.py\", line 211, in _init_group\n    state_steps.append(state[\"step\"])\n                       ~~~~~^^^^^^^^\nKeyError: 'step'\n",
+    "limitation": "Legacy stream path cannot resume this paged optimizer state; read path works. Not introduced by predictive evaluation."
+  },
+  "downloads": {
+    "undertrained": {
+      "repo": "Volotat/mini-AGI-undertrained",
+      "revision": "5906e846242d80a487f7bb685d88f4751f2f88ec",
+      "bytes": 10461750616,
+      "files_verified": 403,
+      "verification": "SHA-256 for LFS; Git blob SHA-1 otherwise",
+      "path": "/mnt/fast/models/mini-AGI/undertrained/weights"
+    },
+    "cl-replication": {
+      "repo": "Volotat/mini-AGI-cl-replication-weights",
+      "revision": "669afac8d059a238374ca2071ff6de92d5961d08",
+      "bytes": 4722827936,
+      "files_verified": 179,
+      "verification": "SHA-256 for LFS; Git blob SHA-1 otherwise",
+      "path": "/mnt/fast/models/mini-AGI/cl-replication/weights"
+    }
+  },
+  "dataset": {
+    "repo": "roneneldan/TinyStories",
+    "revision": "f54c09fd23315a6f9c86f9dc80f725de7d8f9c64",
+    "file": "TinyStoriesV2-GPT4-valid.txt",
+    "size": 22502601,
+    "sha256": "6874bae9a4c1a4e7edcf0e53b86c17817e9cf881fc75ff2368da457b80c0585d",
+    "split": "validation",
+    "overlap_with_checkpoint_training": "unverified"
+  },
+  "diagnostic_baselines": {
+    "undertrained": {
+      "metric": "causal_halted_next_token_ce_v1",
+      "nats_per_token": 1.4388982756063342,
+      "bits_per_token": 2.0758914065609395,
+      "perplexity": 4.216048334049482,
+      "stderr": 0.12141814857972826,
+      "scored_tokens": 32768,
+      "windows": 8,
+      "seconds": 3.690202066999518,
+      "weights": "/mnt/fast/models/mini-AGI/undertrained/weights",
+      "text": "/mnt/fast/models/mini-AGI/evaluation-data/TinyStoriesV2-GPT4-valid.txt",
+      "text_sha256": "6874bae9a4c1a4e7edcf0e53b86c17817e9cf881fc75ff2368da457b80c0585d",
+      "scored_token_ids_sha256": "c712e2c93cb0b4fe0fc84f57822844e685e1e6dfdc721a130d44bbc76aeb0591",
+      "manifest_sha256": "f0ade4a3127971b20edc35d58b1ae66241af914aecd3ca8e9c0a2939ef8a74f3",
+      "chunk": 512,
+      "context": 4096,
+      "device": "cuda",
+      "precision": "bf16",
+      "torch": "2.14.1+cu130",
+      "cuda": "13.0",
+      "gpu": "NVIDIA GeForce RTX 5090",
+      "halting": {
+        "max_steps": 24,
+        "min_steps": 1,
+        "halt_thresh": 0.9,
+        "halt_freeze": true
+      },
+      "policy": "threshold-selected logits; no decoding guards; fresh context at fixed boundaries",
+      "limitations": "Single corpus prefix; checkpoint training overlap is unverified; not comparable to historical scores.",
+      "bits_per_byte": null,
+      "checkpoint_source": {
+        "repo": "Volotat/mini-AGI-undertrained",
+        "revision": "5906e846242d80a487f7bb685d88f4751f2f88ec"
+      },
+      "diagnostic_expected_ce_plus_ponder_kl": 1.3315676301717758
+    },
+    "cl-replication": {
+      "metric": "causal_halted_next_token_ce_v1",
+      "nats_per_token": 0.7340477453544736,
+      "bits_per_token": 1.0590070419986237,
+      "perplexity": 2.0834970278354126,
+      "stderr": 0.02206052322893602,
+      "scored_tokens": 32768,
+      "windows": 8,
+      "seconds": 3.279748830000244,
+      "weights": "/mnt/fast/models/mini-AGI/cl-replication/weights",
+      "text": "/mnt/fast/models/mini-AGI/evaluation-data/TinyStoriesV2-GPT4-valid.txt",
+      "text_sha256": "6874bae9a4c1a4e7edcf0e53b86c17817e9cf881fc75ff2368da457b80c0585d",
+      "scored_token_ids_sha256": "c712e2c93cb0b4fe0fc84f57822844e685e1e6dfdc721a130d44bbc76aeb0591",
+      "manifest_sha256": "7a9e14025b430de21d12cb5105ccb94fd85c56aa3ad37b163b3017898f055f45",
+      "chunk": 512,
+      "context": 4096,
+      "device": "cuda",
+      "precision": "bf16",
+      "torch": "2.14.1+cu130",
+      "cuda": "13.0",
+      "gpu": "NVIDIA GeForce RTX 5090",
+      "halting": {
+        "max_steps": 24,
+        "min_steps": 1,
+        "halt_thresh": 0.9,
+        "halt_freeze": false
+      },
+      "policy": "threshold-selected logits; no decoding guards; fresh context at fixed boundaries",
+      "limitations": "Single corpus prefix; checkpoint training overlap is unverified; not comparable to historical scores.",
+      "bits_per_byte": null,
+      "checkpoint_source": {
+        "repo": "Volotat/mini-AGI-cl-replication-weights",
+        "revision": "669afac8d059a238374ca2071ff6de92d5961d08"
+      },
+      "diagnostic_expected_ce_plus_ponder_kl": 0.7381175318732858
+    }
+  },
+  "limitations": [
+    "The 32,768-token TinyStories validation prefix is a narrow diagnostic. Training overlap is unverified.",
+    "The two upstream checkpoints have different saved halt_freeze policies; these scores are not a controlled model-size comparison.",
+    "Historical scores used different routing and a different objective; they are not comparable to these predictive scores.",
+    "Chunk invariance assumes fixed weights, halting policy, controlled routing randomness and identical context boundaries; floating-point rounding remains.",
+    "Fresh context resets differ from generation half-window replay after a context fills.",
+    "Context-window standard errors assume independent clusters; adjacent corpus windows may be correlated. Zero stderr with fewer than two windows is not certainty.",
+    "The learning objective is preserved; no general quality improvement is claimed."
+  ],
+  "environment": {
+    "torch": "2.14.1",
+    "numpy": "2.5.4",
+    "huggingface_hub": "2.2.0",
+    "matplotlib": "3.11.2"
+  },
+  "source_sha256": {
+    "minagi/recur.py": "fe345d9e77c980f61c821839b926bf1a7cb4cef0942f147d1f3f69635a9e8d6e",
+    "minagi/stream.py": "8a529280f8b51b821f9b4b359e20b0bc5c56cb1f8cfe389b95e3dcaa06a3c409",
+    "minagi/store.py": "9de5720db1ba4275950f9e00c5978f242a8cca3367b4cf1fd83eb5fd9646c668",
+    "minagi/plasticity.py": "f7fd384ff7b2207ff541e92a014ad3b9dd28e253e1e8a107f22e74f5904ae5f9",
+    "train.py": "43973dc236a86966db21cd80a0f3ea33bfb9297f668f446790f501ebd8d1507b",
+    "tools/plot_progress.py": "ab181b8f7dc632c81dd9f3d0d6df0c239239e4f88cba121255743a151fb8b7ea",
+    "tools/plot_dashboard.py": "354c28cf1de71844209c27a83d694a254b8bb9cb7b0bed6becf2a88a4c52b0ec",
+    "replication/download_checkpoints.py": "4e404bd4b6199a10a9e83f3c2bf5d33768bfd2643a141b4ef40a91ee26fb2ad3",
+    "replication/evaluate_checkpoint.py": "f99339c8b0858859e78870ad46b366676171e6db9f24ae77ab622cb444d68e62",
+    "tests/test_evaluation.py": "e24ab9cf797cf00777324278a8438b9f7dbf3981afd3f0893fdba2f8c7721d69"
+  }
+}

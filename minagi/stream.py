@@ -62,6 +62,8 @@ class Reader:
         self.name = name
         self.chunk = chunk
         self.context = context or model.cfg.block
+        if self.chunk < 1 or not 1 <= self.context <= model.cfg.block:
+            raise ValueError("chunk must be positive and context must fit the model")
         self.device = device or next(model.parameters()).device
         self.rng = rng or np.random.default_rng(0)
         self.caches = model.empty_caches()
@@ -79,8 +81,10 @@ class Reader:
                 0, max(1, len(self.data) - self.context - 1)))
 
     def next_chunk(self):
-        n = self.chunk
-        if self.pos + n + 1 >= len(self.data):
+        n = min(self.chunk, self.context - self.seen, len(self.data) - 1)
+        if n < 1:
+            raise ValueError("a stream needs at least two tokens and a positive chunk/context")
+        if self.pos + n >= len(self.data):
             self.reset()
         a = self.data[self.pos:self.pos + n + 1].astype(np.int64)
         self.pos += n
@@ -104,23 +108,23 @@ class Reader:
         and stay mismatched for the rest of the read, which costs whole nats of
         held-out loss without touching a weight.
         """
-        # `seen + chunk`, not `seen`: the test has to cover the chunk about to
-        # be read, because the read starts at `seen` and the rotary tables end
-        # at the context. Testing `seen` alone is only equivalent when the
-        # chunk divides the context exactly, and reads past the tables when it
-        # does not.
-        if self.seen + self.chunk > self.context:
+        # next_chunk clips the last chunk to the remaining context.
+        if self.seen >= self.context:
             self.reset()
         x, y = self.next_chunk()
         offset = self.seen
         with amp(self.device):
-            logits, loss = self.model(x, y, caches=self.caches,
-                                      pos_offset=offset)
-        if aux_weight and getattr(self.model, "pool", None) is not None:
+            if learn:
+                _, loss = self.model(x, y, caches=self.caches, pos_offset=offset)
+            else:
+                loss = self.model.predictive_loss(x, y, caches=self.caches,
+                                                 pos_offset=offset)
+        if learn and aux_weight and getattr(self.model, "pool", None) is not None:
             loss = loss + aux_weight * self.model.pool_aux()
-        if hasattr(self.model, "pool_balance"):
+        if learn and hasattr(self.model, "pool_balance"):
             loss = loss + self.model.pool_balance()
         self.seen += x.shape[1]
+        self.last_count = y.numel()
         if not learn:
             detach_caches(self.caches)
         return loss
@@ -249,9 +253,12 @@ class FileReader:
     def __init__(self, model, data, name, chunk, context, device):
         self.model, self.data, self.name = model, data, name
         self.chunk, self.context, self.device = chunk, context, device
+        if self.chunk < 1 or not 1 <= self.context <= model.cfg.block:
+            raise ValueError("chunk must be positive and context must fit the model")
         self.caches = None            # only the measuring path carries one
         self.pos = 0
         self.seen = 0
+        self.resets = 0
 
     def done(self):
         return self.pos + 1 >= len(self.data)
@@ -271,7 +278,7 @@ class FileReader:
 
     def step(self, learn=True, aux_weight=0.0):
         n = min(self.chunk, len(self.data) - self.pos - 1)
-        if n < 2:
+        if n < 1:
             return None
         if not learn:
             return self._measure(n)
@@ -298,29 +305,48 @@ class FileReader:
 
     def _measure(self, n):
         """
-        The same number, without paying for gradient reach nobody uses.
+        Score generation's predictive distribution through a cached context.
 
-        MEASURING IS NOT LEARNING. Re-forwarding the whole window every chunk
-        exists so the gradient can reach all of it; under no_grad there is no
-        gradient, and a cached chunk sees exactly the same attention context,
-        so it computes the identical loss for 1/(context/chunk) of the work.
-
-        That factor is the difference between an evaluation that runs between
-        samples and one that costs more than the training it is measuring.
+        Context resets occur at exact context boundaries, independently of
+        chunk size. This is a fresh-context policy, not generation's optional
+        half-window replay when a long reply reaches its context ceiling.
         """
-        if self.caches is None or self.seen + n > self.context:
+        if self.caches is None or self.seen >= self.context:
             self.caches = self.model.empty_caches()
             self.seen = 0
+            self.resets += 1
+        n = min(n, self.context - self.seen)
         a = self.data[self.pos:self.pos + n + 1].astype(np.int64)
         x = torch.from_numpy(a[:-1]).to(self.device).unsqueeze(0)
         y = torch.from_numpy(a[1:]).to(self.device).unsqueeze(0)
         with amp(self.device):
-            logits, loss = self.model(x, y, caches=self.caches,
-                                      pos_offset=self.seen)
+            loss = self.model.predictive_loss(x, y, caches=self.caches,
+                                             pos_offset=self.seen)
         self.pos += n
         self.seen += n
+        self.last_count = y.numel()
         detach_caches(self.caches)
         return loss
+
+
+def _score_windows(samples):
+    """Token-weighted mean and a context-window cluster standard error.
+
+    Samples are (mean CE, token count, window id). A single window cannot
+    estimate between-window variance; in that case stderr is zero (unknown).
+    """
+    windows = {}
+    for loss, count, window in samples:
+        s, n = windows.get(window, (0.0, 0))
+        windows[window] = (s + loss * count, n + count)
+    if not windows:
+        raise ValueError("no predictions to score")
+    sums, counts = np.asarray(list(windows.values()), dtype=np.float64).T
+    mean = float(sums.sum() / counts.sum())
+    m = len(windows)
+    stderr = (float(np.sqrt(m / (m - 1) * np.square(sums - mean * counts).sum())
+                    / counts.sum()) if m > 1 else 0.0)
+    return mean, stderr
 
 
 class FolderEvaluator:
@@ -348,15 +374,13 @@ class FolderEvaluator:
 
     @torch.no_grad()
     def run(self, chunks=240):
-        self.model.eval()
-        out, every = {}, []
-        per = max(1, self.context // self.chunk)
+        out, errors = {}, []
         for name, files in self.groups.items():
             losses = []
             fi = 0
             while len(losses) < chunks and fi < len(files):
                 data = self._as_stream(files[fi]); fi += 1
-                if len(data) < 8:
+                if len(data) < 2:
                     continue
                 r = FileReader(self.model, data, name, self.chunk,
                                self.context, self.device)
@@ -368,43 +392,25 @@ class FolderEvaluator:
                     l = r.step(learn=False)
                     if l is None:
                         break
-                    losses.append(float(l))
+                    losses.append((float(l), r.last_count, (fi, r.resets)))
                 del r
             if losses:
-                out[name] = float(np.mean(losses))
-                every.extend(losses)
-        a = np.asarray(every)
-        usable = (len(a) // per) * per
-        if usable >= 2 * per:
-            wm = a[:usable].reshape(-1, per).mean(1)
-            out["stderr"] = float(wm.std(ddof=1) / np.sqrt(len(wm)))
-        else:
-            out["stderr"] = float(a.std() / np.sqrt(max(1, len(a))))
-        self.model.train()
+                out[name], se = _score_windows(losses)
+                errors.append(se)
+        if not out:
+            raise ValueError("evaluation found no next-token predictions")
+        # Callers use an equal-domain mean, so its uncertainty must use the
+        # same domain weights instead of pooling differently sized domains.
+        out["stderr"] = float(np.linalg.norm(errors) / len(errors))
         return out
 
 
 class Evaluator:
-    """
-    Held-out loss per source, read the same way training reads.
+    """Predictive CE per packed source, with cached fixed-context windows.
 
-    IT REPORTS HOW UNCERTAIN IT IS, and the size of the evaluation is what
-    sets that. Repeated draws on unchanged weights:
-
-        chunks   characters   sd across draws
-             6       12,288            0.0275
-            24       49,152            0.0170
-            96      196,608            0.0093
-           240      491,520            0.0064
-
-    A difference smaller than the sd at the size used is not a result, it is
-    the instrument. `stderr` in the returned dict estimates the same quantity
-    from a single evaluation.
-
-    It is not the whole story. This is the spread of the SCORE with the weights
-    held fixed. Training itself is non-deterministic on CUDA - the same recipe
-    run twice lands about 0.014 apart - so the honest threshold for a real
-    difference is around 0.03, well above anything printed here.
+    stderr estimates the uncertainty of the equal-domain mean across context
+    windows. It does not include training variability or contamination risk.
+    Historical error estimates made with the training objective do not apply.
     """
 
     def __init__(self, model, names, chunk, context, device):
@@ -416,29 +422,20 @@ class Evaluator:
 
     @torch.no_grad()
     def run(self, chunks=240):
-        self.model.eval()
-        out, every = {}, []
+        out, errors = {}, []
         for name, d in zip(self.names, self.data):
             r = Reader(self.model, d, name, self.chunk, self.context,
                        self.device, np.random.default_rng(7))
-            losses = [float(r.step(learn=False)) for _ in range(chunks)]
-            out[name] = float(np.mean(losses))
-            every.extend(losses)
+            losses = []
+            for _ in range(chunks):
+                loss = r.step(learn=False)
+                losses.append((float(loss), r.last_count, r.resets))
+            out[name], se = _score_windows(losses)
+            errors.append(se)
             del r
-        self.model.train()
-        # Chunks inside one window are correlated, so the sample here is the
-        # WINDOW, not the chunk: average each window first, then take the
-        # spread of those. Per-chunk spread overstates the error by about two
-        # and a half times, because most of a chunk's variance is which passage
-        # it landed on and that averages out within the window.
-        per_window = max(1, self.context // self.chunk)
-        a = np.asarray(every)
-        usable = (len(a) // per_window) * per_window
-        if usable >= 2 * per_window:
-            wm = a[:usable].reshape(-1, per_window).mean(1)
-            out["stderr"] = float(wm.std(ddof=1) / np.sqrt(len(wm)))
-        else:
-            out["stderr"] = float(a.std() / np.sqrt(max(1, len(a))))
+        if not out:
+            raise ValueError("evaluation found no sources")
+        out["stderr"] = float(np.linalg.norm(errors) / len(errors))
         return out
 
 

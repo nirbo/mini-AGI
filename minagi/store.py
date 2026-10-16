@@ -73,7 +73,7 @@ def expert_leaf(key):
 
 
 def save(model, path, step=None, val=None, opt=None, cfg=None, verbose=False,
-         extra=None):
+         extra=None, val_metric=None):
     """Write the whole model out: bundles for the resident parts, one file per expert."""
     os.makedirs(os.path.join(path, EXPERTS), exist_ok=True)
 
@@ -85,7 +85,7 @@ def save(model, path, step=None, val=None, opt=None, cfg=None, verbose=False,
     pool = getattr(model, "pool", None)
     if pool is not None and hasattr(pool, "tiers"):
         return _save_paged(model, pool, path, step, val, opt, cfg, verbose,
-                           extra)
+                           extra, val_metric)
 
     sd = model.state_dict()
 
@@ -135,7 +135,7 @@ def save(model, path, step=None, val=None, opt=None, cfg=None, verbose=False,
     for i in sorted(by_expert)[:1]:
         d_ff, d_model = by_expert[i]["w1"].shape
     manifest = {
-        "step": step, "val": val, "cfg": cfg,
+        "step": step, "val": val, "val_metric": val_metric, "cfg": cfg,
         "n_experts": len(entries), "d_model": d_model, "d_ff": d_ff,
         "core_tensors": sorted(core), "router_tensors": sorted(routers),
         "experts": entries, "total_bytes": int(total),
@@ -171,7 +171,8 @@ def _expert_moments(opt, model):
     return out
 
 
-def _save_paged(model, pool, path, step, val, opt, cfg, verbose, extra=None):
+def _save_paged(model, pool, path, step, val, opt, cfg, verbose, extra=None,
+                val_metric=None):
     """
     Save a model whose experts are already on disk.
 
@@ -236,7 +237,7 @@ def _save_paged(model, pool, path, step, val, opt, cfg, verbose, extra=None):
         d["pool_ever"] = tel["ever"]
     else:
         manifest_tel = None
-    manifest = {"step": step, "val": val, "cfg": d,
+    manifest = {"step": step, "val": val, "val_metric": val_metric, "cfg": d,
                 "telemetry": manifest_tel,
                 # The pool's own count, NOT len(entries). The router
                 # tensors were just written with one row per expert, and
@@ -503,9 +504,9 @@ if __name__ == "__main__":
 # keeping the live model, and being able to get back
 # ----------------------------------------------------------------------------
 
-def best_val(path):
+def best_val(path, metric=None):
     """
-    Validation loss of the state on disk, or inf if there is none.
+    Validation loss on disk, or inf if absent or the requested metric differs.
 
     The directory holds the best state the model has reached, not the most
     recent one: `save` is called only when a run improves on it. A second copy
@@ -521,5 +522,8 @@ def best_val(path):
     if not os.path.exists(f):
         return float("inf")
     with open(f) as fh:
-        v = json.load(fh).get("val")
+        man = json.load(fh)
+    if metric is not None and man.get("val_metric") != metric:
+        return float("inf")
+    v = man.get("val")
     return float(v) if v is not None else float("inf")

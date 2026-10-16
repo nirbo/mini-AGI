@@ -25,6 +25,9 @@ from .decode import pick_next
 from .precision import amp
 
 
+PREDICTIVE_METRIC = "causal_halted_next_token_ce_v1"
+
+
 @dataclass
 class RecurConfig(Config):
     # a shared, self-growing expert pool with no assigned specialities
@@ -320,8 +323,8 @@ class RecurCoder(nn.Module):
                     targets.reshape(-1), reduction="none").view(B, T)
                 loss_terms.append(p_n.squeeze(-1) * ce)
                 p_terms.append(p_n.squeeze(-1))
-                # the halting-weighted mixture of every depth's logits, so
-                # what is returned is what the model would actually emit
+                # A training diagnostic, not the inference distribution.
+                # Generation selects one depth; predictive_loss scores it.
                 term = logits_n * p_n.to(logits_n.dtype)
                 halted_logits = (term if halted_logits is None
                                  else halted_logits + term)
@@ -372,11 +375,30 @@ class RecurCoder(nn.Module):
         steps = (P * torch.arange(1, len(p_terms) + 1, device=x.device)
                  .view(-1, 1, 1)).sum(0)
         self.last_steps = float(steps.mean().detach())
-        # logits are the halting-weighted mixture, so top-1 accuracy measured
-        # downstream reflects what the model would actually have emitted
+        # Preserve the historical training return contract. These averaged
+        # logits are not used to compute predictive cross-entropy.
         for site in sites:
             site._managed_frame = False
         return halted_logits, loss
+
+    @torch.no_grad()
+    def predictive_loss(self, idx, targets, caches=None, pos_offset=0,
+                        reduction="mean"):
+        """Next-token CE at generation's threshold-selected halting depth.
+
+        Uses inference mode (including the fixed depth ceiling), before any
+        decoding guards, temperature or sampling. No PonderNet KL, expert
+        balance or other training penalty is included. The caller's train/eval
+        mode is restored even when a forward fails.
+        """
+        training = self.training
+        try:
+            self.eval()
+            logits, _ = self(idx, caches=caches, pos_offset=pos_offset)
+            return F.cross_entropy(logits.flatten(0, 1).float(),
+                                   targets.flatten(), reduction=reduction)
+        finally:
+            self.train(training)
 
     def generate(self, idx, max_new_tokens, temperature=0.0, top_k=0,
                  top_p=1.0, collect=False, rep_penalty=1.0,

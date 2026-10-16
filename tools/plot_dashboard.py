@@ -102,16 +102,16 @@ def main():
     # ------------------------------------------------ 1. is it learning
     ax = fig.add_subplot(gs[0, 0])
     for g in segs:
-        ax.plot(x[g], tr[g], lw=1, color=TRAIN, label="train" if g == segs[0] else None)
+        ax.plot(x[g], tr[g], lw=1, color=TRAIN, label="train objective" if g == segs[0] else None)
         ax.fill_between(x[g], (v - se)[g], (v + se)[g], color=VAL, alpha=.18)
         ax.plot(x[g], v[g], lw=1.9, color=VAL,
-                label="held-out" if g == segs[0] else None)
+                label=("held-out CE" if rows[-1]["predictive"] else "historical objective") if g == segs[0] else None)
     if np.isfinite(v).any():
         i = int(np.nanargmin(v))
         ax.plot(x[i], v[i], "o", ms=6, color=DEAD, zorder=5)
         ax.annotate(f"best {v[i]:.4f}", (x[i], v[i]), fontsize=8, color=DEAD,
                     textcoords="offset points", xytext=(6, 6))
-    frame(ax, "Is it learning", "nats per character")
+    frame(ax, "Is it learning", "predictive CE vs train objective" if rows[-1]["predictive"] else "historical objective")
     ax.set_yscale("log")
     ax.yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
     ax.yaxis.set_minor_formatter(matplotlib.ticker.ScalarFormatter())
@@ -303,10 +303,8 @@ def main():
         x=0.05, y=0.965, ha="left", fontsize=15, color=INK, fontweight="bold")
     bits = []
     if np.isfinite(v).any():
-        bits.append(f"held-out {v[-1]:.4f} nats ({v[-1] / np.log(2):.3f} "
-                    f"bits/char), best {np.nanmin(v):.4f}")
-    if last.get("train") is not None and np.isfinite(v).any():
-        bits.append(f"gap {v[-1] - last['train']:+.3f}")
+        bits.append(f"held-out {v[-1]:.4f} nats/token ({v[-1] / np.log(2):.3f} "
+                    f"bits/token), best {np.nanmin(v):.4f}")
     if last.get("lr"):
         bits.append(f"lr {last['lr']:.2e}")
     fig.text(0.05, 0.932, "   ·   ".join(bits), fontsize=10, color=MUTED,

@@ -505,8 +505,8 @@ class Plasticity:
         evidence line, a different measurement about 0.01 below the rounds.
         """
         return [None if m.group(1) else float(m.group(2)) for m in re.finditer(
-            r"^(# session started)|^train loss [^\n]*evidence[^\n]*\n"
-            r"held-out loss ([\d.]+)", text, re.M)]
+            r"^(# session started)|^train objective [^\n]*evidence[^\n]*\n"
+            r"held-out predictive CE ([\d.]+)", text, re.M)]
 
     def has_fits(self):
         """Whether there is any evidence to go on, restored or seeded."""
@@ -523,7 +523,10 @@ class Plasticity:
                 "events": self.events[-40:]}
 
     @classmethod
-    def restore(cls, d):
+    def restore(cls, d, *, reset_fits=False):
+        """Restore state; a metric change clears fits but retains the LR scale."""
+        if d and reset_fits:
+            d = {"scale": d.get("scale", 1.0)}
         p = cls()
         if not d:
             return p

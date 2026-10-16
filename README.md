@@ -1,10 +1,9 @@
 # mini-AGI
 
-**Fork update: causal expert admission.** The historical checkpoints, samples,
-plots and scores below predate this fix. Their weights still load, but the new
-forward behavior requires fresh evaluation; historical losses are not verified
-causal scores. The separate training-objective versus generation-loss distinction
-has not been changed by this fix.
+**Fork updates: causal expert admission and predictive evaluation.** The
+historical checkpoints, samples, plots and scores below predate these fixes.
+Their weights still load, but require fresh evaluation. Historical losses used
+the training objective; they are not verified causal predictive scores.
 
 mini-AGI - is a **continual learning** byte-level language model that assembles its own architecture, trains from scratch on a single 8 GB VRAM GPU, and keeps learning from everything it reads.
 It stores its weights as ordinary files on disk and pages them onto the card as it needs them, so the parameter count is bounded by free disk space rather than by VRAM. It grows new capacity while training when it runs short, prunes what nothing asks for, and reads through exactly the same code path it serves on. Targeted at a PC or laptop with at least an 8 GB VRAM GPU on the board. 
@@ -273,6 +272,76 @@ For a CUDA speed/memory smoke test at the reference width and context, run
 Use `--root /path/to/another/checkout` to compare revisions with the same script,
 or `--depth 24` to exercise the configured ceiling. This uses random weights and
 bytes with a warm RAM cache; it is not a quality or disk-I/O benchmark.
+
+### Predictive evaluation and downloaded checkpoints
+
+Training still optimizes expected cross-entropy over recurrent depths plus
+PonderNet KL and expert penalties. Its logged **train objective** is not a
+next-token negative log-likelihood. Evaluation now reports **predictive CE**
+from the first depth whose cumulative halting probability crosses the inference
+threshold, using the same target-free forward as generation. It uses the fixed
+inference depth ceiling and excludes decoding guards, temperature and sampling.
+The target-bearing forward retains its historical training return values;
+`model.predictive_loss(...)` is the scoring API.
+
+Scores are token-weighted within each domain; the training CLI averages domains
+equally. Short final chunks, including one-token chunks, count. Cached evaluation
+resets at exact context boundaries, independently of chunk size; this differs
+from generation's half-window replay after a long reply fills its context.
+`stderr` clusters predictions by actual context window. With fewer than two
+windows per domain its zero value means **no variance estimate**, not certainty;
+adjacent windows can also remain correlated. Tokens normally represent one byte,
+but structural markers occupy one token each, so logs use nats/token and
+bits/token. Perplexity is `exp(predictive CE)`.
+
+New checkpoints record `val_metric=causal_halted_next_token_ce_v1`. Historical
+best scores and learning-rate controller fits are not reused across this metric
+change; the learned learning-rate multiplier is preserved. The optional growth
+gap guard now compares held-out CE against a fresh inference CE measurement of
+the current training window, rather than subtracting the training objective.
+This guard adds one inference forward per sample evaluation when enabled.
+Plots and controller log seeding keep predictive records separate from old
+objective records. The legacy `read_nats` counter remains integrated training
+objective telemetry, not a predictive information-content measurement.
+
+Upstream weights are downloaded separately from Git. These pinned snapshots
+include optimizer state; the sizes below include all published files:
+
+| Snapshot | Experts | Download size | Revision |
+| --- | ---: | ---: | --- |
+| undertrained | 397 | 9.743 GiB | `5906e846242d80a487f7bb685d88f4751f2f88ec` |
+| cl-replication | 174 | 4.398 GiB | `669afac8d059a238374ca2071ff6de92d5961d08` |
+
+```bash
+uv pip install --python .venv/bin/python huggingface_hub
+.venv/bin/python replication/download_checkpoints.py --root /mnt/fast/models/mini-AGI --workers 8
+```
+
+This uses the venv's `hf download` client, reuses completed downloads, verifies
+LFS SHA-256 / Git blob hashes, and writes provenance next to each `weights/`
+directory. It never creates training weights in the repository.
+
+For a read-only evaluation on a specified text prefix:
+
+```bash
+.venv/bin/python replication/evaluate_checkpoint.py \
+  --weights /mnt/fast/models/mini-AGI/undertrained/weights \
+  --text /path/to/validation.txt --tokens 32768 --context 4096 --chunk 512 \
+  --out /tmp/predictive-score.json --compare-objective
+```
+
+The optional diagnostic also measures expected depth CE plus halting KL at
+the inference depth ceiling, without expert penalties. Results include input
+hashes, checkpoint provenance, halting policy and token counts. Bits/byte is
+reported only when all scored target tokens are ordinary bytes. A single corpus
+prefix is a diagnostic baseline, not evidence of broad capabilities or an
+uncontaminated held-out benchmark. The verification results and initial
+TinyStories validation-prefix scores are in
+[`replication/results/predictive_evaluation_verification.json`](replication/results/predictive_evaluation_verification.json).
+For continued training from paged checkpoints, use `read` on a working copy.
+Verification found that the legacy `stream` path fails to restore the paged
+optimizer state (`KeyError: 'step'`), also on the pre-fix revision. Fresh-start
+`stream` training and the `read` train/save/reload path were verified.
 
 ## How growth and pruning work
 

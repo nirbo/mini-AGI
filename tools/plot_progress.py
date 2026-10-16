@@ -29,9 +29,9 @@ HEAD = re.compile(
 DYING_AT, SURVIVAL_CHARS, CHUNK = 0.75, 0, 1536
 try:                                                        # noqa: E402
     import yaml
-    _c = yaml.safe_load(open(os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-        "config.yaml")))
+    with open(os.path.join(os.path.dirname(os.path.dirname(
+            os.path.abspath(__file__))), "config.yaml")) as _f:
+        _c = yaml.safe_load(_f)
     DYING_AT = float(_c["prune"].get("dying_at", 0.75))
     SURVIVAL_CHARS = int(str(_c["prune"].get("survival_chars", 0)).replace("_", ""))
     CHUNK = int(_c["training"].get("chunk", 1536))
@@ -73,10 +73,13 @@ def _dead_pct(r):
 
 
 def parse(path):
-    txt = open(path, errors="ignore").read()
+    with open(path, errors="ignore") as f:
+        txt = f.read()
     rows = []
-    for m in HEAD.finditer(txt):
-        blk = txt[m.end():m.end() + 700]
+    headers = list(HEAD.finditer(txt))
+    for i, m in enumerate(headers):
+        stop = headers[i + 1].start() if i + 1 < len(headers) else len(txt)
+        blk = txt[m.end():stop].split("\n" + "=" * 78, 1)[0]
         r = {"step": int(m.group(1).replace(",", "")),
              "chars": float(m.group(2)),
              "corpus": (float(m.group(3).replace(",", ""))
@@ -87,7 +90,8 @@ def parse(path):
         r["context"] = int(g.group(1).replace(",", "")) if g else None
         g = re.search(r"reading ([\d,]+) char/s", blk)
         r["rate"] = int(g.group(1).replace(",", "")) if g else None
-        g = re.search(r"train loss ([\d.]+)", blk)
+        r["predictive"] = "held-out predictive CE " in blk
+        g = re.search(r"train (?:loss|objective) ([\d.]+)", blk)
         r["train"] = float(g.group(1)) if g else None
         g = re.search(r"lr ([\d.e+-]+)", blk)
         r["lr"] = float(g.group(1)) if g else None
@@ -98,15 +102,19 @@ def parse(path):
         r["effect"] = float(g.group(1)) if g else None
         g = re.search(r"grad norm ([\d.]+)", blk)
         r["gnorm"] = float(g.group(1)) if g else None
-        g = re.search(r"held-out loss ([\d.]+) \+/-([\d.]+)", blk)
+        g = re.search(r"held-out (?:loss|predictive CE) ([\d.]+)(?: \+/-([\d.]+))?", blk)
         if g:
-            r["val"], r["se"] = float(g.group(1)), float(g.group(2))
+            r["val"], r["se"] = float(g.group(1)), float(g.group(2) or 0)
         g = re.search(r"^  ([a-z_]+ [\d.]+(?:   [a-z_]+ [\d.]+)*)\s*$", blk, re.M)
         if g:
             parts = g.group(1).split()
             r["dom"] = {parts[i]: float(parts[i + 1])
                         for i in range(0, len(parts) - 1, 2)}
         rows.append(r)
+    # A metric change is not an improvement or a regression. Plot the latest
+    # metric era only; historical-only logs remain readable as before.
+    if any(r["predictive"] for r in rows):
+        rows = [r for r in rows if r["predictive"]]
     corpus = next((r["corpus"] for r in reversed(rows) if r["corpus"]), None)
     for r in rows:
         r["corpus"] = r["corpus"] or corpus
@@ -166,8 +174,9 @@ def main():
             if a.since is not None else "")
     fig.suptitle(
         f"mini-AGI  ·  {rows[-1]['step']:,} steps  ·  {rows[-1]['chars']:.1f}M "
-        f"of {rows[-1]['corpus']:,.0f}M characters read "
-        f"({100*rows[-1]['chars']/rows[-1]['corpus']:.2f}%)" + span,
+        + (f"of {rows[-1]['corpus']:,.0f}M characters read "
+           f"({100*rows[-1]['chars']/rows[-1]['corpus']:.2f}%)"
+           if rows[-1]['corpus'] else "characters read") + span,
         fontsize=13, y=0.985)
 
     # 1. the score
@@ -175,9 +184,9 @@ def main():
     v = np.array([r.get("val", np.nan) for r in rows], float)
     se = np.array([r.get("se", 0) or 0 for r in rows], float)
     t = np.array([r.get("train", np.nan) for r in rows], float)
-    p.plot(x, t, lw=1, color="#c0c0c0", label="train")
+    p.plot(x, t, lw=1, color="#c0c0c0", label="train objective")
     p.fill_between(x, v - se, v + se, color="#2b7bba", alpha=0.18)
-    p.plot(x, v, lw=1.8, color="#2b7bba", label="held-out")
+    p.plot(x, v, lw=1.8, color="#2b7bba", label="held-out CE" if rows[-1]["predictive"] else "historical objective")
     ok = ~np.isnan(v)
     if ok.any():
         i = int(np.nanargmin(v))
@@ -204,7 +213,8 @@ def main():
         p.plot(x[fit], np.exp(a_) * x[fit] ** b_, lw=1, ls="--",
                color="#d62728", alpha=.8,
                label=f"trend  loss ~ chars^{b_:.2f}")
-    p.set_title("loss, nats per character")
+    p.set_title("predictive CE and train objective (different metrics)"
+                if rows[-1]["predictive"] else "historical objective")
     p.set_xlabel("million characters read"); p.legend(fontsize=8)
     p.grid(alpha=.25, which="both")
 

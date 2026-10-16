@@ -127,7 +127,7 @@ growth:
   every_chars: 2_000_000  # characters between growth decisions
   k: 1                    # experts added per decision
 
-  max_gap: 0.4            # HONEST: train minus held-out. 0 disables
+  max_gap: 0.4            # held-out CE minus training-window predictive CE; 0 disables
 
   # USED. Staleness is a share of prune.survival_chars: 0.0 when a forward
   # admits an expert, 1.0 when it has gone long enough unadmitted to be
