@@ -31,13 +31,14 @@ class CausalityTests(unittest.TestCase):
         torch.backends.cuda.matmul.allow_tf32 = cls.original_tf32
 
     def model(self, *, resident=4, experts=16, capacity=0, freeze=True,
-              temperature=0, device="cpu", steps=3, seed=42, recur=1, coda=0):
+              temperature=0, device="cpu", steps=3, seed=42, recur=1, coda=0,
+              hidden=32, width=64):
         torch.manual_seed(seed)
         cfg = RecurConfig(
-            vocab_size=265, d_model=32, n_head=4, d_ff=64, block=128,
+            vocab_size=265, d_model=hidden, n_head=4, d_ff=width, block=128,
             n_prelude=2, n_recur=recur, n_coda=coda, max_steps=steps,
             min_steps=1, train_steps_mean=0, use_pool=True,
-            pool_experts=experts, pool_max=experts, pool_d_ff=64,
+            pool_experts=experts, pool_max=experts, pool_d_ff=width,
             pool_top_k=2, pool_capacity_factor=capacity, halt_freeze=freeze,
         )
         model = RecurCoder(cfg)
@@ -47,7 +48,7 @@ class CausalityTests(unittest.TestCase):
         ]
         tmp = tempfile.TemporaryDirectory(prefix="minagi-causality-")
         self.addCleanup(tmp.cleanup)
-        pool = PagedPool(tmp.name, 32, 64, experts, resident=resident,
+        pool = PagedPool(tmp.name, hidden, width, experts, resident=resident,
                          ram_capacity=experts, device=device, read_only=True).to(device)
         for i, entry in enumerate(weights):
             pool.tiers.put(i, entry, dirty=False)

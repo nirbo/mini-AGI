@@ -20,8 +20,8 @@ from .precision import dispatch_dtype
 def backend_name(override=None):
     name = (override if override is not None else
             os.environ.get("MINAGI_EXPERT_BACKEND", "reference")).strip().lower()
-    if name not in ("reference", "sonic"):
-        raise ValueError(f"unknown expert backend {name!r}; expected reference or sonic")
+    if name not in ("reference", "sonic", "nvfp4"):
+        raise ValueError(f"unknown expert backend {name!r}; expected reference, sonic or nvfp4")
     return name
 
 
@@ -157,5 +157,8 @@ def compute_experts(src, levels, experts, tokens, scores, *, backend="reference"
         return torch.zeros_like(src)
     if backend == "sonic":
         return _sonic(src, levels, experts, tokens, scores, recompute=recompute)
+    if backend == "nvfp4":
+        from .nvfp4 import experts as nvfp4_experts
+        return nvfp4_experts(src, levels, experts, tokens, scores, recompute=recompute)
     return _reference(src, levels, experts, tokens, scores,
                       recompute=recompute, padded=padded, few=few)

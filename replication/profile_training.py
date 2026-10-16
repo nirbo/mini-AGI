@@ -93,7 +93,7 @@ def main():
     ap.add_argument("--warmup", type=int, default=3)
     ap.add_argument("--precision", choices=("bf16", "fp32"), default="bf16")
     ap.add_argument("--dispatch", choices=("exact", "padded"), default="exact")
-    ap.add_argument("--expert-backend", choices=("reference", "sonic"), default="reference")
+    ap.add_argument("--expert-backend", choices=("reference", "sonic", "nvfp4"), default="reference")
     ap.add_argument("--no-checkpoint", action="store_true")
     ap.add_argument("--no-weight-cache", action="store_true",
                     help="cast expert weights on every use (reference path)")
