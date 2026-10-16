@@ -199,6 +199,39 @@ class GefenPagingTests(unittest.TestCase):
             self.assertTrue(all(bool(torch.isfinite(p).all()) for p in model.parameters()))
             opt.zero_grad(set_to_none=True)
 
+    def test_live_resume_preserves_history_and_honors_requested_hyperparameters(self):
+        from minagi.live import LiveLearner
+        from minagi.precision import compute_dtype, set_compute_dtype
+        original = compute_dtype()
+        self.addCleanup(set_compute_dtype, original)
+        set_compute_dtype("fp32")
+        model = self.recurrent_model()
+        trunk = [p for n, p in model.named_parameters() if not n.startswith("pool.")]
+        experts = [p for n, p in model.named_parameters() if n.startswith("pool.")]
+        opt = PagedGefen([{"params": trunk, "name": "trunk"}, {"params": experts, "name": "pool"}],
+                          model.pool, lr=.001, fused=self.device == "cuda")
+        model.pool.attach_optimiser(opt)
+        self.select(model.pool, (0, 1))
+        self.deterministic_step(model, opt, 1)
+        store.save(model, self.tmp.name, opt=opt, cfg=asdict(model.cfg))
+        resumed, _ = load_any(self.tmp.name, torch.device(self.device), read_only=False)
+        learner = LiveLearner(resumed, optimizer="gefen", weights_dir=self.tmp.name,
+                              lr=.003, trunk_lr_mult=.25, wd=.2, context=32)
+        for group in learner.opt.param_groups:
+            expected_rate = .00075 if group["name"] == "trunk" else .003
+            self.assertEqual(group["lr"], expected_rate)
+            self.assertEqual(group["base_lr"], expected_rate)
+            self.assertEqual(group["weight_decay"], .2)
+        original_names = dict(model.named_parameters())
+        for name, p in resumed.named_parameters():
+            if not learner.opt.uses_gefen_parameter(p):
+                assert_tree(self, learner.opt.state[p], opt.state[original_names[name]])
+        self.assertEqual(learner.opt._gefen._gefen_global_step, 1)
+        learner.buf = list(range(16))
+        self.assertIsNotNone(learner._step())
+        self.assertEqual(learner.opt._gefen._gefen_global_step, 2)
+        self.assertTrue(learner.save())
+
     def test_legacy_adam_adoption_restores_auxiliary_but_starts_fresh_gefen(self):
         model, _ = self.pool_model()
         pool = model.pool

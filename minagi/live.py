@@ -96,6 +96,9 @@ class LiveLearner:
                 if optimizer == "gefen" or "Gefen" in str(e):
                     raise
                 print(f"  [note] optimiser moments not restored: {e}")
+        if optimizer == "gefen":
+            from .optimizers import configure_training_groups
+            configure_training_groups(self.opt, lr, trunk_lr_mult, wd)
 
     def feed(self, text, tok, note=""):
         """

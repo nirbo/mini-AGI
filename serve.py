@@ -125,7 +125,7 @@ def _manifest(path):
 
 
 def load(weights, device=None, learn=True, lr=3e-4, save_every=8,
-         chunk=None):
+         chunk=None, optimizer=None):
     dev = torch.device(device) if device else torch.device(
         "cuda" if torch.cuda.is_available() else "cpu")
     # read_only marks nothing dirty, so an expert paged in is never written
@@ -162,6 +162,7 @@ def load(weights, device=None, learn=True, lr=3e-4, save_every=8,
         c = _lc()
         STATE["learner"] = LiveLearner(
             model, lr=lr,
+            optimizer=optimizer or _g(c, "training.optimizer", "adamw"),
             trunk_lr_mult=_g(c, "training.trunk_lr_mult", 0.1),
             wd=_g(c, "training.weight_decay", 0.1),
             clip=_g(c, "training.clip", 1.0),
@@ -840,6 +841,9 @@ def main():
                          "read-only and nothing is written back")
     ap.add_argument("--learn-lr", type=float, default=3e-4,
                     help="learning rate for the live stream")
+    ap.add_argument("--optimizer", choices=("adamw", "gefen"), default=None,
+                    help="live optimizer; defaults to training.optimizer in config "
+                         "(adamw). Gefen checkpoints require gefen when learning")
     ap.add_argument("--prime-chars", type=int, default=1024,
                     help="characters of corpus to open the conversation "
                          "with, so the router has something to choose "
@@ -882,7 +886,7 @@ def main():
               f"read-only.\n")
     model = load(args.weights, args.device, learn=args.learn,
                  lr=args.learn_lr, save_every=args.save_every,
-                 chunk=args.learn_chunk)
+                 chunk=args.learn_chunk, optimizer=args.optimizer)
     if PRIME:
         print(f"  primed with {len(PRIME)} characters of self-knowledge")
     pool = getattr(model, "pool", None)

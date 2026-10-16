@@ -313,3 +313,14 @@ def make_optimizer(params, *, pool=None, optimizer="adamw", **kwargs):
     if optimizer == "gefen":
         return PagedGefen(params, pool, **kwargs)
     raise ValueError(f"unknown optimizer: {optimizer!r}")
+
+
+def configure_training_groups(opt, lr, trunk_lr_mult, weight_decay):
+    """Apply requested application settings after exact optimizer restoration.
+
+    The checkpoint API restores group options for exact continuation. The
+    reader/live APIs historically use the caller's LR/decay on each launch.
+    """
+    for group in opt.param_groups:
+        rate = lr * trunk_lr_mult if group.get("name") == "trunk" else lr
+        group.update(lr=rate, base_lr=rate, weight_decay=weight_decay)

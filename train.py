@@ -829,6 +829,9 @@ def cmd_read(args):
         if optimizer_name == "gefen" or "Gefen" in str(e):
             raise  # incompatible/corrupt history must not silently restart
         print(f"  [note] optimiser moments not restored: {e}")
+    if optimizer_name == "gefen":
+        from minagi.optimizers import configure_training_groups
+        configure_training_groups(opt, args.lr, args.trunk_lr_mult, args.wd)
     grower = AutoGrow(grow_k=args.grow_k, max_experts=10_000_000,
                       mem_frac_max=args.grow_mem_frac,
                       dying_frac_max=args.grow_dying_frac,
@@ -2029,7 +2032,8 @@ def main():
                          "files should adjust the model, not overwrite it")
     rd.add_argument("--wd", type=float,
                     default=_cfg(_c, "training.weight_decay", 0.1))
-    rd.add_argument("--optimizer", choices=("adamw", "gefen"), default="adamw",
+    rd.add_argument("--optimizer", choices=("adamw", "gefen"),
+                    default=_cfg(_c, "training.optimizer", "adamw"),
                     help="gefen uses compressed Gefen state for paged expert matrices "
                          "and AdamW for other parameters; requires optional Gefen 1.2.3")
     rd.add_argument("--clip", type=float,

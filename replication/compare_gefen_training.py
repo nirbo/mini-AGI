@@ -118,6 +118,13 @@ def main():
                                  pool=pool, optimizer=args.optimizer, lr=args.lr,
                                  betas=(.9, .95), weight_decay=.1, fused=True)
             pool.attach_optimiser(opt)
+            if hasattr(opt, "_gefen"):
+                # A GF-trained source may have an immutable durable codebook.
+                # This weights-only experiment intentionally resets it too.
+                assert pool.tiers.read_only
+                opt._gefen._gefen_codebook = None
+                opt._gefen._gefen_global_step = 0
+                opt._durable_codebook_id = None
             indices = np.random.default_rng(args.seed).permutation((262144 - 1) // args.context)[:args.steps]
             report["training_window_indices"] = indices.tolist()
             trace = []
