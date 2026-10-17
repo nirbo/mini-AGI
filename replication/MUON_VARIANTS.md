@@ -152,11 +152,18 @@ TORCHDYNAMO_DISABLE=1 .venv/bin/python -m unittest tests.test_muon_candidates -v
 CUDA qualification, compilation, and warmup are externally monitored:
 
 ```sh
-PATH="$PWD/.venv/bin:$PATH" MINAGI_MUON_TEST_CUDA=1 \
+PATH="$PWD/.venv/bin:$PATH" CUBLAS_WORKSPACE_CONFIG=:4096:8 \
 TORCHINDUCTOR_COMPILE_THREADS=2 \
 .venv/bin/python -m replication.gpu_monitor \
   --out runs/muon-cuda-tests.power.json -- \
-  .venv/bin/python -m tests.test_muon_candidates -v
+  .venv/bin/python -c '
+import torch, unittest
+import tests.test_muon_candidates as tests
+torch.use_deterministic_algorithms(True)
+torch._dynamo.config.recompile_limit = 64
+tests.MuonCandidateTests.device = "cuda"
+unittest.main(module=tests, argv=["controlled-cuda"], verbosity=2)
+'
 ```
 
 The qualification process raises its own Dynamo specialization limit to 64
@@ -216,4 +223,150 @@ the complete process and includes allocations outside PyTorch's allocator.
 
 ## Results
 
-Results and verification evidence are populated after the complete screen.
+Measured on this RTX 5090 with the existing repository environment. The final
+controlled study contains **43 complete 256-update learning trials**
+(27 tuning/control trials plus 14 selected-rate confirmations and two matched
+auxiliary-only confirmations), 14 independent eight-update replay runs, and
+14 optimizer-only timing probes. Uncontrolled exploratory learning outcomes
+are excluded from these tables.
+
+### Held-out learning
+
+Lower predictive cross-entropy is better; units are nats per byte/marker token.
+Initial test CE is **1.45501** for every trial.
+Rates were selected on seed-42 tuning loss only. The following are the two
+additional data-order seeds, using those fixed rates.
+
+| Expert optimizer | Selected LR | Test CE, seed 43 | Test CE, seed 44 | Mean test CE |
+| --- | ---: | ---: | ---: | ---: |
+| AdamW | 3e-06 | 0.65426 | 0.58851 | 0.62138 |
+| Gefen | 3e-05 | 0.64871 | 0.58997 | 0.61934 |
+| Muon | 3e-06 | 0.70733 | 0.58614 | 0.64673 |
+| Muon+ | 0.0001 | 0.64151 | 0.59270 | 0.61711 |
+| NorMuon | 3e-06 | 0.68371 | 0.60191 | 0.64281 |
+| Dion3 0.25 | 3e-05 | 0.62699 | 0.60801 | 0.61750 |
+| Dion3 0.50 | 1e-06 | 0.66970 | 0.60675 | 0.63822 |
+| Experts frozen; auxiliary AdamW | 0 | 0.71075 | 0.61065 | 0.66070 |
+
+Muon+ and Dion3-quarter have nearly identical means; neither beats AdamW
+on both confirmation seeds. Gefen also changes order relative to AdamW.
+NorMuon and Dion3-half show no quality advantage here. These results do
+not establish a general optimizer ranking, statistical equivalence, or
+pretraining convergence. The frozen-expert control shows substantial
+adaptation from the common auxiliary optimizer alone.
+
+### Monitored adaptation cost
+
+Means across seeds 43/44, 131,072 new model tokens per run. Timing includes
+paging, host history transfers, and first-use calibration; it excludes
+synthetic optimizer warmup and held-out evaluation. Peak watts and VRAM
+are the larger recorded peak across those two runs.
+
+| Expert optimizer | Train s | New tokens/s | Avg W | Peak W | J/new token | Peak allocated GiB |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| AdamW | 41.04 | 3195 | 155.1 | 169.0 | 0.04855 | 2.293 |
+| Gefen | 46.95 | 2792 | 172.8 | 190.7 | 0.06191 | 1.638 |
+| Muon | 34.56 | 3794 | 215.7 | 230.3 | 0.05687 | 2.407 |
+| Muon+ | 37.44 | 3501 | 198.6 | 212.2 | 0.05673 | 1.918 |
+| NorMuon | 35.11 | 3733 | 219.1 | 234.9 | 0.05869 | 2.407 |
+| Dion3 0.25 | 34.04 | 3850 | 185.0 | 198.3 | 0.04804 | 2.033 |
+| Dion3 0.50 | 35.05 | 3741 | 195.9 | 210.8 | 0.05237 | 2.064 |
+
+Gefen's final-16-step mean is 17.5 ms for the optimizer
+and 104.1 ms for the full step; Dion3-quarter's is
+54.6 / 128.8 ms. Gefen's complete short run
+is slower despite its faster tail. Its first optimizer step alone takes
+3.85 seconds in each run and includes calibration. These tail
+windows are descriptive, not a separate matched steady-state throughput
+benchmark: learning-dependent routing changes the work. Do not extrapolate
+the complete 256-update average to a long training run.
+
+### Optimizer-only scaling
+
+These probes use the deterministic execution controls, FP32 parameters and
+gradients, and identical fixed correlated gradients. Five seconds are timed
+after warmup/settling. Energy per step uses the measured elapsed interval,
+not median latency multiplied by watts.
+
+**Eight 512/2048 experts: 25.17 million parameters.**
+
+| Optimizer | Median ms/step | Avg W | Peak W | J/step | Peak allocated GiB |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| AdamW | 0.506 | 367.9 | 376.6 | 0.187 | 0.375 |
+| Gefen | 0.480 | 475.2 | 484.7 | 0.229 | 0.211 |
+| Muon | 4.414 | 595.5 | 600.5 | 2.632 | 0.539 |
+| Muon+ | 6.168 | 346.3 | 349.5 | 2.138 | 0.328 |
+| NorMuon | 4.883 | 593.0 | 600.3 | 2.899 | 0.539 |
+| Dion3 0.25 | 3.177 | 336.4 | 340.5 | 1.070 | 0.446 |
+| Dion3 0.50 | 4.153 | 452.0 | 457.3 | 1.879 | 0.453 |
+
+**Four 4096/16384 experts: 805.31 million parameters.**
+
+| Optimizer | Median ms/step | Avg W | Peak W | J/step | Peak allocated GiB |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| AdamW | 14.911 | 382.9 | 388.4 | 5.715 | 12.000 |
+| Gefen | 13.487 | 521.8 | 532.5 | 7.049 | 6.753 |
+| Muon | 406.957 | 600.1 | 602.3 | 244.271 | 16.281 |
+| Muon+ | 433.340 | 599.9 | 600.5 | 259.906 | 9.812 |
+| NorMuon | 425.941 | 600.3 | 605.3 | 255.687 | 16.282 |
+| Dion3 0.25 | 126.444 | 589.9 | 590.9 | 74.603 | 13.282 |
+| Dion3 0.50 | 218.015 | 598.2 | 603.6 | 130.437 | 13.532 |
+
+All seven optimizer probes fit the 75% allocator cap at both geometries.
+This does not prove full-model training fits: model computation, activation
+storage, paging, and more resident experts are absent from these probes.
+The large Muon-family probes reach roughly the board power limit while
+taking much longer than AdamW/Gefen. Higher power is not a throughput gain.
+Gefen uses less memory than AdamW here but more board energy per isolated
+step; its memory, speed and energy tradeoffs are separate measurements.
+
+### Decision and limits
+
+**Carry Gefen and Dion3-quarter into the next longer learning study, with
+AdamW retained as the reference.** Gefen has the strongest measured memory
+and wide-matrix latency case. Dion3-quarter is the most practical tested
+Muon-family candidate: its held-out mean is close to Muon+ and its measured
+cost is substantially lower. This is a shortlist, not a production optimizer
+selection. The trainer still exposes only its existing AdamW/Gefen choices.
+
+The large-geometry probe also makes orthogonalization an explicit cost to
+resolve before selecting a Muon-family optimizer for fast NVFP4 experts.
+These available implementations and classic/Keller NS5 settings do not
+represent every possible optimized Muon implementation. Gram NS, Polar
+Express, other momentum settings, trunk-wide Muon, and native NVFP4
+forward/backward quality remain untested. No result here supports claiming
+that low-precision learning quality is already qualified.
+
+A next quality experiment needs longer runs, more seeds and a defensible
+document-level data split, while retaining the higher-precision reference.
+The measured checkpoint, depth-6 adaptation and tiny held-out ranges are
+the limits of the current quality evidence.
+
+### Verification and retained evidence
+
+- **109 tests passed** in the complete regression suite; all six candidate
+  qualification tests also passed separately on CUDA with deterministic
+  controls. Those tests cover all five matrix configurations, bit-identical
+  paged/unpaged updates and state, eviction/swaps, missing/zero gradients,
+  empty slots, closure paging, lossless NPZ snapshot/resume and RNG preservation.
+- Independent-process replay passed for all seven configurations; all seven
+  shared-reference-rate 256-update runs exactly matched the eight-update
+  oracle prefix. This proves the stated replay checks, not every future
+  GPU shape or an independently repeated full 256-update trajectory.
+- The fixed Sonic reduction passed output and all-gradient comparisons
+  against the PyTorch reference, plus bit-identical checkpoint replay,
+  zero-score derivatives, missing tokens and unused experts.
+- All **401 original checkpoint files** retained identical sizes and SHA-256
+  hashes. Learned weights remained in RAM. No package, driver, service,
+  clock or power-limit configuration changed.
+
+Timestamped external NVML samples include compilation and warmup. The
+largest confirmation-training sample gap is 0.102 seconds.
+Sensor averaging and desktop activity limit power/energy precision; sampled
+peaks are not guaranteed instantaneous peaks. These timings describe the
+controlled research harness, not a promised production-trainer speedup.
+
+- [Controlled results and complete rate grids](results/muon_variants.json)
+- [Verification, environment, archive checksum](results/muon_variants_verification.json)
+- [Raw telemetry, traces, replay gates, source snapshots and historical diagnostics](results/muon_variants_evidence.tar.gz)
+- [Excluded exploratory aggregate, explicitly unqualified](results/muon_variants_exploratory.json)

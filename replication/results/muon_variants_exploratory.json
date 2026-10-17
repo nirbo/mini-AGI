@@ -1,0 +1,3304 @@
+{
+  "qualification": {
+    "status": "uncontrolled_exploratory_only",
+    "used_for_optimizer_selection": false,
+    "reason": "Same-seed learning did not replay under default GPU execution; Torch deterministic controls and fixed Sonic reduction dispatch were qualified for the replacement study.",
+    "scope": "Original 83 completed trials; additional exploratory and aborted retuning runs remain in the raw evidence archive."
+  },
+  "sources": {
+    "dion": [
+      "https://github.com/microsoft/dion.git",
+      "7692479288f928a3d61d1cc58137b4dbe4f71000"
+    ],
+    "MuonPlus": [
+      "https://github.com/K1seki221/MuonPlus.git",
+      "8a9ace123afedaab8ba75ea0b19315594ae1da7c"
+    ],
+    "NorMuon": [
+      "https://github.com/zichongli5/NorMuon.git",
+      "c6989a8354730695d9f5a9faa6c55eeb24865209"
+    ]
+  },
+  "learning_trial_count": 83,
+  "manifest_sha256": "f0ade4a3127971b20edc35d58b1ae66241af914aecd3ca8e9c0a2939ef8a74f3",
+  "text_sha256": "6874bae9a4c1a4e7edcf0e53b86c17817e9cf881fc75ff2368da457b80c0585d",
+  "initial_tune": {
+    "mean_ce": 1.335844624787569,
+    "per_window_ce": [
+      1.2073698043823242,
+      1.899423599243164,
+      1.5140573978424072,
+      1.2822285890579224,
+      1.0913463830947876,
+      1.1192538738250732,
+      1.9954442977905273,
+      0.7543540596961975,
+      1.8191096782684326,
+      1.4803855419158936,
+      1.6807597875595093,
+      1.0762522220611572,
+      1.0977312326431274,
+      1.2050750255584717,
+      1.078979730606079,
+      1.0717427730560303
+    ]
+  },
+  "initial_test": {
+    "mean_ce": 1.4550128504633904,
+    "per_window_ce": [
+      1.2732269763946533,
+      1.4484752416610718,
+      1.1885182857513428,
+      1.4572765827178955,
+      1.0477204322814941,
+      1.2001677751541138,
+      2.933424949645996,
+      1.584908366203308,
+      0.9657045602798462,
+      1.872493863105774,
+      0.767686128616333,
+      1.60719895362854,
+      0.9967830181121826,
+      1.5785510540008545,
+      1.0736885070800781,
+      2.2843809127807617
+    ]
+  },
+  "grid": {
+    "adamw": [
+      {
+        "lr": 0.0,
+        "tune_ce": 0.6680838037282228,
+        "test_ce": 0.6645175069570541
+      },
+      {
+        "lr": 3e-06,
+        "tune_ce": 0.6634192187339067,
+        "test_ce": 0.6325813755393028
+      },
+      {
+        "lr": 1e-05,
+        "tune_ce": 0.6559632420539856,
+        "test_ce": 0.6432532146573067
+      },
+      {
+        "lr": 3e-05,
+        "tune_ce": 0.6330762319266796,
+        "test_ce": 0.6450583785772324
+      },
+      {
+        "lr": 0.0001,
+        "tune_ce": 0.6791509333997965,
+        "test_ce": 0.6528478637337685
+      },
+      {
+        "lr": 0.0003,
+        "tune_ce": 0.7929648421704769,
+        "test_ce": 0.7985928915441036
+      },
+      {
+        "lr": 0.001,
+        "tune_ce": 1.1457593739032745,
+        "test_ce": 1.115181379020214
+      },
+      {
+        "lr": 0.003,
+        "tune_ce": 1.4284555986523628,
+        "test_ce": 1.3389209508895874
+      },
+      {
+        "lr": 0.01,
+        "tune_ce": 1.8745295479893684,
+        "test_ce": 1.7889031618833542
+      }
+    ],
+    "gefen": [
+      {
+        "lr": 1e-07,
+        "tune_ce": 0.6460001301020384,
+        "test_ce": 0.6270471215248108
+      },
+      {
+        "lr": 3e-07,
+        "tune_ce": 0.6348815727978945,
+        "test_ce": 0.6396619156002998
+      },
+      {
+        "lr": 1e-06,
+        "tune_ce": 0.6375333070755005,
+        "test_ce": 0.6625451892614365
+      },
+      {
+        "lr": 3e-06,
+        "tune_ce": 0.6471535880118608,
+        "test_ce": 0.6573496125638485
+      },
+      {
+        "lr": 1e-05,
+        "tune_ce": 0.6500809043645859,
+        "test_ce": 0.6417003646492958
+      },
+      {
+        "lr": 3e-05,
+        "tune_ce": 0.654987882822752,
+        "test_ce": 0.6356728933751583
+      },
+      {
+        "lr": 0.0001,
+        "tune_ce": 0.7121449131518602,
+        "test_ce": 0.7163224518299103
+      },
+      {
+        "lr": 0.0003,
+        "tune_ce": 0.8555186428129673,
+        "test_ce": 0.8455695919692516
+      },
+      {
+        "lr": 0.001,
+        "tune_ce": 1.1931285709142685,
+        "test_ce": 1.1654372438788414
+      },
+      {
+        "lr": 0.003,
+        "tune_ce": 1.4376788511872292,
+        "test_ce": 1.3904446437954903
+      },
+      {
+        "lr": 0.01,
+        "tune_ce": 2.281135246157646,
+        "test_ce": 2.220575913786888
+      }
+    ],
+    "muon": [
+      {
+        "lr": 3e-06,
+        "tune_ce": 0.6618263833224773,
+        "test_ce": 0.649768341332674
+      },
+      {
+        "lr": 1e-05,
+        "tune_ce": 0.6442262213677168,
+        "test_ce": 0.6476265080273151
+      },
+      {
+        "lr": 3e-05,
+        "tune_ce": 0.6329149156808853,
+        "test_ce": 0.6160343829542398
+      },
+      {
+        "lr": 0.0001,
+        "tune_ce": 0.6235090773552656,
+        "test_ce": 0.618454871699214
+      },
+      {
+        "lr": 0.0003,
+        "tune_ce": 0.7025659270584583,
+        "test_ce": 0.7098334729671478
+      },
+      {
+        "lr": 0.001,
+        "tune_ce": 0.9334277249872684,
+        "test_ce": 0.9180707670748234
+      },
+      {
+        "lr": 0.003,
+        "tune_ce": 1.2386773712933064,
+        "test_ce": 1.1827864609658718
+      },
+      {
+        "lr": 0.01,
+        "tune_ce": 1.3969188183546066,
+        "test_ce": 1.3246292024850845
+      }
+    ],
+    "muon_plus": [
+      {
+        "lr": 3e-06,
+        "tune_ce": 0.6559872813522816,
+        "test_ce": 0.644415121525526
+      },
+      {
+        "lr": 1e-05,
+        "tune_ce": 0.6559109054505825,
+        "test_ce": 0.6399799343198538
+      },
+      {
+        "lr": 3e-05,
+        "tune_ce": 0.6241925973445177,
+        "test_ce": 0.6292593143880367
+      },
+      {
+        "lr": 0.0001,
+        "tune_ce": 0.6576378084719181,
+        "test_ce": 0.6573989689350128
+      },
+      {
+        "lr": 0.0003,
+        "tune_ce": 0.6514337807893753,
+        "test_ce": 0.6244926247745752
+      },
+      {
+        "lr": 0.001,
+        "tune_ce": 0.7086248435080051,
+        "test_ce": 0.7121825888752937
+      },
+      {
+        "lr": 0.003,
+        "tune_ce": 0.9157078005373478,
+        "test_ce": 0.8717729821801186
+      },
+      {
+        "lr": 0.01,
+        "tune_ce": 1.235531721264124,
+        "test_ce": 1.2104137800633907
+      }
+    ],
+    "normuon": [
+      {
+        "lr": 1e-06,
+        "tune_ce": 0.6987945064902306,
+        "test_ce": 0.6746256686747074
+      },
+      {
+        "lr": 3e-06,
+        "tune_ce": 0.6341599617153406,
+        "test_ce": 0.6348215080797672
+      },
+      {
+        "lr": 1e-05,
+        "tune_ce": 0.6574137229472399,
+        "test_ce": 0.6485395934432745
+      },
+      {
+        "lr": 3e-05,
+        "tune_ce": 0.6423384454101324,
+        "test_ce": 0.6236693598330021
+      },
+      {
+        "lr": 0.0001,
+        "tune_ce": 0.6833625733852386,
+        "test_ce": 0.668266948312521
+      },
+      {
+        "lr": 0.0003,
+        "tune_ce": 0.6952961254864931,
+        "test_ce": 0.6811132673174143
+      },
+      {
+        "lr": 0.001,
+        "tune_ce": 0.9488770104944706,
+        "test_ce": 0.9064114168286324
+      },
+      {
+        "lr": 0.003,
+        "tune_ce": 1.2247088216245174,
+        "test_ce": 1.1697651110589504
+      },
+      {
+        "lr": 0.01,
+        "tune_ce": 1.366163745522499,
+        "test_ce": 1.2740580961108208
+      }
+    ],
+    "dion3_quarter": [
+      {
+        "lr": 3e-06,
+        "tune_ce": 0.6411973554641008,
+        "test_ce": 0.6254063844680786
+      },
+      {
+        "lr": 1e-05,
+        "tune_ce": 0.6568114031106234,
+        "test_ce": 0.6592317167669535
+      },
+      {
+        "lr": 3e-05,
+        "tune_ce": 0.6358854118734598,
+        "test_ce": 0.6360523663461208
+      },
+      {
+        "lr": 0.0001,
+        "tune_ce": 0.6255446970462799,
+        "test_ce": 0.6350683122873306
+      },
+      {
+        "lr": 0.0003,
+        "tune_ce": 0.6502434015274048,
+        "test_ce": 0.6463861968368292
+      },
+      {
+        "lr": 0.001,
+        "tune_ce": 0.8583429083228111,
+        "test_ce": 0.8248348087072372
+      },
+      {
+        "lr": 0.003,
+        "tune_ce": 1.099646843969822,
+        "test_ce": 1.0419963523745537
+      },
+      {
+        "lr": 0.01,
+        "tune_ce": 1.3987727388739586,
+        "test_ce": 1.325868934392929
+      }
+    ],
+    "dion3_half": [
+      {
+        "lr": 1e-06,
+        "tune_ce": 0.6357680521905422,
+        "test_ce": 0.6290580648928881
+      },
+      {
+        "lr": 3e-06,
+        "tune_ce": 0.603699117898941,
+        "test_ce": 0.613757936283946
+      },
+      {
+        "lr": 1e-05,
+        "tune_ce": 0.6421287655830383,
+        "test_ce": 0.6361973658204079
+      },
+      {
+        "lr": 3e-05,
+        "tune_ce": 0.64586541056633,
+        "test_ce": 0.6433876473456621
+      },
+      {
+        "lr": 0.0001,
+        "tune_ce": 0.6404487546533346,
+        "test_ce": 0.6408962476998568
+      },
+      {
+        "lr": 0.0003,
+        "tune_ce": 0.6722667701542377,
+        "test_ce": 0.6596541553735733
+      },
+      {
+        "lr": 0.001,
+        "tune_ce": 0.8540002256631851,
+        "test_ce": 0.8620690777897835
+      },
+      {
+        "lr": 0.003,
+        "tune_ce": 1.2050281539559364,
+        "test_ce": 1.1445410661399364
+      },
+      {
+        "lr": 0.01,
+        "tune_ce": 1.3645897433161736,
+        "test_ce": 1.2958877459168434
+      }
+    ]
+  },
+  "short_grid": {
+    "adamw": [
+      {
+        "lr": 0.0,
+        "tune_ce": 0.6680838037282228,
+        "test_ce": 0.6645175069570541
+      },
+      {
+        "lr": 3e-06,
+        "tune_ce": 0.6634192187339067,
+        "test_ce": 0.6325813755393028
+      },
+      {
+        "lr": 1e-05,
+        "tune_ce": 0.6559632420539856,
+        "test_ce": 0.6432532146573067
+      },
+      {
+        "lr": 3e-05,
+        "tune_ce": 0.6330762319266796,
+        "test_ce": 0.6450583785772324
+      },
+      {
+        "lr": 0.0001,
+        "tune_ce": 0.6791509333997965,
+        "test_ce": 0.6528478637337685
+      },
+      {
+        "lr": 0.0003,
+        "tune_ce": 0.7929648421704769,
+        "test_ce": 0.7985928915441036
+      },
+      {
+        "lr": 0.001,
+        "tune_ce": 1.1457593739032745,
+        "test_ce": 1.115181379020214
+      },
+      {
+        "lr": 0.003,
+        "tune_ce": 1.4284555986523628,
+        "test_ce": 1.3389209508895874
+      },
+      {
+        "lr": 0.01,
+        "tune_ce": 1.8745295479893684,
+        "test_ce": 1.7889031618833542
+      }
+    ],
+    "gefen": [
+      {
+        "lr": 1e-07,
+        "tune_ce": 0.6460001301020384,
+        "test_ce": 0.6270471215248108
+      },
+      {
+        "lr": 3e-07,
+        "tune_ce": 0.6348815727978945,
+        "test_ce": 0.6396619156002998
+      },
+      {
+        "lr": 1e-06,
+        "tune_ce": 0.6375333070755005,
+        "test_ce": 0.6625451892614365
+      },
+      {
+        "lr": 3e-06,
+        "tune_ce": 0.6471535880118608,
+        "test_ce": 0.6573496125638485
+      },
+      {
+        "lr": 1e-05,
+        "tune_ce": 0.6500809043645859,
+        "test_ce": 0.6417003646492958
+      },
+      {
+        "lr": 3e-05,
+        "tune_ce": 0.654987882822752,
+        "test_ce": 0.6356728933751583
+      },
+      {
+        "lr": 0.0001,
+        "tune_ce": 0.7121449131518602,
+        "test_ce": 0.7163224518299103
+      },
+      {
+        "lr": 0.0003,
+        "tune_ce": 0.8555186428129673,
+        "test_ce": 0.8455695919692516
+      },
+      {
+        "lr": 0.001,
+        "tune_ce": 1.1931285709142685,
+        "test_ce": 1.1654372438788414
+      },
+      {
+        "lr": 0.003,
+        "tune_ce": 1.4376788511872292,
+        "test_ce": 1.3904446437954903
+      },
+      {
+        "lr": 0.01,
+        "tune_ce": 2.281135246157646,
+        "test_ce": 2.220575913786888
+      }
+    ],
+    "muon": [
+      {
+        "lr": 3e-06,
+        "tune_ce": 0.6618263833224773,
+        "test_ce": 0.649768341332674
+      },
+      {
+        "lr": 1e-05,
+        "tune_ce": 0.6442262213677168,
+        "test_ce": 0.6476265080273151
+      },
+      {
+        "lr": 3e-05,
+        "tune_ce": 0.6329149156808853,
+        "test_ce": 0.6160343829542398
+      },
+      {
+        "lr": 0.0001,
+        "tune_ce": 0.6235090773552656,
+        "test_ce": 0.618454871699214
+      },
+      {
+        "lr": 0.0003,
+        "tune_ce": 0.7025659270584583,
+        "test_ce": 0.7098334729671478
+      },
+      {
+        "lr": 0.001,
+        "tune_ce": 0.9334277249872684,
+        "test_ce": 0.9180707670748234
+      },
+      {
+        "lr": 0.003,
+        "tune_ce": 1.2386773712933064,
+        "test_ce": 1.1827864609658718
+      },
+      {
+        "lr": 0.01,
+        "tune_ce": 1.3969188183546066,
+        "test_ce": 1.3246292024850845
+      }
+    ],
+    "muon_plus": [
+      {
+        "lr": 3e-06,
+        "tune_ce": 0.6559872813522816,
+        "test_ce": 0.644415121525526
+      },
+      {
+        "lr": 1e-05,
+        "tune_ce": 0.6559109054505825,
+        "test_ce": 0.6399799343198538
+      },
+      {
+        "lr": 3e-05,
+        "tune_ce": 0.6241925973445177,
+        "test_ce": 0.6292593143880367
+      },
+      {
+        "lr": 0.0001,
+        "tune_ce": 0.6576378084719181,
+        "test_ce": 0.6573989689350128
+      },
+      {
+        "lr": 0.0003,
+        "tune_ce": 0.6514337807893753,
+        "test_ce": 0.6244926247745752
+      },
+      {
+        "lr": 0.001,
+        "tune_ce": 0.7086248435080051,
+        "test_ce": 0.7121825888752937
+      },
+      {
+        "lr": 0.003,
+        "tune_ce": 0.9157078005373478,
+        "test_ce": 0.8717729821801186
+      },
+      {
+        "lr": 0.01,
+        "tune_ce": 1.235531721264124,
+        "test_ce": 1.2104137800633907
+      }
+    ],
+    "normuon": [
+      {
+        "lr": 1e-06,
+        "tune_ce": 0.6987945064902306,
+        "test_ce": 0.6746256686747074
+      },
+      {
+        "lr": 3e-06,
+        "tune_ce": 0.6341599617153406,
+        "test_ce": 0.6348215080797672
+      },
+      {
+        "lr": 1e-05,
+        "tune_ce": 0.6574137229472399,
+        "test_ce": 0.6485395934432745
+      },
+      {
+        "lr": 3e-05,
+        "tune_ce": 0.6423384454101324,
+        "test_ce": 0.6236693598330021
+      },
+      {
+        "lr": 0.0001,
+        "tune_ce": 0.6833625733852386,
+        "test_ce": 0.668266948312521
+      },
+      {
+        "lr": 0.0003,
+        "tune_ce": 0.6952961254864931,
+        "test_ce": 0.6811132673174143
+      },
+      {
+        "lr": 0.001,
+        "tune_ce": 0.9488770104944706,
+        "test_ce": 0.9064114168286324
+      },
+      {
+        "lr": 0.003,
+        "tune_ce": 1.2247088216245174,
+        "test_ce": 1.1697651110589504
+      },
+      {
+        "lr": 0.01,
+        "tune_ce": 1.366163745522499,
+        "test_ce": 1.2740580961108208
+      }
+    ],
+    "dion3_quarter": [
+      {
+        "lr": 3e-06,
+        "tune_ce": 0.6411973554641008,
+        "test_ce": 0.6254063844680786
+      },
+      {
+        "lr": 1e-05,
+        "tune_ce": 0.6568114031106234,
+        "test_ce": 0.6592317167669535
+      },
+      {
+        "lr": 3e-05,
+        "tune_ce": 0.6358854118734598,
+        "test_ce": 0.6360523663461208
+      },
+      {
+        "lr": 0.0001,
+        "tune_ce": 0.6255446970462799,
+        "test_ce": 0.6350683122873306
+      },
+      {
+        "lr": 0.0003,
+        "tune_ce": 0.6502434015274048,
+        "test_ce": 0.6463861968368292
+      },
+      {
+        "lr": 0.001,
+        "tune_ce": 0.8583429083228111,
+        "test_ce": 0.8248348087072372
+      },
+      {
+        "lr": 0.003,
+        "tune_ce": 1.099646843969822,
+        "test_ce": 1.0419963523745537
+      },
+      {
+        "lr": 0.01,
+        "tune_ce": 1.3987727388739586,
+        "test_ce": 1.325868934392929
+      }
+    ],
+    "dion3_half": [
+      {
+        "lr": 1e-06,
+        "tune_ce": 0.6357680521905422,
+        "test_ce": 0.6290580648928881
+      },
+      {
+        "lr": 3e-06,
+        "tune_ce": 0.603699117898941,
+        "test_ce": 0.613757936283946
+      },
+      {
+        "lr": 1e-05,
+        "tune_ce": 0.6421287655830383,
+        "test_ce": 0.6361973658204079
+      },
+      {
+        "lr": 3e-05,
+        "tune_ce": 0.64586541056633,
+        "test_ce": 0.6433876473456621
+      },
+      {
+        "lr": 0.0001,
+        "tune_ce": 0.6404487546533346,
+        "test_ce": 0.6408962476998568
+      },
+      {
+        "lr": 0.0003,
+        "tune_ce": 0.6722667701542377,
+        "test_ce": 0.6596541553735733
+      },
+      {
+        "lr": 0.001,
+        "tune_ce": 0.8540002256631851,
+        "test_ce": 0.8620690777897835
+      },
+      {
+        "lr": 0.003,
+        "tune_ce": 1.2050281539559364,
+        "test_ce": 1.1445410661399364
+      },
+      {
+        "lr": 0.01,
+        "tune_ce": 1.3645897433161736,
+        "test_ce": 1.2958877459168434
+      }
+    ]
+  },
+  "selection_horizon_steps": 64,
+  "confirmation": {
+    "adamw": {
+      "lr": 3e-05,
+      "experts_frozen": false,
+      "mean_test_ce": 0.6412087623029947,
+      "mean_tune_ce": 0.6343233343213797,
+      "seed_test_ce": {
+        "43": 0.6745855323970318,
+        "44": 0.6078319922089577
+      },
+      "mean_training_seconds": 40.128600697506045,
+      "mean_tokens_per_second": 3268.403775623954,
+      "mean_board_watts": 161.88919247457682,
+      "max_sampled_board_watts": 322.671,
+      "mean_board_joules_per_token": 0.04955498946581845,
+      "max_allocated_gib": 2.2928762435913086,
+      "max_external_sample_gap_seconds": 0.10217544800252654,
+      "mean_last16_optimizer_ms": 28.236303250650963,
+      "mean_last16_full_step_ms": 150.9997438120081
+    },
+    "gefen": {
+      "lr": 3e-07,
+      "experts_frozen": false,
+      "mean_test_ce": 0.6540740597993135,
+      "mean_tune_ce": 0.653097459115088,
+      "seed_test_ce": {
+        "43": 0.7199515886604786,
+        "44": 0.5881965309381485
+      },
+      "mean_training_seconds": 46.358586866503174,
+      "mean_tokens_per_second": 2827.481429340315,
+      "mean_board_watts": 178.95728846741594,
+      "max_sampled_board_watts": 321.667,
+      "mean_board_joules_per_token": 0.06329360406503656,
+      "max_allocated_gib": 1.6377358436584473,
+      "max_external_sample_gap_seconds": 0.10147586000675801,
+      "mean_last16_optimizer_ms": 16.985317436137848,
+      "mean_last16_full_step_ms": 96.33607859495896
+    },
+    "muon": {
+      "lr": 0.0001,
+      "experts_frozen": false,
+      "mean_test_ce": 0.6159242233261466,
+      "mean_tune_ce": 0.6243548355996609,
+      "seed_test_ce": {
+        "43": 0.6405315231531858,
+        "44": 0.5913169234991074
+      },
+      "mean_training_seconds": 34.0586844224963,
+      "mean_tokens_per_second": 3849.749655757976,
+      "mean_board_watts": 223.85126766286885,
+      "max_sampled_board_watts": 322.554,
+      "mean_board_joules_per_token": 0.05815866225082883,
+      "max_allocated_gib": 2.406860828399658,
+      "max_external_sample_gap_seconds": 0.1069997619924834,
+      "mean_last16_optimizer_ms": 54.087248687210376,
+      "mean_last16_full_step_ms": 122.2473444067873
+    },
+    "muon_plus": {
+      "lr": 3e-05,
+      "experts_frozen": false,
+      "mean_test_ce": 0.6161902463063598,
+      "mean_tune_ce": 0.6312508778646588,
+      "seed_test_ce": {
+        "43": 0.6491316985338926,
+        "44": 0.5832487940788269
+      },
+      "mean_training_seconds": 37.02329860699683,
+      "mean_tokens_per_second": 3541.1581421618193,
+      "mean_board_watts": 205.86202862040278,
+      "max_sampled_board_watts": 322.8,
+      "mean_board_joules_per_token": 0.058143424721631407,
+      "max_allocated_gib": 1.917874813079834,
+      "max_external_sample_gap_seconds": 0.10244736800086685,
+      "mean_last16_optimizer_ms": 67.26866306325974,
+      "mean_last16_full_step_ms": 137.0145562500511
+    },
+    "normuon": {
+      "lr": 3e-06,
+      "experts_frozen": false,
+      "mean_test_ce": 0.6503691636025906,
+      "mean_tune_ce": 0.6631323965266347,
+      "seed_test_ce": {
+        "43": 0.7069768141955137,
+        "44": 0.5937615130096674
+      },
+      "mean_training_seconds": 34.81477084800281,
+      "mean_tokens_per_second": 3767.265750836638,
+      "mean_board_watts": 227.1602708314373,
+      "max_sampled_board_watts": 322.82,
+      "mean_board_joules_per_token": 0.060315455324752076,
+      "max_allocated_gib": 2.407410144805908,
+      "max_external_sample_gap_seconds": 0.10204102800344117,
+      "mean_last16_optimizer_ms": 58.26449187543403,
+      "mean_last16_full_step_ms": 127.59689618724224
+    },
+    "dion3_quarter": {
+      "lr": 0.0001,
+      "experts_frozen": false,
+      "mean_test_ce": 0.630558168515563,
+      "mean_tune_ce": 0.642453296110034,
+      "seed_test_ce": {
+        "43": 0.6523319650441408,
+        "44": 0.6087843719869852
+      },
+      "mean_training_seconds": 32.26724107649352,
+      "mean_tokens_per_second": 4062.737972481155,
+      "mean_board_watts": 195.7766508283378,
+      "max_sampled_board_watts": 322.743,
+      "mean_board_joules_per_token": 0.04819224505987374,
+      "max_allocated_gib": 2.032654285430908,
+      "max_external_sample_gap_seconds": 0.10140181099995971,
+      "mean_last16_optimizer_ms": 48.89550578127455,
+      "mean_last16_full_step_ms": 116.94878996877378
+    },
+    "dion3_half": {
+      "lr": 3e-06,
+      "experts_frozen": false,
+      "mean_test_ce": 0.6385676078498363,
+      "mean_tune_ce": 0.6585177117958665,
+      "seed_test_ce": {
+        "43": 0.6880271285772324,
+        "44": 0.5891080871224403
+      },
+      "mean_training_seconds": 33.3731515620093,
+      "mean_tokens_per_second": 3929.909837588469,
+      "mean_board_watts": 206.0257275136857,
+      "max_sampled_board_watts": 320.87,
+      "mean_board_joules_per_token": 0.05244203087972016,
+      "max_allocated_gib": 2.064148426055908,
+      "max_external_sample_gap_seconds": 0.10185433000151534,
+      "mean_last16_optimizer_ms": 53.33499381231377,
+      "mean_last16_full_step_ms": 122.55522146870135
+    }
+  },
+  "long_short_prefix_checks": [],
+  "isolated_latency": {
+    "adamw": {
+      "optimizer": "adamw",
+      "sources": {
+        "dion": [
+          "https://github.com/microsoft/dion.git",
+          "7692479288f928a3d61d1cc58137b4dbe4f71000"
+        ],
+        "MuonPlus": [
+          "https://github.com/K1seki221/MuonPlus.git",
+          "8a9ace123afedaab8ba75ea0b19315594ae1da7c"
+        ],
+        "NorMuon": [
+          "https://github.com/zichongli5/NorMuon.git",
+          "c6989a8354730695d9f5a9faa6c55eeb24865209"
+        ]
+      },
+      "dtype": "FP32 masters/gradients",
+      "geometry": {
+        "experts": 8,
+        "hidden": 512,
+        "width": 2048
+      },
+      "limit": "Optimizer-only fixed correlated gradients, not learning or a full trainer speedup.",
+      "startup_seconds": 0.009574768002494238,
+      "start_monotonic": 74235.38201408,
+      "end_monotonic": 74240.382265209,
+      "iterations": 9814,
+      "median_step_seconds": 0.0005059685063315555,
+      "state_bytes": 201326688,
+      "state_bytes_per_parameter": 8.000003814697266,
+      "peak_allocated_gib": 0.3750114440917969,
+      "finite": true,
+      "power": {
+        "start_monotonic": 74235.38201408,
+        "end_monotonic": 74240.382265209,
+        "duration_seconds": 5.000251129007665,
+        "sample_count_inside": 50,
+        "average_board_power_w": 370.4871499288002,
+        "peak_sampled_board_power_w": 377.215,
+        "estimated_board_energy_j": 1852.5287897143155,
+        "max_sample_gap_seconds": 0.10125264099042397,
+        "gpu_busy_percent": {
+          "median": 93.0,
+          "min": 92,
+          "max": 93
+        },
+        "memory_busy_percent": {
+          "median": 81.0,
+          "min": 81,
+          "max": 81
+        },
+        "sm_clock_mhz": {
+          "median": 2936.0,
+          "min": 2932,
+          "max": 2940
+        },
+        "memory_clock_mhz": {
+          "median": 13801.0,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 61.0,
+          "min": 59,
+          "max": 61
+        },
+        "memory_used_mib": {
+          "median": 2352.5625,
+          "min": 2352.5625,
+          "max": 2352.5625
+        },
+        "clock_event_reason_masks": [
+          4
+        ]
+      },
+      "estimated_board_joules_per_step": 0.18876388727474175,
+      "external_power": {
+        "start_monotonic": 74235.38201408,
+        "end_monotonic": 74240.382265209,
+        "duration_seconds": 5.000251129007665,
+        "sample_count_inside": 50,
+        "average_board_power_w": 371.4388493689414,
+        "peak_sampled_board_power_w": 377.215,
+        "estimated_board_energy_j": 1857.2875259143575,
+        "max_sample_gap_seconds": 0.10092122199421283,
+        "gpu_busy_percent": {
+          "median": 93.0,
+          "min": 92,
+          "max": 93
+        },
+        "memory_busy_percent": {
+          "median": 81.0,
+          "min": 81,
+          "max": 81
+        },
+        "sm_clock_mhz": {
+          "median": 2936.0,
+          "min": 2932,
+          "max": 2940
+        },
+        "memory_clock_mhz": {
+          "median": 13801.0,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 61.0,
+          "min": 59,
+          "max": 61
+        },
+        "memory_used_mib": {
+          "median": 2352.5625,
+          "min": 2352.5625,
+          "max": 2352.5625
+        },
+        "clock_event_reason_masks": [
+          4
+        ]
+      },
+      "external_board_joules_per_step": 0.1892487798975298
+    },
+    "gefen": {
+      "optimizer": "gefen",
+      "sources": {
+        "dion": [
+          "https://github.com/microsoft/dion.git",
+          "7692479288f928a3d61d1cc58137b4dbe4f71000"
+        ],
+        "MuonPlus": [
+          "https://github.com/K1seki221/MuonPlus.git",
+          "8a9ace123afedaab8ba75ea0b19315594ae1da7c"
+        ],
+        "NorMuon": [
+          "https://github.com/zichongli5/NorMuon.git",
+          "c6989a8354730695d9f5a9faa6c55eeb24865209"
+        ]
+      },
+      "dtype": "FP32 masters/gradients",
+      "geometry": {
+        "experts": 8,
+        "hidden": 512,
+        "width": 2048
+      },
+      "limit": "Optimizer-only fixed correlated gradients, not learning or a full trainer speedup.",
+      "startup_seconds": 2.641348591991118,
+      "start_monotonic": 74245.70787007,
+      "end_monotonic": 74250.708282178,
+      "iterations": 10388,
+      "median_step_seconds": 0.00048030899779405445,
+      "state_bytes": 25460736,
+      "state_bytes_per_parameter": 1.01171875,
+      "peak_allocated_gib": 0.2112131118774414,
+      "finite": true,
+      "power": {
+        "start_monotonic": 74245.70787007,
+        "end_monotonic": 74250.708282178,
+        "duration_seconds": 5.000412108012824,
+        "sample_count_inside": 49,
+        "average_board_power_w": 476.12092959760133,
+        "peak_sampled_board_power_w": 484.999,
+        "estimated_board_energy_j": 2380.8008612381673,
+        "max_sample_gap_seconds": 0.10066487301082816,
+        "gpu_busy_percent": {
+          "median": 98,
+          "min": 98,
+          "max": 98
+        },
+        "memory_busy_percent": {
+          "median": 43,
+          "min": 43,
+          "max": 43
+        },
+        "sm_clock_mhz": {
+          "median": 2917,
+          "min": 2917,
+          "max": 2917
+        },
+        "memory_clock_mhz": {
+          "median": 13801,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 67,
+          "min": 66,
+          "max": 68
+        },
+        "memory_used_mib": {
+          "median": 2176.5625,
+          "min": 2176.5625,
+          "max": 2176.5625
+        },
+        "clock_event_reason_masks": [
+          0
+        ]
+      },
+      "estimated_board_joules_per_step": 0.22918760697325447,
+      "external_power": {
+        "start_monotonic": 74245.70787007,
+        "end_monotonic": 74250.708282178,
+        "duration_seconds": 5.000412108012824,
+        "sample_count_inside": 50,
+        "average_board_power_w": 476.8171891497903,
+        "peak_sampled_board_power_w": 485.12232657971646,
+        "estimated_board_energy_j": 2384.2824459332523,
+        "max_sample_gap_seconds": 0.1004430839966517,
+        "gpu_busy_percent": {
+          "median": 98.0,
+          "min": 98,
+          "max": 98
+        },
+        "memory_busy_percent": {
+          "median": 43.0,
+          "min": 43,
+          "max": 43
+        },
+        "sm_clock_mhz": {
+          "median": 2917.0,
+          "min": 2917,
+          "max": 2917
+        },
+        "memory_clock_mhz": {
+          "median": 13801.0,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 67.0,
+          "min": 66,
+          "max": 68
+        },
+        "memory_used_mib": {
+          "median": 2176.5625,
+          "min": 2176.5625,
+          "max": 2176.5625
+        },
+        "clock_event_reason_masks": [
+          0
+        ]
+      },
+      "external_board_joules_per_step": 0.22952276144910014
+    },
+    "muon": {
+      "optimizer": "muon",
+      "sources": {
+        "dion": [
+          "https://github.com/microsoft/dion.git",
+          "7692479288f928a3d61d1cc58137b4dbe4f71000"
+        ],
+        "MuonPlus": [
+          "https://github.com/K1seki221/MuonPlus.git",
+          "8a9ace123afedaab8ba75ea0b19315594ae1da7c"
+        ],
+        "NorMuon": [
+          "https://github.com/zichongli5/NorMuon.git",
+          "c6989a8354730695d9f5a9faa6c55eeb24865209"
+        ]
+      },
+      "dtype": "FP32 masters/gradients",
+      "geometry": {
+        "experts": 8,
+        "hidden": 512,
+        "width": 2048
+      },
+      "limit": "Optimizer-only fixed correlated gradients, not learning or a full trainer speedup.",
+      "startup_seconds": 5.677637272994616,
+      "start_monotonic": 74259.469662922,
+      "end_monotonic": 74264.473992107,
+      "iterations": 1135,
+      "median_step_seconds": 0.004402794991619885,
+      "state_bytes": 100663296,
+      "state_bytes_per_parameter": 4.0,
+      "peak_allocated_gib": 0.5390629768371582,
+      "finite": true,
+      "power": {
+        "start_monotonic": 74259.469662922,
+        "end_monotonic": 74264.473992107,
+        "duration_seconds": 5.004329185001552,
+        "sample_count_inside": 50,
+        "average_board_power_w": 591.4885378600574,
+        "peak_sampled_board_power_w": 602.45,
+        "estimated_board_energy_j": 2960.0033526069806,
+        "max_sample_gap_seconds": 0.10118220098956954,
+        "gpu_busy_percent": {
+          "median": 98.0,
+          "min": 98,
+          "max": 98
+        },
+        "memory_busy_percent": {
+          "median": 21.0,
+          "min": 20,
+          "max": 21
+        },
+        "sm_clock_mhz": {
+          "median": 2805.0,
+          "min": 2805,
+          "max": 2835
+        },
+        "memory_clock_mhz": {
+          "median": 13801.0,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 69.0,
+          "min": 68,
+          "max": 69
+        },
+        "memory_used_mib": {
+          "median": 2662.5625,
+          "min": 2662.5625,
+          "max": 2662.5625
+        },
+        "clock_event_reason_masks": [
+          4
+        ]
+      },
+      "estimated_board_joules_per_step": 2.6079324692572516,
+      "external_power": {
+        "start_monotonic": 74259.469662922,
+        "end_monotonic": 74264.473992107,
+        "duration_seconds": 5.004329185001552,
+        "sample_count_inside": 50,
+        "average_board_power_w": 591.8907494625971,
+        "peak_sampled_board_power_w": 602.45,
+        "estimated_board_energy_j": 2962.0161518681166,
+        "max_sample_gap_seconds": 0.1015507800038904,
+        "gpu_busy_percent": {
+          "median": 98.0,
+          "min": 98,
+          "max": 98
+        },
+        "memory_busy_percent": {
+          "median": 21.0,
+          "min": 20,
+          "max": 21
+        },
+        "sm_clock_mhz": {
+          "median": 2805.0,
+          "min": 2805,
+          "max": 2835
+        },
+        "memory_clock_mhz": {
+          "median": 13801.0,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 69.0,
+          "min": 68,
+          "max": 69
+        },
+        "memory_used_mib": {
+          "median": 2662.5625,
+          "min": 2662.5625,
+          "max": 2662.5625
+        },
+        "clock_event_reason_masks": [
+          4
+        ]
+      },
+      "external_board_joules_per_step": 2.6097058606767547
+    },
+    "muon_plus": {
+      "optimizer": "muon_plus",
+      "sources": {
+        "dion": [
+          "https://github.com/microsoft/dion.git",
+          "7692479288f928a3d61d1cc58137b4dbe4f71000"
+        ],
+        "MuonPlus": [
+          "https://github.com/K1seki221/MuonPlus.git",
+          "8a9ace123afedaab8ba75ea0b19315594ae1da7c"
+        ],
+        "NorMuon": [
+          "https://github.com/zichongli5/NorMuon.git",
+          "c6989a8354730695d9f5a9faa6c55eeb24865209"
+        ]
+      },
+      "dtype": "FP32 masters/gradients",
+      "geometry": {
+        "experts": 8,
+        "hidden": 512,
+        "width": 2048
+      },
+      "limit": "Optimizer-only fixed correlated gradients, not learning or a full trainer speedup.",
+      "startup_seconds": 0.7849325440038228,
+      "start_monotonic": 74269.029802783,
+      "end_monotonic": 74274.032145325,
+      "iterations": 805,
+      "median_step_seconds": 0.006207939994055778,
+      "state_bytes": 100663296,
+      "state_bytes_per_parameter": 4.0,
+      "peak_allocated_gib": 0.3281264305114746,
+      "finite": true,
+      "power": {
+        "start_monotonic": 74269.029802783,
+        "end_monotonic": 74274.032145325,
+        "duration_seconds": 5.002342542007682,
+        "sample_count_inside": 50,
+        "average_board_power_w": 343.51548722563166,
+        "peak_sampled_board_power_w": 347.164,
+        "estimated_board_energy_j": 1718.3821355872738,
+        "max_sample_gap_seconds": 0.10057217300345656,
+        "gpu_busy_percent": {
+          "median": 97.0,
+          "min": 97,
+          "max": 97
+        },
+        "memory_busy_percent": {
+          "median": 5.0,
+          "min": 5,
+          "max": 5
+        },
+        "sm_clock_mhz": {
+          "median": 2917.0,
+          "min": 2917,
+          "max": 2925
+        },
+        "memory_clock_mhz": {
+          "median": 13801.0,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 64.0,
+          "min": 63,
+          "max": 64
+        },
+        "memory_used_mib": {
+          "median": 2302.5625,
+          "min": 2302.5625,
+          "max": 2302.5625
+        },
+        "clock_event_reason_masks": [
+          0
+        ]
+      },
+      "estimated_board_joules_per_step": 2.1346361932761164,
+      "external_power": {
+        "start_monotonic": 74269.029802783,
+        "end_monotonic": 74274.032145325,
+        "duration_seconds": 5.002342542007682,
+        "sample_count_inside": 50,
+        "average_board_power_w": 343.5399450998302,
+        "peak_sampled_board_power_w": 347.164,
+        "estimated_board_energy_j": 1718.5044822518641,
+        "max_sample_gap_seconds": 0.10066755300795194,
+        "gpu_busy_percent": {
+          "median": 97.0,
+          "min": 97,
+          "max": 97
+        },
+        "memory_busy_percent": {
+          "median": 5.0,
+          "min": 5,
+          "max": 5
+        },
+        "sm_clock_mhz": {
+          "median": 2917.0,
+          "min": 2917,
+          "max": 2925
+        },
+        "memory_clock_mhz": {
+          "median": 13801.0,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 64.0,
+          "min": 63,
+          "max": 64
+        },
+        "memory_used_mib": {
+          "median": 2302.5625,
+          "min": 2302.5625,
+          "max": 2302.5625
+        },
+        "clock_event_reason_masks": [
+          0
+        ]
+      },
+      "external_board_joules_per_step": 2.1347881767103902
+    },
+    "normuon": {
+      "optimizer": "normuon",
+      "sources": {
+        "dion": [
+          "https://github.com/microsoft/dion.git",
+          "7692479288f928a3d61d1cc58137b4dbe4f71000"
+        ],
+        "MuonPlus": [
+          "https://github.com/K1seki221/MuonPlus.git",
+          "8a9ace123afedaab8ba75ea0b19315594ae1da7c"
+        ],
+        "NorMuon": [
+          "https://github.com/zichongli5/NorMuon.git",
+          "c6989a8354730695d9f5a9faa6c55eeb24865209"
+        ]
+      },
+      "dtype": "FP32 masters/gradients",
+      "geometry": {
+        "experts": 8,
+        "hidden": 512,
+        "width": 2048
+      },
+      "limit": "Optimizer-only fixed correlated gradients, not learning or a full trainer speedup.",
+      "startup_seconds": 2.6783845980098704,
+      "start_monotonic": 74280.318368401,
+      "end_monotonic": 74285.319979165,
+      "iterations": 1026,
+      "median_step_seconds": 0.004869618998782244,
+      "state_bytes": 100810752,
+      "state_bytes_per_parameter": 4.005859375,
+      "peak_allocated_gib": 0.5392003059387207,
+      "finite": true,
+      "power": {
+        "start_monotonic": 74280.318368401,
+        "end_monotonic": 74285.319979165,
+        "duration_seconds": 5.001610763996723,
+        "sample_count_inside": 50,
+        "average_board_power_w": 591.7850478000811,
+        "peak_sampled_board_power_w": 601.044,
+        "estimated_board_energy_j": 2959.8784650492007,
+        "max_sample_gap_seconds": 0.10053876299934927,
+        "gpu_busy_percent": {
+          "median": 98.0,
+          "min": 98,
+          "max": 98
+        },
+        "memory_busy_percent": {
+          "median": 21.0,
+          "min": 21,
+          "max": 22
+        },
+        "sm_clock_mhz": {
+          "median": 2820.0,
+          "min": 2820,
+          "max": 2820
+        },
+        "memory_clock_mhz": {
+          "median": 13801.0,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 69.0,
+          "min": 68,
+          "max": 69
+        },
+        "memory_used_mib": {
+          "median": 2562.5625,
+          "min": 2562.5625,
+          "max": 2562.5625
+        },
+        "clock_event_reason_masks": [
+          4
+        ]
+      },
+      "estimated_board_joules_per_step": 2.884871798293568,
+      "external_power": {
+        "start_monotonic": 74280.318368401,
+        "end_monotonic": 74285.319979165,
+        "duration_seconds": 5.001610763996723,
+        "sample_count_inside": 50,
+        "average_board_power_w": 591.3878404294198,
+        "peak_sampled_board_power_w": 601.044,
+        "estimated_board_energy_j": 2957.891788388563,
+        "max_sample_gap_seconds": 0.10340462399472017,
+        "gpu_busy_percent": {
+          "median": 98.0,
+          "min": 98,
+          "max": 98
+        },
+        "memory_busy_percent": {
+          "median": 21.0,
+          "min": 21,
+          "max": 22
+        },
+        "sm_clock_mhz": {
+          "median": 2820.0,
+          "min": 2820,
+          "max": 2820
+        },
+        "memory_clock_mhz": {
+          "median": 13801.0,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 69.0,
+          "min": 68,
+          "max": 69
+        },
+        "memory_used_mib": {
+          "median": 2562.5625,
+          "min": 2562.5625,
+          "max": 2562.5625
+        },
+        "clock_event_reason_masks": [
+          4
+        ]
+      },
+      "external_board_joules_per_step": 2.8829354662656557
+    },
+    "dion3_quarter": {
+      "optimizer": "dion3_quarter",
+      "sources": {
+        "dion": [
+          "https://github.com/microsoft/dion.git",
+          "7692479288f928a3d61d1cc58137b4dbe4f71000"
+        ],
+        "MuonPlus": [
+          "https://github.com/K1seki221/MuonPlus.git",
+          "8a9ace123afedaab8ba75ea0b19315594ae1da7c"
+        ],
+        "NorMuon": [
+          "https://github.com/zichongli5/NorMuon.git",
+          "c6989a8354730695d9f5a9faa6c55eeb24865209"
+        ]
+      },
+      "dtype": "FP32 masters/gradients",
+      "geometry": {
+        "experts": 8,
+        "hidden": 512,
+        "width": 2048
+      },
+      "limit": "Optimizer-only fixed correlated gradients, not learning or a full trainer speedup.",
+      "startup_seconds": 8.178648183995392,
+      "start_monotonic": 74297.265489415,
+      "end_monotonic": 74302.266297532,
+      "iterations": 2934,
+      "median_step_seconds": 0.0017024894914356992,
+      "state_bytes": 100810752,
+      "state_bytes_per_parameter": 4.005859375,
+      "peak_allocated_gib": 0.4455113410949707,
+      "finite": true,
+      "power": {
+        "start_monotonic": 74297.265489415,
+        "end_monotonic": 74302.266297532,
+        "duration_seconds": 5.000808116994449,
+        "sample_count_inside": 50,
+        "average_board_power_w": 521.2614404075763,
+        "peak_sampled_board_power_w": 525.7277498738775,
+        "estimated_board_energy_j": 2606.7284422664256,
+        "max_sample_gap_seconds": 0.10055453299719375,
+        "gpu_busy_percent": {
+          "median": 95.0,
+          "min": 95,
+          "max": 95
+        },
+        "memory_busy_percent": {
+          "median": 33.0,
+          "min": 33,
+          "max": 33
+        },
+        "sm_clock_mhz": {
+          "median": 2887.0,
+          "min": 2857,
+          "max": 2887
+        },
+        "memory_clock_mhz": {
+          "median": 13801.0,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 66.5,
+          "min": 66,
+          "max": 67
+        },
+        "memory_used_mib": {
+          "median": 2482.5625,
+          "min": 2482.5625,
+          "max": 2482.5625
+        },
+        "clock_event_reason_masks": [
+          0
+        ]
+      },
+      "estimated_board_joules_per_step": 0.8884555017949645,
+      "external_power": {
+        "start_monotonic": 74297.265489415,
+        "end_monotonic": 74302.266297532,
+        "duration_seconds": 5.000808116994449,
+        "sample_count_inside": 50,
+        "average_board_power_w": 521.6549531456452,
+        "peak_sampled_board_power_w": 525.6970543377076,
+        "estimated_board_energy_j": 2608.6963239611014,
+        "max_sample_gap_seconds": 0.10107343200070318,
+        "gpu_busy_percent": {
+          "median": 95.0,
+          "min": 95,
+          "max": 95
+        },
+        "memory_busy_percent": {
+          "median": 33.0,
+          "min": 33,
+          "max": 33
+        },
+        "sm_clock_mhz": {
+          "median": 2887.0,
+          "min": 2857,
+          "max": 2887
+        },
+        "memory_clock_mhz": {
+          "median": 13801.0,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 66.5,
+          "min": 66,
+          "max": 67
+        },
+        "memory_used_mib": {
+          "median": 2482.5625,
+          "min": 2482.5625,
+          "max": 2482.5625
+        },
+        "clock_event_reason_masks": [
+          0
+        ]
+      },
+      "external_board_joules_per_step": 0.8891262181189847
+    },
+    "dion3_half": {
+      "optimizer": "dion3_half",
+      "sources": {
+        "dion": [
+          "https://github.com/microsoft/dion.git",
+          "7692479288f928a3d61d1cc58137b4dbe4f71000"
+        ],
+        "MuonPlus": [
+          "https://github.com/K1seki221/MuonPlus.git",
+          "8a9ace123afedaab8ba75ea0b19315594ae1da7c"
+        ],
+        "NorMuon": [
+          "https://github.com/zichongli5/NorMuon.git",
+          "c6989a8354730695d9f5a9faa6c55eeb24865209"
+        ]
+      },
+      "dtype": "FP32 masters/gradients",
+      "geometry": {
+        "experts": 8,
+        "hidden": 512,
+        "width": 2048
+      },
+      "limit": "Optimizer-only fixed correlated gradients, not learning or a full trainer speedup.",
+      "startup_seconds": 8.674085726001067,
+      "start_monotonic": 74314.804854707,
+      "end_monotonic": 74319.805266305,
+      "iterations": 1677,
+      "median_step_seconds": 0.0029782700003124774,
+      "state_bytes": 100810752,
+      "state_bytes_per_parameter": 4.005859375,
+      "peak_allocated_gib": 0.4533848762512207,
+      "finite": true,
+      "power": {
+        "start_monotonic": 74314.804854707,
+        "end_monotonic": 74319.805266305,
+        "duration_seconds": 5.000411597997299,
+        "sample_count_inside": 50,
+        "average_board_power_w": 575.4439517900578,
+        "peak_sampled_board_power_w": 582.476,
+        "estimated_board_energy_j": 2877.456610528404,
+        "max_sample_gap_seconds": 0.10076776299683843,
+        "gpu_busy_percent": {
+          "median": 97.0,
+          "min": 97,
+          "max": 97
+        },
+        "memory_busy_percent": {
+          "median": 27.0,
+          "min": 27,
+          "max": 28
+        },
+        "sm_clock_mhz": {
+          "median": 2865.0,
+          "min": 2865,
+          "max": 2865
+        },
+        "memory_clock_mhz": {
+          "median": 13801.0,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 67.0,
+          "min": 66,
+          "max": 68
+        },
+        "memory_used_mib": {
+          "median": 2524.5625,
+          "min": 2524.5625,
+          "max": 2524.5625
+        },
+        "clock_event_reason_masks": [
+          4
+        ]
+      },
+      "estimated_board_joules_per_step": 1.715835784453431,
+      "external_power": {
+        "start_monotonic": 74314.804854707,
+        "end_monotonic": 74319.805266305,
+        "duration_seconds": 5.000411597997299,
+        "sample_count_inside": 50,
+        "average_board_power_w": 575.41400220575,
+        "peak_sampled_board_power_w": 582.476,
+        "estimated_board_energy_j": 2877.306850279676,
+        "max_sample_gap_seconds": 0.1006907940027304,
+        "gpu_busy_percent": {
+          "median": 97.0,
+          "min": 97,
+          "max": 97
+        },
+        "memory_busy_percent": {
+          "median": 27.0,
+          "min": 27,
+          "max": 28
+        },
+        "sm_clock_mhz": {
+          "median": 2865.0,
+          "min": 2865,
+          "max": 2865
+        },
+        "memory_clock_mhz": {
+          "median": 13801.0,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 67.0,
+          "min": 66,
+          "max": 68
+        },
+        "memory_used_mib": {
+          "median": 2524.5625,
+          "min": 2524.5625,
+          "max": 2524.5625
+        },
+        "clock_event_reason_masks": [
+          4
+        ]
+      },
+      "external_board_joules_per_step": 1.7157464819795325
+    }
+  },
+  "isolated_latency_large": {
+    "adamw": {
+      "optimizer": "adamw",
+      "sources": {
+        "dion": [
+          "https://github.com/microsoft/dion.git",
+          "7692479288f928a3d61d1cc58137b4dbe4f71000"
+        ],
+        "MuonPlus": [
+          "https://github.com/K1seki221/MuonPlus.git",
+          "8a9ace123afedaab8ba75ea0b19315594ae1da7c"
+        ],
+        "NorMuon": [
+          "https://github.com/zichongli5/NorMuon.git",
+          "c6989a8354730695d9f5a9faa6c55eeb24865209"
+        ]
+      },
+      "dtype": "FP32 masters/gradients",
+      "geometry": {
+        "experts": 4,
+        "hidden": 4096,
+        "width": 16384
+      },
+      "limit": "Optimizer-only fixed correlated gradients, not learning or a full trainer speedup.",
+      "startup_seconds": 0.06995024600473698,
+      "start_monotonic": 74324.846281158,
+      "end_monotonic": 74329.860242271,
+      "iterations": 336,
+      "median_step_seconds": 0.014911510501406156,
+      "state_bytes": 6442450992,
+      "state_bytes_per_parameter": 8.000000059604645,
+      "peak_allocated_gib": 12.000005722045898,
+      "finite": true,
+      "power": {
+        "start_monotonic": 74324.846281158,
+        "end_monotonic": 74329.860242271,
+        "duration_seconds": 5.013961112999823,
+        "sample_count_inside": 50,
+        "average_board_power_w": 383.22849780835685,
+        "peak_sampled_board_power_w": 389.056,
+        "estimated_board_energy_j": 1921.4927854044392,
+        "max_sample_gap_seconds": 0.10136972100008279,
+        "gpu_busy_percent": {
+          "median": 100.0,
+          "min": 100,
+          "max": 100
+        },
+        "memory_busy_percent": {
+          "median": 88.0,
+          "min": 88,
+          "max": 88
+        },
+        "sm_clock_mhz": {
+          "median": 2857.0,
+          "min": 2850,
+          "max": 2857
+        },
+        "memory_clock_mhz": {
+          "median": 13801.0,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 60.0,
+          "min": 59,
+          "max": 60
+        },
+        "memory_used_mib": {
+          "median": 14252.5625,
+          "min": 14252.5625,
+          "max": 14252.5625
+        },
+        "clock_event_reason_masks": [
+          4
+        ]
+      },
+      "estimated_board_joules_per_step": 5.718728527989403,
+      "external_power": {
+        "start_monotonic": 74324.846281158,
+        "end_monotonic": 74329.860242271,
+        "duration_seconds": 5.013961112999823,
+        "sample_count_inside": 50,
+        "average_board_power_w": 383.7447385480352,
+        "peak_sampled_board_power_w": 389.056,
+        "estimated_board_energy_j": 1924.0811963981325,
+        "max_sample_gap_seconds": 0.10162031000072602,
+        "gpu_busy_percent": {
+          "median": 100.0,
+          "min": 100,
+          "max": 100
+        },
+        "memory_busy_percent": {
+          "median": 88.0,
+          "min": 88,
+          "max": 88
+        },
+        "sm_clock_mhz": {
+          "median": 2857.0,
+          "min": 2850,
+          "max": 2857
+        },
+        "memory_clock_mhz": {
+          "median": 13801.0,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 60.0,
+          "min": 59,
+          "max": 60
+        },
+        "memory_used_mib": {
+          "median": 14252.5625,
+          "min": 14252.5625,
+          "max": 14252.5625
+        },
+        "clock_event_reason_masks": [
+          4
+        ]
+      },
+      "external_board_joules_per_step": 5.726432132137299
+    },
+    "gefen": {
+      "optimizer": "gefen",
+      "sources": {
+        "dion": [
+          "https://github.com/microsoft/dion.git",
+          "7692479288f928a3d61d1cc58137b4dbe4f71000"
+        ],
+        "MuonPlus": [
+          "https://github.com/K1seki221/MuonPlus.git",
+          "8a9ace123afedaab8ba75ea0b19315594ae1da7c"
+        ],
+        "NorMuon": [
+          "https://github.com/zichongli5/NorMuon.git",
+          "c6989a8354730695d9f5a9faa6c55eeb24865209"
+        ]
+      },
+      "dtype": "FP32 masters/gradients",
+      "geometry": {
+        "experts": 4,
+        "hidden": 4096,
+        "width": 16384
+      },
+      "limit": "Optimizer-only fixed correlated gradients, not learning or a full trainer speedup.",
+      "startup_seconds": 14.491088982002111,
+      "start_monotonic": 74347.047694541,
+      "end_monotonic": 74352.056185602,
+      "iterations": 371,
+      "median_step_seconds": 0.013485514995409176,
+      "state_bytes": 808452096,
+      "state_bytes_per_parameter": 1.00390625,
+      "peak_allocated_gib": 6.752930641174316,
+      "finite": true,
+      "power": {
+        "start_monotonic": 74347.047694541,
+        "end_monotonic": 74352.056185602,
+        "duration_seconds": 5.0084910610021325,
+        "sample_count_inside": 50,
+        "average_board_power_w": 518.0705071172891,
+        "peak_sampled_board_power_w": 533.266,
+        "estimated_board_energy_j": 2594.7515038657843,
+        "max_sample_gap_seconds": 0.10075053299078718,
+        "gpu_busy_percent": {
+          "median": 100.0,
+          "min": 100,
+          "max": 100
+        },
+        "memory_busy_percent": {
+          "median": 90.0,
+          "min": 90,
+          "max": 90
+        },
+        "sm_clock_mhz": {
+          "median": 2820.0,
+          "min": 2812,
+          "max": 2820
+        },
+        "memory_clock_mhz": {
+          "median": 13801.0,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 65.0,
+          "min": 63,
+          "max": 66
+        },
+        "memory_used_mib": {
+          "median": 8874.5625,
+          "min": 8874.5625,
+          "max": 8874.5625
+        },
+        "clock_event_reason_masks": [
+          4
+        ]
+      },
+      "estimated_board_joules_per_step": 6.993939363519634,
+      "external_power": {
+        "start_monotonic": 74347.047694541,
+        "end_monotonic": 74352.056185602,
+        "duration_seconds": 5.0084910610021325,
+        "sample_count_inside": 50,
+        "average_board_power_w": 518.9019590193222,
+        "peak_sampled_board_power_w": 533.266,
+        "estimated_board_energy_j": 2598.9158232847703,
+        "max_sample_gap_seconds": 0.10204218899889383,
+        "gpu_busy_percent": {
+          "median": 100.0,
+          "min": 100,
+          "max": 100
+        },
+        "memory_busy_percent": {
+          "median": 90.0,
+          "min": 90,
+          "max": 90
+        },
+        "sm_clock_mhz": {
+          "median": 2820.0,
+          "min": 2812,
+          "max": 2820
+        },
+        "memory_clock_mhz": {
+          "median": 13801.0,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 65.0,
+          "min": 63,
+          "max": 66
+        },
+        "memory_used_mib": {
+          "median": 8874.5625,
+          "min": 8874.5625,
+          "max": 8874.5625
+        },
+        "clock_event_reason_masks": [
+          4
+        ]
+      },
+      "external_board_joules_per_step": 7.005163944163802
+    },
+    "muon": {
+      "optimizer": "muon",
+      "sources": {
+        "dion": [
+          "https://github.com/microsoft/dion.git",
+          "7692479288f928a3d61d1cc58137b4dbe4f71000"
+        ],
+        "MuonPlus": [
+          "https://github.com/K1seki221/MuonPlus.git",
+          "8a9ace123afedaab8ba75ea0b19315594ae1da7c"
+        ],
+        "NorMuon": [
+          "https://github.com/zichongli5/NorMuon.git",
+          "c6989a8354730695d9f5a9faa6c55eeb24865209"
+        ]
+      },
+      "dtype": "FP32 masters/gradients",
+      "geometry": {
+        "experts": 4,
+        "hidden": 4096,
+        "width": 16384
+      },
+      "limit": "Optimizer-only fixed correlated gradients, not learning or a full trainer speedup.",
+      "startup_seconds": 9.116152666989365,
+      "start_monotonic": 74364.530516162,
+      "end_monotonic": 74369.82094972,
+      "iterations": 13,
+      "median_step_seconds": 0.4070723980112234,
+      "state_bytes": 3221225472,
+      "state_bytes_per_parameter": 4.0,
+      "peak_allocated_gib": 16.281250476837158,
+      "finite": true,
+      "power": {
+        "start_monotonic": 74364.530516162,
+        "end_monotonic": 74369.82094972,
+        "duration_seconds": 5.290433557995129,
+        "sample_count_inside": 53,
+        "average_board_power_w": 600.0956885324467,
+        "peak_sampled_board_power_w": 602.262,
+        "estimated_board_energy_j": 3174.766368620249,
+        "max_sample_gap_seconds": 0.10092290199827403,
+        "gpu_busy_percent": {
+          "median": 100,
+          "min": 100,
+          "max": 100
+        },
+        "memory_busy_percent": {
+          "median": 25,
+          "min": 19,
+          "max": 31
+        },
+        "sm_clock_mhz": {
+          "median": 2565,
+          "min": 2542,
+          "max": 2595
+        },
+        "memory_clock_mhz": {
+          "median": 13801,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 69,
+          "min": 66,
+          "max": 70
+        },
+        "memory_used_mib": {
+          "median": 19164.5625,
+          "min": 19164.5625,
+          "max": 19164.5625
+        },
+        "clock_event_reason_masks": [
+          4
+        ]
+      },
+      "estimated_board_joules_per_step": 244.212797586173,
+      "external_power": {
+        "start_monotonic": 74364.530516162,
+        "end_monotonic": 74369.82094972,
+        "duration_seconds": 5.290433557995129,
+        "sample_count_inside": 53,
+        "average_board_power_w": 600.0948215382641,
+        "peak_sampled_board_power_w": 602.262,
+        "estimated_board_energy_j": 3174.761781845131,
+        "max_sample_gap_seconds": 0.100719433001359,
+        "gpu_busy_percent": {
+          "median": 100,
+          "min": 100,
+          "max": 100
+        },
+        "memory_busy_percent": {
+          "median": 25,
+          "min": 19,
+          "max": 31
+        },
+        "sm_clock_mhz": {
+          "median": 2565,
+          "min": 2542,
+          "max": 2595
+        },
+        "memory_clock_mhz": {
+          "median": 13801,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 69,
+          "min": 66,
+          "max": 70
+        },
+        "memory_used_mib": {
+          "median": 19164.5625,
+          "min": 19164.5625,
+          "max": 19164.5625
+        },
+        "clock_event_reason_masks": [
+          4
+        ]
+      },
+      "external_board_joules_per_step": 244.21244475731777
+    },
+    "muon_plus": {
+      "optimizer": "muon_plus",
+      "sources": {
+        "dion": [
+          "https://github.com/microsoft/dion.git",
+          "7692479288f928a3d61d1cc58137b4dbe4f71000"
+        ],
+        "MuonPlus": [
+          "https://github.com/K1seki221/MuonPlus.git",
+          "8a9ace123afedaab8ba75ea0b19315594ae1da7c"
+        ],
+        "NorMuon": [
+          "https://github.com/zichongli5/NorMuon.git",
+          "c6989a8354730695d9f5a9faa6c55eeb24865209"
+        ]
+      },
+      "dtype": "FP32 masters/gradients",
+      "geometry": {
+        "experts": 4,
+        "hidden": 4096,
+        "width": 16384
+      },
+      "limit": "Optimizer-only fixed correlated gradients, not learning or a full trainer speedup.",
+      "startup_seconds": 2.952700490001007,
+      "start_monotonic": 74376.948216402,
+      "end_monotonic": 74382.150321195,
+      "iterations": 12,
+      "median_step_seconds": 0.43353873950400157,
+      "state_bytes": 3221225472,
+      "state_bytes_per_parameter": 4.0,
+      "peak_allocated_gib": 9.8125,
+      "finite": true,
+      "power": {
+        "start_monotonic": 74376.948216402,
+        "end_monotonic": 74382.150321195,
+        "duration_seconds": 5.202104793002945,
+        "sample_count_inside": 52,
+        "average_board_power_w": 600.1451607211592,
+        "peak_sampled_board_power_w": 600.563,
+        "estimated_board_energy_j": 3122.0180170850654,
+        "max_sample_gap_seconds": 0.10063333400466945,
+        "gpu_busy_percent": {
+          "median": 100.0,
+          "min": 100,
+          "max": 100
+        },
+        "memory_busy_percent": {
+          "median": 30.0,
+          "min": 27,
+          "max": 30
+        },
+        "sm_clock_mhz": {
+          "median": 2700.0,
+          "min": 2692,
+          "max": 2707
+        },
+        "memory_clock_mhz": {
+          "median": 13801.0,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 70.0,
+          "min": 69,
+          "max": 71
+        },
+        "memory_used_mib": {
+          "median": 12122.5625,
+          "min": 12122.5625,
+          "max": 12122.5625
+        },
+        "clock_event_reason_masks": [
+          4
+        ]
+      },
+      "estimated_board_joules_per_step": 260.1681680904221,
+      "external_power": {
+        "start_monotonic": 74376.948216402,
+        "end_monotonic": 74382.150321195,
+        "duration_seconds": 5.202104793002945,
+        "sample_count_inside": 52,
+        "average_board_power_w": 600.1541405711787,
+        "peak_sampled_board_power_w": 600.563,
+        "estimated_board_energy_j": 3122.0647312058923,
+        "max_sample_gap_seconds": 0.10128103099123109,
+        "gpu_busy_percent": {
+          "median": 100.0,
+          "min": 100,
+          "max": 100
+        },
+        "memory_busy_percent": {
+          "median": 30.0,
+          "min": 27,
+          "max": 30
+        },
+        "sm_clock_mhz": {
+          "median": 2700.0,
+          "min": 2692,
+          "max": 2707
+        },
+        "memory_clock_mhz": {
+          "median": 13801.0,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 70.0,
+          "min": 69,
+          "max": 71
+        },
+        "memory_used_mib": {
+          "median": 12122.5625,
+          "min": 12122.5625,
+          "max": 12122.5625
+        },
+        "clock_event_reason_masks": [
+          4
+        ]
+      },
+      "external_board_joules_per_step": 260.17206093382435
+    },
+    "normuon": {
+      "optimizer": "normuon",
+      "sources": {
+        "dion": [
+          "https://github.com/microsoft/dion.git",
+          "7692479288f928a3d61d1cc58137b4dbe4f71000"
+        ],
+        "MuonPlus": [
+          "https://github.com/K1seki221/MuonPlus.git",
+          "8a9ace123afedaab8ba75ea0b19315594ae1da7c"
+        ],
+        "NorMuon": [
+          "https://github.com/zichongli5/NorMuon.git",
+          "c6989a8354730695d9f5a9faa6c55eeb24865209"
+        ]
+      },
+      "dtype": "FP32 masters/gradients",
+      "geometry": {
+        "experts": 4,
+        "hidden": 4096,
+        "width": 16384
+      },
+      "limit": "Optimizer-only fixed correlated gradients, not learning or a full trainer speedup.",
+      "startup_seconds": 3.382191222990514,
+      "start_monotonic": 74389.582881115,
+      "end_monotonic": 74394.694154343,
+      "iterations": 12,
+      "median_step_seconds": 0.4258720450088731,
+      "state_bytes": 3221815296,
+      "state_bytes_per_parameter": 4.000732421875,
+      "peak_allocated_gib": 16.281799793243408,
+      "finite": true,
+      "power": {
+        "start_monotonic": 74389.582881115,
+        "end_monotonic": 74394.694154343,
+        "duration_seconds": 5.111273228001664,
+        "sample_count_inside": 51,
+        "average_board_power_w": 600.4956614731655,
+        "peak_sampled_board_power_w": 604.426,
+        "estimated_board_energy_j": 3069.297398018941,
+        "max_sample_gap_seconds": 0.10069287299120333,
+        "gpu_busy_percent": {
+          "median": 100,
+          "min": 100,
+          "max": 100
+        },
+        "memory_busy_percent": {
+          "median": 20,
+          "min": 20,
+          "max": 31
+        },
+        "sm_clock_mhz": {
+          "median": 2602,
+          "min": 2557,
+          "max": 2662
+        },
+        "memory_clock_mhz": {
+          "median": 13801,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 70,
+          "min": 67,
+          "max": 71
+        },
+        "memory_used_mib": {
+          "median": 19164.5625,
+          "min": 19164.5625,
+          "max": 19164.5625
+        },
+        "clock_event_reason_masks": [
+          4
+        ]
+      },
+      "estimated_board_joules_per_step": 255.77478316824508,
+      "external_power": {
+        "start_monotonic": 74389.582881115,
+        "end_monotonic": 74394.694154343,
+        "duration_seconds": 5.111273228001664,
+        "sample_count_inside": 51,
+        "average_board_power_w": 600.5059507408191,
+        "peak_sampled_board_power_w": 604.426,
+        "estimated_board_energy_j": 3069.349989277235,
+        "max_sample_gap_seconds": 0.10115057100483682,
+        "gpu_busy_percent": {
+          "median": 100,
+          "min": 100,
+          "max": 100
+        },
+        "memory_busy_percent": {
+          "median": 20,
+          "min": 20,
+          "max": 31
+        },
+        "sm_clock_mhz": {
+          "median": 2602,
+          "min": 2557,
+          "max": 2662
+        },
+        "memory_clock_mhz": {
+          "median": 13801,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 70,
+          "min": 67,
+          "max": 71
+        },
+        "memory_used_mib": {
+          "median": 19164.5625,
+          "min": 19164.5625,
+          "max": 19164.5625
+        },
+        "clock_event_reason_masks": [
+          4
+        ]
+      },
+      "external_board_joules_per_step": 255.77916577310293
+    },
+    "dion3_quarter": {
+      "optimizer": "dion3_quarter",
+      "sources": {
+        "dion": [
+          "https://github.com/microsoft/dion.git",
+          "7692479288f928a3d61d1cc58137b4dbe4f71000"
+        ],
+        "MuonPlus": [
+          "https://github.com/K1seki221/MuonPlus.git",
+          "8a9ace123afedaab8ba75ea0b19315594ae1da7c"
+        ],
+        "NorMuon": [
+          "https://github.com/zichongli5/NorMuon.git",
+          "c6989a8354730695d9f5a9faa6c55eeb24865209"
+        ]
+      },
+      "dtype": "FP32 masters/gradients",
+      "geometry": {
+        "experts": 4,
+        "hidden": 4096,
+        "width": 16384
+      },
+      "limit": "Optimizer-only fixed correlated gradients, not learning or a full trainer speedup.",
+      "startup_seconds": 8.987601027009077,
+      "start_monotonic": 74407.620491461,
+      "end_monotonic": 74412.694125634,
+      "iterations": 41,
+      "median_step_seconds": 0.12379716600116808,
+      "state_bytes": 3221815296,
+      "state_bytes_per_parameter": 4.000732421875,
+      "peak_allocated_gib": 13.282043933868408,
+      "finite": true,
+      "power": {
+        "start_monotonic": 74407.620491461,
+        "end_monotonic": 74412.694125634,
+        "duration_seconds": 5.073634173008031,
+        "sample_count_inside": 51,
+        "average_board_power_w": 594.3123117725646,
+        "peak_sampled_board_power_w": 597.371,
+        "estimated_board_energy_j": 3015.323254448687,
+        "max_sample_gap_seconds": 0.10030506399925798,
+        "gpu_busy_percent": {
+          "median": 100,
+          "min": 100,
+          "max": 100
+        },
+        "memory_busy_percent": {
+          "median": 28,
+          "min": 27,
+          "max": 35
+        },
+        "sm_clock_mhz": {
+          "median": 2790,
+          "min": 2782,
+          "max": 2797
+        },
+        "memory_clock_mhz": {
+          "median": 13801,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 70,
+          "min": 68,
+          "max": 72
+        },
+        "memory_used_mib": {
+          "median": 15644.5625,
+          "min": 15644.5625,
+          "max": 15644.5625
+        },
+        "clock_event_reason_masks": [
+          4
+        ]
+      },
+      "estimated_board_joules_per_step": 73.54446962069967,
+      "external_power": {
+        "start_monotonic": 74407.620491461,
+        "end_monotonic": 74412.694125634,
+        "duration_seconds": 5.073634173008031,
+        "sample_count_inside": 50,
+        "average_board_power_w": 594.5217630060148,
+        "peak_sampled_board_power_w": 597.371,
+        "estimated_board_energy_j": 3016.3859333842984,
+        "max_sample_gap_seconds": 0.10037405400362331,
+        "gpu_busy_percent": {
+          "median": 100.0,
+          "min": 100,
+          "max": 100
+        },
+        "memory_busy_percent": {
+          "median": 28.0,
+          "min": 27,
+          "max": 35
+        },
+        "sm_clock_mhz": {
+          "median": 2790.0,
+          "min": 2782,
+          "max": 2797
+        },
+        "memory_clock_mhz": {
+          "median": 13801.0,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 70.0,
+          "min": 68,
+          "max": 72
+        },
+        "memory_used_mib": {
+          "median": 15644.5625,
+          "min": 15644.5625,
+          "max": 15644.5625
+        },
+        "clock_event_reason_masks": [
+          4
+        ]
+      },
+      "external_board_joules_per_step": 73.57038861912923
+    },
+    "dion3_half": {
+      "optimizer": "dion3_half",
+      "sources": {
+        "dion": [
+          "https://github.com/microsoft/dion.git",
+          "7692479288f928a3d61d1cc58137b4dbe4f71000"
+        ],
+        "MuonPlus": [
+          "https://github.com/K1seki221/MuonPlus.git",
+          "8a9ace123afedaab8ba75ea0b19315594ae1da7c"
+        ],
+        "NorMuon": [
+          "https://github.com/zichongli5/NorMuon.git",
+          "c6989a8354730695d9f5a9faa6c55eeb24865209"
+        ]
+      },
+      "dtype": "FP32 masters/gradients",
+      "geometry": {
+        "experts": 4,
+        "hidden": 4096,
+        "width": 16384
+      },
+      "limit": "Optimizer-only fixed correlated gradients, not learning or a full trainer speedup.",
+      "startup_seconds": 9.45647479800391,
+      "start_monotonic": 74426.123791518,
+      "end_monotonic": 74431.241712833,
+      "iterations": 24,
+      "median_step_seconds": 0.21330746650346555,
+      "state_bytes": 3221815296,
+      "state_bytes_per_parameter": 4.000732421875,
+      "peak_allocated_gib": 13.532288074493408,
+      "finite": true,
+      "power": {
+        "start_monotonic": 74426.123791518,
+        "end_monotonic": 74431.241712833,
+        "duration_seconds": 5.117921315002604,
+        "sample_count_inside": 52,
+        "average_board_power_w": 599.7371811964421,
+        "peak_sampled_board_power_w": 604.032,
+        "estimated_board_energy_j": 3069.40770304485,
+        "max_sample_gap_seconds": 0.10100055200746283,
+        "gpu_busy_percent": {
+          "median": 100.0,
+          "min": 100,
+          "max": 100
+        },
+        "memory_busy_percent": {
+          "median": 28.0,
+          "min": 15,
+          "max": 43
+        },
+        "sm_clock_mhz": {
+          "median": 2730.0,
+          "min": 2715,
+          "max": 2745
+        },
+        "memory_clock_mhz": {
+          "median": 13801.0,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 70.0,
+          "min": 65,
+          "max": 72
+        },
+        "memory_used_mib": {
+          "median": 15884.5625,
+          "min": 15884.5625,
+          "max": 15884.5625
+        },
+        "clock_event_reason_masks": [
+          4
+        ]
+      },
+      "estimated_board_joules_per_step": 127.89198762686875,
+      "external_power": {
+        "start_monotonic": 74426.123791518,
+        "end_monotonic": 74431.241712833,
+        "duration_seconds": 5.117921315002604,
+        "sample_count_inside": 51,
+        "average_board_power_w": 599.9412271465718,
+        "peak_sampled_board_power_w": 604.032,
+        "estimated_board_energy_j": 3070.451994162259,
+        "max_sample_gap_seconds": 0.10092985299706925,
+        "gpu_busy_percent": {
+          "median": 100,
+          "min": 100,
+          "max": 100
+        },
+        "memory_busy_percent": {
+          "median": 28,
+          "min": 15,
+          "max": 43
+        },
+        "sm_clock_mhz": {
+          "median": 2730,
+          "min": 2715,
+          "max": 2745
+        },
+        "memory_clock_mhz": {
+          "median": 13801,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 70,
+          "min": 65,
+          "max": 72
+        },
+        "memory_used_mib": {
+          "median": 15884.5625,
+          "min": 15884.5625,
+          "max": 15884.5625
+        },
+        "clock_event_reason_masks": [
+          4
+        ]
+      },
+      "external_board_joules_per_step": 127.93549975676079
+    }
+  },
+  "auxiliary_only_control": [
+    {
+      "configuration": {
+        "weights": "/mnt/fast/models/mini-AGI/undertrained/weights",
+        "text": "/mnt/fast/models/mini-AGI/evaluation-data/TinyStoriesV2-GPT4-valid.txt",
+        "optimizer": "adamw",
+        "lr": 0.0,
+        "aux_lr": 0.0001,
+        "seed": 42,
+        "steps": 64,
+        "context": 512,
+        "depth": 6,
+        "eval_windows": 16,
+        "out": "runs/muon-screen/adamw-lr0-seed42-steps64.json"
+      },
+      "sources": {
+        "minagi/optimizers.py": "e56ed1b67166e384b3cff8400d835cd455f422f769dee14c51921b1bdb4f72ad",
+        "minagi/optim_codec.py": "18c922245b55eea4f0b5f0a77e74f825dddda4904c27dd9bd0fa0cf9bb55dd8a",
+        "replication/muon_candidates.py": "7433233789f39d328ce43df49f2d461db34463ac35436d4bf1b2e28af965fd39",
+        "/home/nir/ml-tools/mini-AGI/replication/compare_muon_training.py": "cdf67d16d031607018364239dc85ad42ea2a93344d2c98340596b614fae0a204"
+      },
+      "upstream_sources": {
+        "dion": [
+          "https://github.com/microsoft/dion.git",
+          "7692479288f928a3d61d1cc58137b4dbe4f71000"
+        ],
+        "MuonPlus": [
+          "https://github.com/K1seki221/MuonPlus.git",
+          "8a9ace123afedaab8ba75ea0b19315594ae1da7c"
+        ],
+        "NorMuon": [
+          "https://github.com/zichongli5/NorMuon.git",
+          "c6989a8354730695d9f5a9faa6c55eeb24865209"
+        ]
+      },
+      "limits": [
+        "Short adaptation on disjoint portions of one validation text, not a canonical train/test split or convergence study.",
+        "Fixed depth 6 by default, versus the checkpoint's depth 24; only Sonic BF16 compute is tested.",
+        "Fresh optimizer history for both candidates; checkpoint Adam moments are deliberately ignored.",
+        "Every expert touched remains cached in host RAM; disk writes are disabled. Realistic bounded host-cache performance needs separate measurement.",
+        "LR screening/confirmation is limited to the requested grid; power includes desktop activity and first-step calibration."
+      ],
+      "manifest_sha256": "f0ade4a3127971b20edc35d58b1ae66241af914aecd3ca8e9c0a2939ef8a74f3",
+      "text_sha256": "6874bae9a4c1a4e7edcf0e53b86c17817e9cf881fc75ff2368da457b80c0585d",
+      "initial_tune": {
+        "mean_ce": 1.335844624787569,
+        "per_window_ce": [
+          1.2073698043823242,
+          1.899423599243164,
+          1.5140573978424072,
+          1.2822285890579224,
+          1.0913463830947876,
+          1.1192538738250732,
+          1.9954442977905273,
+          0.7543540596961975,
+          1.8191096782684326,
+          1.4803855419158936,
+          1.6807597875595093,
+          1.0762522220611572,
+          1.0977312326431274,
+          1.2050750255584717,
+          1.078979730606079,
+          1.0717427730560303
+        ]
+      },
+      "initial_test": {
+        "mean_ce": 1.4550128504633904,
+        "per_window_ce": [
+          1.2732269763946533,
+          1.4484752416610718,
+          1.1885182857513428,
+          1.4572765827178955,
+          1.0477204322814941,
+          1.2001677751541138,
+          2.933424949645996,
+          1.584908366203308,
+          0.9657045602798462,
+          1.872493863105774,
+          0.767686128616333,
+          1.60719895362854,
+          0.9967830181121826,
+          1.5785510540008545,
+          1.0736885070800781,
+          2.2843809127807617
+        ]
+      },
+      "training_window_indices": [
+        174,
+        51,
+        151,
+        45,
+        236,
+        330,
+        152,
+        166,
+        83,
+        464,
+        138,
+        46,
+        495,
+        203,
+        289,
+        425,
+        357,
+        150,
+        108,
+        192,
+        91,
+        144,
+        334,
+        430,
+        298,
+        249,
+        234,
+        322,
+        53,
+        438,
+        202,
+        254,
+        361,
+        319,
+        0,
+        204,
+        55,
+        453,
+        321,
+        191,
+        354,
+        40,
+        80,
+        365,
+        487,
+        115,
+        124,
+        445,
+        100,
+        20,
+        343,
+        271,
+        164,
+        235,
+        386,
+        284,
+        156,
+        273,
+        140,
+        219,
+        171,
+        307,
+        499,
+        404
+      ],
+      "training_start": 73404.610095839,
+      "training_end": 73416.12150173,
+      "trace": [
+        {
+          "step": 1,
+          "objective": 1.465144395828247,
+          "gradient_norm_before_clip": 23.723621368408203,
+          "seconds": 1.988478675004444,
+          "optimizer_seconds": 0.008296561994939111
+        },
+        {
+          "step": 2,
+          "objective": 1.1108498573303223,
+          "gradient_norm_before_clip": 9.033880233764648,
+          "seconds": 0.1442857940128306,
+          "optimizer_seconds": 0.0027030710043618456
+        },
+        {
+          "step": 3,
+          "objective": 1.2442827224731445,
+          "gradient_norm_before_clip": 10.50908374786377,
+          "seconds": 0.15916917400318198,
+          "optimizer_seconds": 0.00891976999992039
+        },
+        {
+          "step": 4,
+          "objective": 1.5333925485610962,
+          "gradient_norm_before_clip": 11.110077857971191,
+          "seconds": 0.17311877699103206,
+          "optimizer_seconds": 0.011320261997752823
+        },
+        {
+          "step": 5,
+          "objective": 0.7981404066085815,
+          "gradient_norm_before_clip": 7.538237571716309,
+          "seconds": 0.15697590199124534,
+          "optimizer_seconds": 0.012519568001152948
+        },
+        {
+          "step": 6,
+          "objective": 0.8982172012329102,
+          "gradient_norm_before_clip": 7.320371150970459,
+          "seconds": 0.17059075500583276,
+          "optimizer_seconds": 0.019918453006539494
+        },
+        {
+          "step": 7,
+          "objective": 1.5009677410125732,
+          "gradient_norm_before_clip": 8.527270317077637,
+          "seconds": 0.16375387900916394,
+          "optimizer_seconds": 0.021041739004431292
+        },
+        {
+          "step": 8,
+          "objective": 1.600612998008728,
+          "gradient_norm_before_clip": 9.191729545593262,
+          "seconds": 0.15052800299599767,
+          "optimizer_seconds": 0.017114951988332905
+        },
+        {
+          "step": 9,
+          "objective": 0.9296910762786865,
+          "gradient_norm_before_clip": 7.191140651702881,
+          "seconds": 0.1636457089916803,
+          "optimizer_seconds": 0.021831117002875544
+        },
+        {
+          "step": 10,
+          "objective": 1.3894175291061401,
+          "gradient_norm_before_clip": 8.206934928894043,
+          "seconds": 0.17010958699393086,
+          "optimizer_seconds": 0.02792562601098325
+        },
+        {
+          "step": 11,
+          "objective": 0.7759807109832764,
+          "gradient_norm_before_clip": 6.157318115234375,
+          "seconds": 0.18003408399818,
+          "optimizer_seconds": 0.025594543985789642
+        },
+        {
+          "step": 12,
+          "objective": 1.0082310438156128,
+          "gradient_norm_before_clip": 8.131261825561523,
+          "seconds": 0.1395175299985567,
+          "optimizer_seconds": 0.020994539008825086
+        },
+        {
+          "step": 13,
+          "objective": 0.9892631769180298,
+          "gradient_norm_before_clip": 6.893157958984375,
+          "seconds": 0.1474540640047053,
+          "optimizer_seconds": 0.025760503005585633
+        },
+        {
+          "step": 14,
+          "objective": 0.8417331576347351,
+          "gradient_norm_before_clip": 6.555907726287842,
+          "seconds": 0.14965579600539058,
+          "optimizer_seconds": 0.025434684997890145
+        },
+        {
+          "step": 15,
+          "objective": 0.8651390075683594,
+          "gradient_norm_before_clip": 7.608161926269531,
+          "seconds": 0.13547285400272813,
+          "optimizer_seconds": 0.02306704300281126
+        },
+        {
+          "step": 16,
+          "objective": 1.0288565158843994,
+          "gradient_norm_before_clip": 7.4219255447387695,
+          "seconds": 0.12358688400126994,
+          "optimizer_seconds": 0.018295388988917693
+        },
+        {
+          "step": 17,
+          "objective": 0.610592246055603,
+          "gradient_norm_before_clip": 5.1099371910095215,
+          "seconds": 0.14624050799466204,
+          "optimizer_seconds": 0.02459185699990485
+        },
+        {
+          "step": 18,
+          "objective": 0.9554083943367004,
+          "gradient_norm_before_clip": 7.723522186279297,
+          "seconds": 0.14655103599943686,
+          "optimizer_seconds": 0.022031646003597416
+        },
+        {
+          "step": 19,
+          "objective": 0.6600707173347473,
+          "gradient_norm_before_clip": 6.5284953117370605,
+          "seconds": 0.18144368899811525,
+          "optimizer_seconds": 0.02946878000511788
+        },
+        {
+          "step": 20,
+          "objective": 0.6380343437194824,
+          "gradient_norm_before_clip": 4.662785530090332,
+          "seconds": 0.15299491499899887,
+          "optimizer_seconds": 0.02788719600357581
+        },
+        {
+          "step": 21,
+          "objective": 0.8609750270843506,
+          "gradient_norm_before_clip": 6.334048271179199,
+          "seconds": 0.13205958499747794,
+          "optimizer_seconds": 0.019636803001048975
+        },
+        {
+          "step": 22,
+          "objective": 0.7107160687446594,
+          "gradient_norm_before_clip": 5.472620487213135,
+          "seconds": 0.15229633799754083,
+          "optimizer_seconds": 0.023130581990699284
+        },
+        {
+          "step": 23,
+          "objective": 1.054063320159912,
+          "gradient_norm_before_clip": 7.462074279785156,
+          "seconds": 0.17265373800182715,
+          "optimizer_seconds": 0.028127074998337775
+        },
+        {
+          "step": 24,
+          "objective": 0.7763752341270447,
+          "gradient_norm_before_clip": 6.411101818084717,
+          "seconds": 0.1854345559986541,
+          "optimizer_seconds": 0.02470598700165283
+        },
+        {
+          "step": 25,
+          "objective": 0.9564828276634216,
+          "gradient_norm_before_clip": 7.06975793838501,
+          "seconds": 0.13037843100028113,
+          "optimizer_seconds": 0.019363204992259853
+        },
+        {
+          "step": 26,
+          "objective": 0.6810447573661804,
+          "gradient_norm_before_clip": 5.38653039932251,
+          "seconds": 0.13914737101003993,
+          "optimizer_seconds": 0.024236487995949574
+        },
+        {
+          "step": 27,
+          "objective": 0.6971951127052307,
+          "gradient_norm_before_clip": 5.279595375061035,
+          "seconds": 0.14016142900800332,
+          "optimizer_seconds": 0.02416663899202831
+        },
+        {
+          "step": 28,
+          "objective": 0.8793321847915649,
+          "gradient_norm_before_clip": 6.179948806762695,
+          "seconds": 0.13196866499492899,
+          "optimizer_seconds": 0.022955043008551
+        },
+        {
+          "step": 29,
+          "objective": 0.8748973608016968,
+          "gradient_norm_before_clip": 6.116941928863525,
+          "seconds": 0.1365119000111008,
+          "optimizer_seconds": 0.024133918006555177
+        },
+        {
+          "step": 30,
+          "objective": 0.8133590817451477,
+          "gradient_norm_before_clip": 9.668364524841309,
+          "seconds": 0.14193775299645495,
+          "optimizer_seconds": 0.023384341999189928
+        },
+        {
+          "step": 31,
+          "objective": 0.8315652012825012,
+          "gradient_norm_before_clip": 6.907601833343506,
+          "seconds": 0.13144338699930813,
+          "optimizer_seconds": 0.022080655995523557
+        },
+        {
+          "step": 32,
+          "objective": 0.6933180689811707,
+          "gradient_norm_before_clip": 4.9996514320373535,
+          "seconds": 0.14767931299866177,
+          "optimizer_seconds": 0.023305581999011338
+        },
+        {
+          "step": 33,
+          "objective": 1.2993601560592651,
+          "gradient_norm_before_clip": 13.782364845275879,
+          "seconds": 0.16095515900815371,
+          "optimizer_seconds": 0.026172572004725225
+        },
+        {
+          "step": 34,
+          "objective": 0.7113412022590637,
+          "gradient_norm_before_clip": 7.34625244140625,
+          "seconds": 0.14848946999700274,
+          "optimizer_seconds": 0.026699830996221863
+        },
+        {
+          "step": 35,
+          "objective": 0.7976334095001221,
+          "gradient_norm_before_clip": 6.266108989715576,
+          "seconds": 0.14642257599916775,
+          "optimizer_seconds": 0.025446243991609663
+        },
+        {
+          "step": 36,
+          "objective": 0.5048394203186035,
+          "gradient_norm_before_clip": 4.230011940002441,
+          "seconds": 0.14613258899771608,
+          "optimizer_seconds": 0.025481065007625148
+        },
+        {
+          "step": 37,
+          "objective": 0.9707635641098022,
+          "gradient_norm_before_clip": 7.134834289550781,
+          "seconds": 0.13652524098870344,
+          "optimizer_seconds": 0.024273319009807892
+        },
+        {
+          "step": 38,
+          "objective": 0.737438976764679,
+          "gradient_norm_before_clip": 6.0752644538879395,
+          "seconds": 0.1371782080095727,
+          "optimizer_seconds": 0.024160889006452635
+        },
+        {
+          "step": 39,
+          "objective": 0.9092297554016113,
+          "gradient_norm_before_clip": 7.403550148010254,
+          "seconds": 0.157813787998748,
+          "optimizer_seconds": 0.02699904900509864
+        },
+        {
+          "step": 40,
+          "objective": 0.7808137536048889,
+          "gradient_norm_before_clip": 7.217784881591797,
+          "seconds": 0.173761714991997,
+          "optimizer_seconds": 0.03063860700058285
+        },
+        {
+          "step": 41,
+          "objective": 1.1963624954223633,
+          "gradient_norm_before_clip": 7.433427333831787,
+          "seconds": 0.1697021090076305,
+          "optimizer_seconds": 0.03147396400163416
+        },
+        {
+          "step": 42,
+          "objective": 1.0988168716430664,
+          "gradient_norm_before_clip": 7.843081474304199,
+          "seconds": 0.15241604699986055,
+          "optimizer_seconds": 0.027837697009090334
+        },
+        {
+          "step": 43,
+          "objective": 0.9049542546272278,
+          "gradient_norm_before_clip": 7.71943473815918,
+          "seconds": 0.1540921010018792,
+          "optimizer_seconds": 0.025615204009227455
+        },
+        {
+          "step": 44,
+          "objective": 1.1240979433059692,
+          "gradient_norm_before_clip": 7.351301193237305,
+          "seconds": 0.16031002999807242,
+          "optimizer_seconds": 0.030349658001796342
+        },
+        {
+          "step": 45,
+          "objective": 0.603954017162323,
+          "gradient_norm_before_clip": 5.282800674438477,
+          "seconds": 0.13644912099698558,
+          "optimizer_seconds": 0.024299078999320045
+        },
+        {
+          "step": 46,
+          "objective": 1.2553592920303345,
+          "gradient_norm_before_clip": 8.876047134399414,
+          "seconds": 0.14454883300641086,
+          "optimizer_seconds": 0.024282797996420413
+        },
+        {
+          "step": 47,
+          "objective": 0.660841166973114,
+          "gradient_norm_before_clip": 4.494690418243408,
+          "seconds": 0.18439898900396656,
+          "optimizer_seconds": 0.031417123987921514
+        },
+        {
+          "step": 48,
+          "objective": 0.9472595453262329,
+          "gradient_norm_before_clip": 8.151437759399414,
+          "seconds": 0.16035169000679161,
+          "optimizer_seconds": 0.029023701994447038
+        },
+        {
+          "step": 49,
+          "objective": 0.6189329028129578,
+          "gradient_norm_before_clip": 5.506450176239014,
+          "seconds": 0.09875035799632315,
+          "optimizer_seconds": 0.016037686000345275
+        },
+        {
+          "step": 50,
+          "objective": 0.8148244619369507,
+          "gradient_norm_before_clip": 5.769253730773926,
+          "seconds": 0.17487480099953245,
+          "optimizer_seconds": 0.02595088299131021
+        },
+        {
+          "step": 51,
+          "objective": 0.7083171606063843,
+          "gradient_norm_before_clip": 5.9830145835876465,
+          "seconds": 0.12837542699708138,
+          "optimizer_seconds": 0.02300834200286772
+        },
+        {
+          "step": 52,
+          "objective": 0.6240359544754028,
+          "gradient_norm_before_clip": 5.462124347686768,
+          "seconds": 0.13188611601071898,
+          "optimizer_seconds": 0.02206140499038156
+        },
+        {
+          "step": 53,
+          "objective": 0.7143959403038025,
+          "gradient_norm_before_clip": 5.0519185066223145,
+          "seconds": 0.14201638200029265,
+          "optimizer_seconds": 0.025767542989342473
+        },
+        {
+          "step": 54,
+          "objective": 0.5143615007400513,
+          "gradient_norm_before_clip": 4.91822624206543,
+          "seconds": 0.15244056699157227,
+          "optimizer_seconds": 0.02427294899825938
+        },
+        {
+          "step": 55,
+          "objective": 1.0047682523727417,
+          "gradient_norm_before_clip": 7.116007328033447,
+          "seconds": 0.14945719699608162,
+          "optimizer_seconds": 0.026777589999255724
+        },
+        {
+          "step": 56,
+          "objective": 1.0026131868362427,
+          "gradient_norm_before_clip": 7.630274295806885,
+          "seconds": 0.1319092249905225,
+          "optimizer_seconds": 0.020871308995992877
+        },
+        {
+          "step": 57,
+          "objective": 0.750373363494873,
+          "gradient_norm_before_clip": 5.540787696838379,
+          "seconds": 0.16986261800047942,
+          "optimizer_seconds": 0.029213640998932533
+        },
+        {
+          "step": 58,
+          "objective": 0.9302537441253662,
+          "gradient_norm_before_clip": 6.938657760620117,
+          "seconds": 0.1704334270034451,
+          "optimizer_seconds": 0.032885150008951314
+        },
+        {
+          "step": 59,
+          "objective": 0.8738253116607666,
+          "gradient_norm_before_clip": 8.275086402893066,
+          "seconds": 0.1726569079910405,
+          "optimizer_seconds": 0.03070998600742314
+        },
+        {
+          "step": 60,
+          "objective": 0.8931896090507507,
+          "gradient_norm_before_clip": 5.746478080749512,
+          "seconds": 0.16384159900189843,
+          "optimizer_seconds": 0.030400357994949445
+        },
+        {
+          "step": 61,
+          "objective": 1.2509995698928833,
+          "gradient_norm_before_clip": 7.887861251831055,
+          "seconds": 0.14682998499483801,
+          "optimizer_seconds": 0.025566263997461647
+        },
+        {
+          "step": 62,
+          "objective": 0.7705955505371094,
+          "gradient_norm_before_clip": 6.543162822723389,
+          "seconds": 0.14253718999680132,
+          "optimizer_seconds": 0.026529080991167575
+        },
+        {
+          "step": 63,
+          "objective": 0.6429676413536072,
+          "gradient_norm_before_clip": 5.784477233886719,
+          "seconds": 0.1481609509937698,
+          "optimizer_seconds": 0.02672978000191506
+        },
+        {
+          "step": 64,
+          "objective": 0.5695956945419312,
+          "gradient_norm_before_clip": 4.172680377960205,
+          "seconds": 0.13198175599973183,
+          "optimizer_seconds": 0.023010632998193614
+        }
+      ],
+      "peak_allocated_gib": 2.2928762435913086,
+      "adam_state_bytes": 872017108,
+      "final_tune": {
+        "mean_ce": 0.6680838037282228,
+        "per_window_ce": [
+          0.6537847518920898,
+          0.494093656539917,
+          0.5289934277534485,
+          0.7065330147743225,
+          0.811546802520752,
+          0.6021692752838135,
+          0.6136972904205322,
+          0.4533039629459381,
+          0.6559799313545227,
+          0.6902139186859131,
+          1.124149203300476,
+          0.7654405832290649,
+          0.6216641068458557,
+          0.7568734884262085,
+          0.603251576423645,
+          0.6076458692550659
+        ]
+      },
+      "final_test": {
+        "mean_ce": 0.6645175069570541,
+        "per_window_ce": [
+          0.5568629503250122,
+          0.5241135954856873,
+          0.5479341149330139,
+          0.8190937042236328,
+          0.4964548647403717,
+          0.7187376022338867,
+          0.8380630016326904,
+          0.6807880401611328,
+          0.4696606695652008,
+          0.7845034003257751,
+          0.47432267665863037,
+          0.6752496957778931,
+          0.5449272990226746,
+          0.8187201619148254,
+          0.7524083852767944,
+          0.9304399490356445
+        ]
+      },
+      "status": "passed",
+      "training_power": {
+        "start_monotonic": 73404.610095839,
+        "end_monotonic": 73416.12150173,
+        "duration_seconds": 11.511405890996684,
+        "sample_count_inside": 115,
+        "average_board_power_w": 181.2907549335571,
+        "peak_sampled_board_power_w": 321.758,
+        "estimated_board_energy_j": 2086.9114643253856,
+        "max_sample_gap_seconds": 0.10065664100693539,
+        "new_tokens": 32768,
+        "new_tokens_per_second": 2846.5680308978203,
+        "estimated_board_joules_per_new_token": 0.0636874836525081,
+        "gpu_busy_percent": {
+          "median": 45,
+          "min": 21,
+          "max": 98
+        },
+        "memory_busy_percent": {
+          "median": 12,
+          "min": 2,
+          "max": 92
+        },
+        "sm_clock_mhz": {
+          "median": 2947,
+          "min": 2947,
+          "max": 2947
+        },
+        "memory_clock_mhz": {
+          "median": 13801,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 55,
+          "min": 54,
+          "max": 59
+        },
+        "memory_used_mib": {
+          "median": 4402.5625,
+          "min": 3494.5625,
+          "max": 4402.5625
+        },
+        "clock_event_reason_masks": [
+          0
+        ]
+      },
+      "external_training_power": {
+        "start_monotonic": 73404.610095839,
+        "end_monotonic": 73416.12150173,
+        "duration_seconds": 11.511405890996684,
+        "sample_count_inside": 115,
+        "average_board_power_w": 180.23303002706203,
+        "peak_sampled_board_power_w": 321.758,
+        "estimated_board_energy_j": 2074.735563605704,
+        "max_sample_gap_seconds": 0.10118404000240844,
+        "new_tokens": 32768,
+        "new_tokens_per_second": 2846.5680308978203,
+        "estimated_board_joules_per_new_token": 0.06331590465105298,
+        "gpu_busy_percent": {
+          "median": 45,
+          "min": 21,
+          "max": 98
+        },
+        "memory_busy_percent": {
+          "median": 12,
+          "min": 2,
+          "max": 92
+        },
+        "sm_clock_mhz": {
+          "median": 2947,
+          "min": 2947,
+          "max": 2947
+        },
+        "memory_clock_mhz": {
+          "median": 13801,
+          "min": 13801,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 55,
+          "min": 54,
+          "max": 59
+        },
+        "memory_used_mib": {
+          "median": 4402.5625,
+          "min": 3494.5625,
+          "max": 4402.5625
+        },
+        "clock_event_reason_masks": [
+          0
+        ]
+      }
+    }
+  ],
+  "limits": [
+    "Short BF16 adaptation, not original-depth pretraining or NVFP4 qualification.",
+    "Two data-order seeds and disjoint token ranges in one validation text; original pretraining overlap unknown.",
+    "Available implementations differ in batching and shape scaling; timings are not algorithm-only comparisons.",
+    "Learning-dependent routing changes the work; optimizer-only measurements isolate available implementations.",
+    "Board energy includes desktop activity and sampling limitations."
+  ]
+}
