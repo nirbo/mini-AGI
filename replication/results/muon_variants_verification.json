@@ -1,0 +1,317 @@
+{
+  "status": "passed",
+  "git_revision": "89941495bf748756c1b15d7e2790eb5db256a284",
+  "tests": {
+    "suite": {
+      "log": "runs/muon-controlled-final-suite.log",
+      "telemetry": "runs/muon-controlled-final-suite.power.json",
+      "gpu_metadata": {
+        "gpu": "NVIDIA GeForce RTX 5090",
+        "uuid": "GPU-3db847da-ef22-8494-e7d8-8381fdeb81be",
+        "driver": "595.91.07",
+        "power_limit_w": 600.0,
+        "interval_seconds": 0.1,
+        "clock_event_mask_definitions": {
+          "nvmlClocksEventReasonAll": 511,
+          "nvmlClocksEventReasonApplicationsClocksSetting": 2,
+          "nvmlClocksEventReasonDisplayClockSetting": 256,
+          "nvmlClocksEventReasonGpuIdle": 1,
+          "nvmlClocksEventReasonHwPowerBrakeSlowdown": 128,
+          "nvmlClocksEventReasonHwSlowdown": 8,
+          "nvmlClocksEventReasonHwThermalSlowdown": 64,
+          "nvmlClocksEventReasonNone": 0,
+          "nvmlClocksEventReasonSwPowerCap": 4,
+          "nvmlClocksEventReasonSwThermalSlowdown": 32,
+          "nvmlClocksEventReasonSyncBoost": 16,
+          "nvmlClocksEventReasonUserDefinedClocks": 2
+        },
+        "limits": [
+          "NVML-reported board power may be internally averaged; faster polling does not improve sensor resolution.",
+          "Peak is a sampled peak, not a guaranteed instantaneous maximum.",
+          "Energy is integrated board power, including desktop/other GPU activity; not whole-system energy.",
+          "Short workload windows have limited power/energy accuracy."
+        ]
+      },
+      "whole_process": {
+        "start_monotonic": 78505.563583958,
+        "end_monotonic": 78563.70554606,
+        "duration_seconds": 58.14196210198861,
+        "sample_count_inside": 580,
+        "average_board_power_w": 259.71671567932356,
+        "peak_sampled_board_power_w": 323.255,
+        "estimated_board_energy_j": 15100.439440280183,
+        "max_sample_gap_seconds": 0.10652582100010477,
+        "gpu_busy_percent": {
+          "median": 97.0,
+          "min": 0,
+          "max": 99
+        },
+        "memory_busy_percent": {
+          "median": 92.0,
+          "min": 0,
+          "max": 94
+        },
+        "sm_clock_mhz": {
+          "median": 2947.0,
+          "min": 232,
+          "max": 2955
+        },
+        "memory_clock_mhz": {
+          "median": 13801.0,
+          "min": 405,
+          "max": 13801
+        },
+        "temperature_c": {
+          "median": 57.0,
+          "min": 45,
+          "max": 61
+        },
+        "memory_used_mib": {
+          "median": 2306.5625,
+          "min": 1332.4375,
+          "max": 2308.5625
+        },
+        "clock_event_reason_masks": [
+          0
+        ]
+      },
+      "test_count": 109
+    },
+    "cuda": {
+      "log": "runs/muon-controlled-final-cuda.log",
+      "telemetry": "runs/muon-controlled-final-cuda.power.json",
+      "gpu_metadata": {
+        "gpu": "NVIDIA GeForce RTX 5090",
+        "uuid": "GPU-3db847da-ef22-8494-e7d8-8381fdeb81be",
+        "driver": "595.91.07",
+        "power_limit_w": 600.0,
+        "interval_seconds": 0.1,
+        "clock_event_mask_definitions": {
+          "nvmlClocksEventReasonAll": 511,
+          "nvmlClocksEventReasonApplicationsClocksSetting": 2,
+          "nvmlClocksEventReasonDisplayClockSetting": 256,
+          "nvmlClocksEventReasonGpuIdle": 1,
+          "nvmlClocksEventReasonHwPowerBrakeSlowdown": 128,
+          "nvmlClocksEventReasonHwSlowdown": 8,
+          "nvmlClocksEventReasonHwThermalSlowdown": 64,
+          "nvmlClocksEventReasonNone": 0,
+          "nvmlClocksEventReasonSwPowerCap": 4,
+          "nvmlClocksEventReasonSwThermalSlowdown": 32,
+          "nvmlClocksEventReasonSyncBoost": 16,
+          "nvmlClocksEventReasonUserDefinedClocks": 2
+        },
+        "limits": [
+          "NVML-reported board power may be internally averaged; faster polling does not improve sensor resolution.",
+          "Peak is a sampled peak, not a guaranteed instantaneous maximum.",
+          "Energy is integrated board power, including desktop/other GPU activity; not whole-system energy.",
+          "Short workload windows have limited power/energy accuracy."
+        ]
+      },
+      "whole_process": {
+        "start_monotonic": 78563.748908976,
+        "end_monotonic": 78584.495563355,
+        "duration_seconds": 20.74665437899239,
+        "sample_count_inside": 207,
+        "average_board_power_w": 114.977524639087,
+        "peak_sampled_board_power_w": 207.638,
+        "estimated_board_energy_j": 2385.3989650392195,
+        "max_sample_gap_seconds": 0.10902794300636742,
+        "gpu_busy_percent": {
+          "median": 0,
+          "min": 0,
+          "max": 96
+        },
+        "memory_busy_percent": {
+          "median": 1,
+          "min": 0,
+          "max": 91
+        },
+        "sm_clock_mhz": {
+          "median": 2715,
+          "min": 2572,
+          "max": 2955
+        },
+        "memory_clock_mhz": {
+          "median": 13801,
+          "min": 13801,
+          "max": 14001
+        },
+        "temperature_c": {
+          "median": 53,
+          "min": 51,
+          "max": 57
+        },
+        "memory_used_mib": {
+          "median": 2116.5625,
+          "min": 1332.4375,
+          "max": 2116.5625
+        },
+        "clock_event_reason_masks": [
+          0
+        ]
+      },
+      "test_count": 6
+    },
+    "reduction": {
+      "log": "runs/muon-controlled-final-reduction.log",
+      "telemetry": "runs/muon-controlled-final-reduction.power.json",
+      "gpu_metadata": {
+        "gpu": "NVIDIA GeForce RTX 5090",
+        "uuid": "GPU-3db847da-ef22-8494-e7d8-8381fdeb81be",
+        "driver": "595.91.07",
+        "power_limit_w": 600.0,
+        "interval_seconds": 0.1,
+        "clock_event_mask_definitions": {
+          "nvmlClocksEventReasonAll": 511,
+          "nvmlClocksEventReasonApplicationsClocksSetting": 2,
+          "nvmlClocksEventReasonDisplayClockSetting": 256,
+          "nvmlClocksEventReasonGpuIdle": 1,
+          "nvmlClocksEventReasonHwPowerBrakeSlowdown": 128,
+          "nvmlClocksEventReasonHwSlowdown": 8,
+          "nvmlClocksEventReasonHwThermalSlowdown": 64,
+          "nvmlClocksEventReasonNone": 0,
+          "nvmlClocksEventReasonSwPowerCap": 4,
+          "nvmlClocksEventReasonSwThermalSlowdown": 32,
+          "nvmlClocksEventReasonSyncBoost": 16,
+          "nvmlClocksEventReasonUserDefinedClocks": 2
+        },
+        "limits": [
+          "NVML-reported board power may be internally averaged; faster polling does not improve sensor resolution.",
+          "Peak is a sampled peak, not a guaranteed instantaneous maximum.",
+          "Energy is integrated board power, including desktop/other GPU activity; not whole-system energy.",
+          "Short workload windows have limited power/energy accuracy."
+        ]
+      },
+      "whole_process": {
+        "start_monotonic": 78584.538980341,
+        "end_monotonic": 78587.599387133,
+        "duration_seconds": 3.0604067919921363,
+        "sample_count_inside": 30,
+        "average_board_power_w": 72.71347997820226,
+        "peak_sampled_board_power_w": 76.542,
+        "estimated_board_energy_j": 222.53282799467442,
+        "max_sample_gap_seconds": 0.10071540900389664,
+        "gpu_busy_percent": {
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "memory_busy_percent": {
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "sm_clock_mhz": {
+          "median": 2572.0,
+          "min": 2572,
+          "max": 2587
+        },
+        "memory_clock_mhz": {
+          "median": 14001.0,
+          "min": 13801,
+          "max": 14001
+        },
+        "temperature_c": {
+          "median": 51.0,
+          "min": 50,
+          "max": 51
+        },
+        "memory_used_mib": {
+          "median": 1335.25,
+          "min": 1332.4375,
+          "max": 2142.5625
+        },
+        "clock_event_reason_masks": [
+          0
+        ]
+      }
+    }
+  },
+  "environment": {
+    "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.43",
+    "python": "3.12.14",
+    "packages": {
+      "torch": "2.14.1",
+      "triton": "3.8.0",
+      "nvidia-cutlass-dsl": "4.8.1",
+      "quack-kernels": "0.6.5",
+      "sonic-moe": "0.1.2.post1",
+      "gefen": "1.2.3",
+      "numpy": "2.5.4",
+      "nvidia-ml-py": "13.615.71"
+    },
+    "git_base": "b81ae92",
+    "git_experiment": "89941495bf748756c1b15d7e2790eb5db256a284",
+    "cuda_toolkit": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Tue_Dec_16_07:23:41_PM_PST_2025\nCuda compilation tools, release 13.1, V13.1.115\nBuild cuda_13.1.r13.1/compiler.37061995_0\n",
+    "checkpoint_unchanged_files": 401,
+    "torch_version": "2.14.1+cu130",
+    "torch_cuda_build": "13.0",
+    "torch_git_version": "5c4886908584029761b579af026dcfb627c84070",
+    "installed_numerical_source_sha256": {
+      "sonicmoe": {
+        "__init__.py": "3f3f19d7cc6a743e4553e1e86137f320f310c3e0753d627d23463f95bc85260d",
+        "enums.py": "2ad1f833809a16ffc6bac4a366bd3bace7cef52c7955cd8054e450b0f04c342d",
+        "functional/__init__.py": "7ceff3b067d3d0f68d2ce36b9337dc4459a4e05255abece2683ea69f6eff5c61",
+        "functional/backward.py": "08330072f2e73213ebbd4bef4591fe2f08fe6a4583a1e2409ecbb3a65a0f1ba1",
+        "functional/forward.py": "ab81bd844e862a200cb89beebac021f73b6347906fe970b95a31456a17d7459a",
+        "functional/reduction_over_k_gather.py": "7c16136876c74d7a65ee2d9db49d489cd221d0f229c5f13ee889af3e835c39a5",
+        "functional/topk.py": "c3fcc7e28466a60dd164890ea259bc438a6d4171ec6fa6bdd35f63537fed0fba",
+        "functional/triton_kernels/__init__.py": "d84e207b63f5b44692e7ddec7b23ecdcaa55f9c104da10200d83b42cf47d9501",
+        "functional/triton_kernels/bitmatrix.py": "909f9522bd3b9f47b8f3e5d01d28106cb9e671180567dd4cdcd214c4d3788702",
+        "jit.py": "a64a3b2e4b6d91a6fed180d49176c000ddc8ff232f4e7c3b7768c913ace697e8",
+        "moe.py": "2433ad3f03619dafdeda8a36a294b38ab738e44e859b83505065e1297bc1493d",
+        "utils.py": "9a081b4a94981502094f262071c9e0badfd278ad80a897d25cbd7f08c67c5723"
+      },
+      "gefen": {
+        "__init__.py": "3b823e459444c907d25775eeb1cb31cdeb8a3a3df2e7fc5015d43a2029dd53b0",
+        "gefen.py": "f453acf4afae97715304f58f0132a5a95abe9b61c6490abb0f1dc15691f31203",
+        "gefen_muon.py": "64dbda3cc6e65fe32ec6b0457aba975a0e87c0a48389d7ef187fa851e9736215",
+        "kernels/__init__.py": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "kernels/_build_notice.py": "d15ed796c28df4c0a44a2c1ef340a709f924c485f48b9a9e29efee443c3486f9",
+        "kernels/automatic_gefen_fused.py": "0aa4d4947e9c14ca7c947cdba63ec4c106fe929ec0e8399c1ce789cc0ba39483",
+        "kernels/automatic_gefen_fused_kernel.cu": "eb7cd6b14464535ed1f4e5387cb01c979e2222b403b3e9671b7259ade0edc729",
+        "kernels/automatic_vmean.py": "789d13de7a6517fc4260b327b5b0c98c7e20916ad5058163e0b06f6712a7ca09",
+        "kernels/automatic_vmean_kernel.cu": "2dd6f35442e3f89a88984ef34bdc00d84e821b7562e8adc39ebf7a913f8e8300",
+        "kernels/exact_histogram_fused.py": "e77c5263679490d5ffbd10c142fce1ec0f0742bcd8acbee8d22212230cc7f330",
+        "kernels/exact_histogram_fused_kernel.cu": "d4695da5813522b695c4baa9d45c2c359f69d66e34ee8b937b88d37868e494f6",
+        "kernels/gefen_cuda.py": "0bca891ae33d886c417e4c9e53f10cad691c34ffd9ace04d4c3f5511fcc7a97d",
+        "kernels/gefen_cuda_binding.cpp": "64619a2978b0aa2ff17babfffb60ce9783d1f2bef1c3bd88d1dd7a2492a53f3c",
+        "kernels/lloyd_max_fused.py": "8c0b1f47df77d98fc279924186ab9cc79956745b2ef6f08a3d8a2605d8593192",
+        "kernels/lloyd_max_fused_kernel.cu": "d0b0288ace1d03886a4975b286fc5f32f38c956988c8f8a0194296d4c3cf9219",
+        "kernels/period_variance.py": "45d640e9851f8b2953fcd95b39f9fbb899efbca6b6697fea242e79f05ecaf4f5",
+        "kernels/period_variance_kernel.cu": "b5421de233d5b35a3ee6cb6401af662a5bdd7e30669824bf389b1b8aa6a7cd43",
+        "partitioning.py": "0c9867c08f292ce54e39d0f05ef2e0e872a68b90dd746710f3574813ab7fe692",
+        "quantization.py": "e9477c63b712b78a1544d511c31371b903a79cac9e2ca57ff3f28cc3e560d68a",
+        "setup.py": "ef7b23c3468c8130483cd7578c14e977b39b372fd088f0e163b47be196d1291e"
+      }
+    }
+  },
+  "strict_replay": {
+    "variants": [
+      "adamw",
+      "gefen",
+      "muon",
+      "muon_plus",
+      "normuon",
+      "dion3_quarter",
+      "dion3_half"
+    ],
+    "initial_gradients_identical_across_candidates": true,
+    "two_independent_processes_each": true
+  },
+  "learning_trials": 43,
+  "optimizer_only_probes": 14,
+  "original_checkpoint_unchanged_files": 401,
+  "measured_source_sha256": {
+    "minagi/optimizers.py": "e56ed1b67166e384b3cff8400d835cd455f422f769dee14c51921b1bdb4f72ad",
+    "minagi/optim_codec.py": "18c922245b55eea4f0b5f0a77e74f825dddda4904c27dd9bd0fa0cf9bb55dd8a",
+    "replication/muon_candidates.py": "7433233789f39d328ce43df49f2d461db34463ac35436d4bf1b2e28af965fd39",
+    "/home/nir/ml-tools/mini-AGI/replication/compare_muon_deterministic.py": "6b720b53cd6f1cae848f6f744931510ed66aee97afe07d874baa8653d32fcb95"
+  },
+  "evidence_archive": {
+    "path": "replication/results/muon_variants_evidence.tar.gz",
+    "sha256": "a5a37628715d7410645e862b88c7473289f4bcb879ad0b4eef571b67bb773980",
+    "bytes": 4711164,
+    "verified_file_count": 871
+  }
+}

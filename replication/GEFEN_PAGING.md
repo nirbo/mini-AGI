@@ -160,6 +160,13 @@ At 256 updates (131,072 training tokens), the two independent confirmation
 seeds give the following results at the selected rate. Time and energy include
 calibration and all updates; each row aggregates both runs.
 
+**Later qualification:** the [Muon comparison](MUON_VARIANTS.md) found that
+default GPU backward execution was not reproducible even at fixed seed and
+input. The learning outcomes below remain recorded observations, but should
+not be treated as a robust optimizer-quality ranking. The newer comparison
+uses deterministic execution and fixed reduction configuration. The Gefen
+state/paging correctness tests and memory measurements are separate evidence.
+
 | Optimizer | Mean test CE | Mean training s | Tokens/s | Average / peak sampled W | Board J/token | Peak allocated GiB |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | AdamW | 0.6605 | 40.51 | 3236 | 161 / 322 | 0.04965 | 2.293 |
