@@ -38,6 +38,8 @@
 ## Precision direction
 
 - Gefen is the target optimizer for ongoing development. Retain AdamW as a verification reference; Muon variants are outside the active implementation plan.
-- Evaluate ordinary FP8 W8A8 expert training as the next precision step, with cached compute weights, causal activation scaling and measured complete forward/backward costs.
+- Sonic BF16 + Gefen is the measured baseline for the current hidden-512 checkpoint. Ordinary FP8 and FP16-accumulating adapters remain research paths until full-workload performance and learning results support integration.
+- Distinguish Tensor Core MMA accumulation, GEMM output dtype, and outer gradient/master storage. Verify the actual instruction path; an FP32 gradient buffer does not select FP32 MMA accumulation, and throughput restrictions are instruction-specific. Test selective accumulator policies independently of master storage.
+- Evaluate ordinary FP8 W8A8 expert training with cached compute weights, causal activation scaling and measured complete forward/backward costs.
 - Native NVFP4 W4A4 training is the user's preferred target when correctness, learning stability, and measured performance support it. Evaluate quantized forward and backward computation; distinguish it from fake-quant QAT, post-training quantization, and frozen quantized bases with adapters.
 - Preserve a verified higher-precision reference and a replaceable expert-compute interface while evaluating low-precision backends. Do not assume training quality improves simply because computation uses NVFP4.
