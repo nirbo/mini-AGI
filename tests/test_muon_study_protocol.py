@@ -82,6 +82,14 @@ class StudyProtocolTests(unittest.TestCase):
                 with self.assertRaisesRegex(RuntimeError,'cached trial configuration differs'):
                     protocol.trial(self.root,'muon',3e-5,steps=256)
 
+    def test_replay_oracle_must_use_the_same_measured_source(self):
+        oracle=self.root/'runs/muon-deterministic-repro-fixed/a/muon-lr3e-05-seed42-steps8.json'
+        earlier=json.loads(oracle.read_text())
+        earlier['sources'][str(self.source)]='0'*64
+        oracle.write_text(json.dumps(earlier))
+        with self.assertRaisesRegex(RuntimeError,'oracle used different measured sources'):
+            protocol.validate_learning_protocol(self.report,False)
+
 
 if __name__=='__main__':
     unittest.main()

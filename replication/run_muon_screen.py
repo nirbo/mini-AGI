@@ -27,6 +27,8 @@ def validate_learning_protocol(report, fingerprint):
     if not reference.exists():
         raise RuntimeError('run the independent-process reproducibility phase first')
     earlier=json.loads(reference.read_text())
+    if earlier['sources']!=report['sources']:
+        raise RuntimeError('reproducibility oracle used different measured sources')
     count=8 if report['configuration']['lr']==3e-5 else 1
     if any(len(r[key]) < count for r in (report,earlier)
            for key in ('trace','training_window_indices')):
