@@ -21,6 +21,10 @@ def summarize(root):
         raise AssertionError('no trials')
     for r in reports:
         validate_learning_protocol(r,False)
+        if any(len(r[key])!=r['configuration']['steps'] for key in ('trace','training_window_indices')):
+            raise AssertionError('incomplete learning run')
+        if any(t['routing_seed'] is not None for t in r['trace']):
+            raise AssertionError('this screen requires the default deterministic top-k routing')
         for source, digest in r['sources'].items():
             if hashlib.sha256(Path(source).read_bytes()).hexdigest() != digest:
                 raise AssertionError(f'source changed since run: {source}')
@@ -86,6 +90,7 @@ def summarize(root):
                           mean_test_ce=statistics.mean(r['final_test']['mean_ce'] for r in long),
                           mean_tune_ce=statistics.mean(r['final_tune']['mean_ce'] for r in long),
                           seed_test_ce={r['configuration']['seed']:r['final_test']['mean_ce'] for r in long},
+                          seed_tune_ce={r['configuration']['seed']:r['final_tune']['mean_ce'] for r in long},
                           mean_training_seconds=statistics.mean(p['duration_seconds'] for p in power),
                           mean_tokens_per_second=statistics.mean(p['new_tokens_per_second'] for p in power),
                           mean_board_watts=statistics.mean(p['average_board_power_w'] for p in power),
@@ -99,7 +104,21 @@ def summarize(root):
     if any(not r['finite'] for r in latency.values()):
         raise AssertionError('non-finite optimizer benchmark')
     large = {name:json.loads((root/f'latency-large-{name}.json').read_text()) for name in variants}
-    frozen = [r for r in reports if r['configuration']['optimizer']=='adamw' and r['configuration']['lr']==0.]
+    for r in (*latency.values(),*large.values()):
+        if r.get('status')=='out_of_memory':
+            continue
+        if not r['finite'] or not r['deterministic_algorithms'] or r['sources']!={k:list(v) for k,v in SOURCES.items()}:
+            raise AssertionError('unqualified optimizer-only benchmark')
+    frozen = [r for r in reports if r['configuration']['optimizer']=='adamw' and r['configuration']['lr']==0.
+              and r['configuration']['steps']==256]
+    if {r['configuration']['seed'] for r in frozen}!={42,43,44} or len(frozen)!=3:
+        raise AssertionError('incomplete matched auxiliary-only controls')
+    control={r['configuration']['seed']:r['final_test']['mean_ce'] for r in frozen}
+    for name,row in table.items():
+        row['seed_test_ce_minus_adamw']={seed:value-table['adamw']['seed_test_ce'][seed]
+                                         for seed,value in row['seed_test_ce'].items()}
+        row['seed_test_ce_minus_auxiliary_only']={seed:value-control[seed]
+                                                 for seed,value in row['seed_test_ce'].items()}
     return dict(sources=SOURCES, learning_trial_count=len(reports),
                 manifest_sha256=reports[0]['manifest_sha256'], text_sha256=reports[0]['text_sha256'],
                 initial_tune=initial_tune, initial_test=initial_test, grid=grid, short_grid=short_grid,
@@ -108,8 +127,9 @@ def summarize(root):
                 reproducibility=json.loads(Path('runs/muon-deterministic-repro-fixed/repro-passed.json').read_text()),
                 isolated_latency=latency, isolated_latency_large=large,
                 auxiliary_only_control=frozen,
+                measured_source_sha256=reports[0]['sources'],
                 limits=['Short BF16 adaptation, not original-depth pretraining or NVFP4 qualification.',
-                        'Two data-order seeds and disjoint token ranges in one validation text; original pretraining overlap unknown.',
+                        'Two data-order seeds, default deterministic top-k routing, and disjoint token ranges in one validation text; original pretraining overlap unknown.',
                         'Available implementations differ in batching and shape scaling; timings are not algorithm-only comparisons.',
                         'Learning-dependent routing changes the work; optimizer-only measurements isolate available implementations.',
                         'Board energy includes desktop activity and sampling limitations.'])

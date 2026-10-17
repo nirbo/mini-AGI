@@ -453,6 +453,12 @@ re-forwards old context, so its reported new-character rate is not total
 forwarded-token throughput. Keep evaluation/sample overhead separate when
 comparing steady training rates.
 
+Matching seeds alone does not guarantee exact GPU replay. The Muon research
+comparison qualifies deterministic Torch execution and fixes the process-local
+Sonic reduction configuration; see its protocol before comparing small quality
+differences. These controls are implemented by the research runner, not a new
+trainer CLI option.
+
 The existing [Gefen learning screen](replication/GEFEN_PAGING.md),
 [Muon variant comparison](replication/MUON_VARIANTS.md),
 [training profile measurements](replication/results/rtx5090_training_profile.json) and

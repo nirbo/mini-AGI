@@ -72,9 +72,11 @@ remain cached in host RAM. No learned checkpoint is written.
 The locally available TinyStories validation text provides disjoint byte/character-token
 ranges: adaptation `[0,262144)`, tuning from 262144, and test from 524288.
 Evaluation uses sixteen 512-token windows. Training windows are sampled
-without replacement in a seeded permutation. Each seed controls both window
-order and the model's stochastic routing; these are training-seed replicates,
-not data-order-only changes. Original checkpoint/data
+without replacement in a seeded permutation. These seeds change window order.
+The paged pool keeps its default selection temperature of zero, so routing
+uses deterministic top-k; the recorded `routing_seed` fields are all null.
+The optimizer RNG-preservation test also guards future stochastic use, but
+this experiment does not test stochastic routing. Original checkpoint/data
 overlap is unknown; these are not canonical document-deduplicated splits.
 
 Final learning-rate selection uses 256 updates on seed 42. Every candidate
@@ -83,7 +85,7 @@ of three until it is bracketed by worse tested rates, subject to a bounded
 search. AdamW also gets a zero-expert-rate control, measuring auxiliary-only
 adaptation. Zero is an explicit boundary, not a new optimizer. Selection uses
 only tuning cross-entropy. Confirmation then runs each selected rate for 256
-updates on seeds 43/44. Two training seeds cannot establish a general quality
+updates on seeds 43/44. Two data-order seeds cannot establish a general quality
 ranking or statistical equivalence.
 
 ### Reproducibility qualification
@@ -103,11 +105,11 @@ Their raw outcomes are retained separately.
   fixes process-local dispatch and never edits the installed package. This
   screen restricts it to hidden 512 and 32 resident experts.
 - Two independent eight-update processes per candidate must have identical
-  gradients, routing seeds, training traces, weights, optimizer history,
+  gradients, training traces, weights, optimizer history,
   host expert contents, slots, and initial/final evaluation results. All
   candidates must receive bit-identical initial gradients.
-- Every seed-42 learning run checks its first gradient norm/objective/routing
-  seed against that oracle; LR `3e-5` runs check the full eight-update prefix.
+- Every seed-42 learning run checks its first gradient norm/objective against
+  that oracle; LR `3e-5` runs check the full eight-update prefix.
   Cached results must match the measured source hashes and execution controls.
 
 Deterministic mode removed the observed repeated-backward variation; fixing
