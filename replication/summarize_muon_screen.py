@@ -4,19 +4,23 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import re
 import statistics
 
 from replication.muon_candidates import VARIANTS, SOURCES
+from replication.run_muon_screen import validate_learning_protocol
 
 
 def summarize(root):
     variants = ('adamw', 'gefen', *VARIANTS)
-    reports = [json.loads(p.read_text()) for p in sorted(root.glob('*-seed*-steps*.json'))]
+    reports = [json.loads(p.read_text()) for p in sorted(root.glob('*-seed*-steps*.json'))
+               if re.fullmatch(r'.+-lr.+-seed\d+-steps\d+\.json',p.name)]
     if any(r['status'] != 'passed' for r in reports):
         raise AssertionError('failed learning trial')
     if not reports:
         raise AssertionError('no trials')
     for r in reports:
+        validate_learning_protocol(r,False)
         for source, digest in r['sources'].items():
             if hashlib.sha256(Path(source).read_bytes()).hexdigest() != digest:
                 raise AssertionError(f'source changed since run: {source}')
@@ -34,6 +38,21 @@ def summarize(root):
             raise AssertionError('unmatched data order')
         if r['manifest_sha256'] != reports[0]['manifest_sha256'] or r['text_sha256'] != reports[0]['text_sha256']:
             raise AssertionError('different checkpoint or data')
+    prefixes = []
+    short_runs = {(r['configuration']['optimizer'],r['configuration']['lr']):r for r in reports
+                  if r['configuration']['seed']==42 and r['configuration']['steps']==64}
+    for r in reports:
+        cfg = r['configuration']
+        if cfg['seed']!=42 or cfg['steps']!=256:
+            continue
+        earlier=short_runs.get((cfg['optimizer'],cfg['lr']))
+        if earlier is None:
+            continue
+        if r['training_window_indices'][:64] != earlier['training_window_indices']:
+            raise AssertionError('long/short data prefixes differ')
+        prefixes.append(dict(optimizer=cfg['optimizer'],lr=cfg['lr'],
+                             max_objective_abs_diff=max(abs(a['objective']-b['objective']) for a,b in zip(r['trace'][:64],earlier['trace'])),
+                             max_gradient_norm_abs_diff=max(abs(a['gradient_norm_before_clip']-b['gradient_norm_before_clip']) for a,b in zip(r['trace'][:64],earlier['trace']))))
     long_selection = (root/'selected-rates-long.json').exists()
     horizon = 256 if long_selection else 64
     selected = json.loads((root/('selected-rates-long.json' if long_selection else 'selected-rates.json')).read_text())
@@ -41,7 +60,7 @@ def summarize(root):
     for name in variants:
         short = [r for r in reports if r['configuration']['optimizer'] == name
                  and r['configuration']['steps'] == 64 and r['configuration']['seed'] == 42]
-        if len(short) < 6:
+        if horizon==64 and len(short) < 6:
             raise AssertionError(f'incomplete rate grid: {name}')
         short_grid[name] = sorted([dict(lr=r['configuration']['lr'], tune_ce=r['final_tune']['mean_ce'],
                                   test_ce=r['final_test']['mean_ce']) for r in short], key=lambda r:r['lr'])
@@ -85,6 +104,8 @@ def summarize(root):
                 manifest_sha256=reports[0]['manifest_sha256'], text_sha256=reports[0]['text_sha256'],
                 initial_tune=initial_tune, initial_test=initial_test, grid=grid, short_grid=short_grid,
                 selection_horizon_steps=horizon, confirmation=table,
+                long_short_prefix_checks=prefixes,
+                reproducibility=json.loads(Path('runs/muon-deterministic-repro-fixed/repro-passed.json').read_text()),
                 isolated_latency=latency, isolated_latency_large=large,
                 auxiliary_only_control=frozen,
                 limits=['Short BF16 adaptation, not original-depth pretraining or NVFP4 qualification.',

@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import os
 from pathlib import Path
 import statistics
 import time
@@ -21,8 +22,13 @@ def main():
     parser.add_argument('--experts', type=int, default=8)
     parser.add_argument('--hidden', type=int, default=512)
     parser.add_argument('--width', type=int, default=2048)
+    parser.add_argument('--deterministic',action='store_true')
     args = parser.parse_args()
+    if args.deterministic:
+        os.environ['CUBLAS_WORKSPACE_CONFIG']=':4096:8'
+        torch.use_deterministic_algorithms(True)
     report = {'optimizer':args.optimizer, 'sources':SOURCES, 'dtype':'FP32 masters/gradients',
+              'deterministic_algorithms':args.deterministic,
               'geometry':{'experts':args.experts, 'hidden':args.hidden, 'width':args.width},
               'limit':'Optimizer-only fixed correlated gradients, not learning or a full trainer speedup.'}
     with PowerMonitor() as monitor:

@@ -77,26 +77,44 @@ order and the model's stochastic routing; these are training-seed replicates,
 not data-order-only changes. Original checkpoint/data
 overlap is unknown; these are not canonical document-deduplicated splits.
 
-The expert learning-rate grid is `3e-6, 1e-5, 3e-5, 1e-4, 3e-4, 1e-3, 3e-3, 1e-2`,
-64 updates each, data-order seed 42. Select using tuning cross-entropy
-only. An initial 256-update pilot uses data-order seeds 43/44.
-Check whether the grid winner lies at an edge before accepting selection.
-The two lowest positive rates and an AdamW expert-LR-zero control were added
-after the first two rates showed that smaller expert steps could help.
-The zero-rate control measures auxiliary-only adaptation; it is not a new
-optimizer. Rate selection extends a winning edge by approximately a factor
-of three before confirmation, with a bounded search; it refuses an
-unbracketed positive winner. Zero is the explicit frozen-expert boundary.
+Final learning-rate selection uses 256 updates on seed 42. Every candidate
+gets `3e-6, 3e-5, 1e-4`; a winning edge is extended by approximately a factor
+of three until it is bracketed by worse tested rates, subject to a bounded
+search. AdamW also gets a zero-expert-rate control, measuring auxiliary-only
+adaptation. Zero is an explicit boundary, not a new optimizer. Selection uses
+only tuning cross-entropy. Confirmation then runs each selected rate for 256
+updates on seeds 43/44. Two training seeds cannot establish a general quality
+ranking or statistical equivalence.
 
-The pilot showed that a 64-update winning rate need not transfer to 256
-updates. Final selection therefore retunes at the actual 256-update horizon
-on seed 42: every candidate gets `3e-6, 3e-5, 1e-4`, plus its short-screen
-winner when different, with the same adaptive bracketing rule. AdamW also
-gets the zero-expert-rate control at this horizon. Final confirmation uses
-seeds 43/44 at the new selected rates, reusing an already completed run only
-when its full configuration matches. Both selection files and every pilot
-are retained. This is an exploratory study whose design was extended after
-the pilot, not a preregistered benchmark or a convergence proof.
+### Reproducibility qualification
+
+The initial exploratory sweep used 64-update tuning and a 256-update pilot.
+Matching seeds and inputs did not make its training reproducible: backward
+passes on the same fixed graph changed gradients under default GPU execution.
+The exploratory learning rankings are **not used to choose an optimizer**.
+Their raw outcomes are retained separately.
+
+`compare_muon_deterministic.py` controls execution in each subprocess:
+
+- `torch.use_deterministic_algorithms(True)` and
+  `CUBLAS_WORKSPACE_CONFIG=:4096:8`; TF32 is disabled.
+- The existing Sonic token-gather reduction uses its measured, valid Triton
+  configuration: `BLOCK_H=256`, `BLOCK_K=32`, four warps, four stages. This
+  fixes process-local dispatch and never edits the installed package. This
+  screen restricts it to hidden 512 and 32 resident experts.
+- Two independent eight-update processes per candidate must have identical
+  gradients, routing seeds, training traces, weights, optimizer history,
+  host expert contents, slots, and initial/final evaluation results. All
+  candidates must receive bit-identical initial gradients.
+- Every seed-42 learning run checks its first gradient norm/objective/routing
+  seed against that oracle; LR `3e-5` runs check the full eight-update prefix.
+  Cached results must match the measured source hashes and execution controls.
+
+Deterministic mode removed the observed repeated-backward variation; fixing
+the third-party reduction selection also makes evaluation use the same math.
+The pinned reduction is separately checked against the PyTorch oracle for
+outputs and every derivative, including zero scores, missing tokens and
+unused experts; checkpoint replay must be bit-identical.
 
 Auxiliary pool LR is fixed at `1e-4`, trunk LR at `2e-5`, auxiliary Adam
 betas `(0.9,0.95)`, and weight decay 0.1. These rates do not change when
@@ -136,15 +154,27 @@ because it intentionally covers many matrix shapes, missing-gradient cases,
 and candidate algorithms in one process. No system configuration changes.
 
 ```sh
-.venv/bin/python -m replication.run_muon_screen --phase smoke
-.venv/bin/python -m replication.run_muon_screen --phase grid
-.venv/bin/python -m replication.run_muon_screen --phase low-grid
-.venv/bin/python -m replication.run_muon_screen --phase confirm
+.venv/bin/python -m replication.run_muon_screen --phase repro \
+  --out runs/muon-deterministic-repro-fixed
 .venv/bin/python -m replication.run_muon_screen --phase long-grid
 .venv/bin/python -m replication.run_muon_screen --phase long-confirm
 .venv/bin/python -m replication.run_muon_screen --phase latency
 .venv/bin/python -m replication.run_muon_screen --phase latency-large
+.venv/bin/python -m replication.summarize_muon_screen
 ```
+
+The runner monitors every GPU subprocess externally. To repeat the standalone
+fixed-reduction qualification:
+
+```sh
+PATH="$PWD/.venv/bin:$PATH" .venv/bin/python -m replication.gpu_monitor \
+  --out runs/muon-fixed-reduction.power.json -- \
+  .venv/bin/python -m replication.probe_fixed_sonic_reduction
+```
+
+The older short-screen modes remain available for experiments, but are not
+the final learning-selection protocol. `compare_muon_training.py` preserves
+the original uncontrolled experiment; the runner uses the controlled module.
 
 The runner serializes GPU workloads and starts an external NVML monitor for
 each subprocess. Raw timestamped telemetry includes board power, utilization,
@@ -156,7 +186,7 @@ gaps during Gefen's Python calibration.
 
 `latency` measures eight independent 512/2048 experts (24 matrices,
 25,165,824 parameters) with identical fixed correlated gradients for five
-seconds after warmup. This excludes model computation and paging; it isolates
+seconds after warmup, with deterministic execution controls. This excludes model computation and paging; it isolates
 available optimizer implementations. Constant-gradient timing does not
 establish learning quality.
 
@@ -166,6 +196,9 @@ of GPU memory in both probes. An allocator OOM is recorded as a feasibility
 result; other failures stop the comparison. This checks optimizer overhead
 at a prospective native-FP4 geometry without claiming that a complete
 recurrent training step fits with the same headroom.
+Reported optimizer-only peak allocated memory covers the timed period after
+warmup. The allocator cap applies during warmup too; external NVML records
+the complete process and includes allocations outside PyTorch's allocator.
 
 ## Results
 
