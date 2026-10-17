@@ -39,6 +39,7 @@ class FP8Guards(unittest.TestCase):
             cache.bind([weights[0].clone()],1)
         self.assertEqual(cache.conversions,5)
         self.assertEqual(cache.hits,1)
+        self.assertEqual(len(cache.owners),1)
         self.assertTrue(torch.equal(original[0][0],torch.ones(16,32)))
 
 
@@ -79,6 +80,15 @@ class FP8CudaTests(unittest.TestCase):
                 self.assertEqual(records[2],(torch.float8_e5m2,torch.float8_e4m3fn,torch.float32))
                 self.assertEqual(x.grad.dtype,torch.float32)
                 self.assertEqual(w.grad.dtype,torch.float32)
+
+    def test_inference_prepared_weight_cache_is_safe_for_training(self):
+        w=torch.randn(32,64,device='cuda',requires_grad=True)
+        cache=fp8.WeightCache()
+        with torch.inference_mode():packed=cache.bind((w,))[0]
+        x=torch.randn(17,64,device='cuda',requires_grad=True)
+        fp8.linear(x,w,packed).square().sum().backward()
+        self.assertTrue(bool(torch.isfinite(w.grad).all()))
+        self.assertEqual(cache.conversions,1)
 
     def inputs(self):
         x=torch.randn(19,32,device='cuda',requires_grad=True)

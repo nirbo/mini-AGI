@@ -51,19 +51,26 @@ class WeightCache:
     def __init__(self):
         self.key = None
         self.weights = None
+        self.owners = None
         self.conversions = 0
         self.hits = 0
 
     def clear(self):
         self.key = self.weights = None
+        self.owners = None
 
     @torch.no_grad()
     def bind(self, weights, generation=None):
         key = (generation, tuple((id(w), w.data_ptr(), w._version, w.device, w.dtype,
                                   tuple(w.shape), w.stride()) for w in weights))
         if self.key != key:
-            self.weights = tuple((*quantize_rows(w.detach()),
-                                  *quantize_rows(w.detach().mT.contiguous())) for w in weights)
+            # Keep identities alive so allocator/id reuse cannot masquerade
+            # as an old generation. Data prepared during inference must also
+            # remain saveable by a subsequent training autograd function.
+            with torch.inference_mode(False):
+                self.weights = tuple((*quantize_rows(w.detach()),
+                                      *quantize_rows(w.detach().mT.contiguous())) for w in weights)
+            self.owners = tuple(weights)
             self.key = key
             self.conversions += 1
         else:
