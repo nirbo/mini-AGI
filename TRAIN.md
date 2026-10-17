@@ -238,7 +238,7 @@ Sonic requires its qualified source patch, CUDA BF16, depth-1 experts and
 widths divisible by 16; the adapter accepts SM90/SM100/SM120 families, with the
 RTX 5090 locally qualified. Unsupported configurations raise an error. See
 [backend setup and limits](replication/EXPERT_BACKENDS.md). The `dev` trainer
-does **not** expose NVFP4, NVFP4 QAT, Muon, BF16 master weights, multi-GPU/DDP
+does **not** expose FP8, NVFP4, NVFP4 QAT, Muon, BF16 master weights, multi-GPU/DDP
 training or a `read --accum` option. BF16 compute is not BF16 master storage.
 
 ### Adjust depth/memory, or capture routes
@@ -460,7 +460,8 @@ differences. These controls are implemented by the research runner, not a new
 trainer CLI option.
 
 The existing [Gefen learning screen](replication/GEFEN_PAGING.md),
-[Muon variant comparison](replication/MUON_VARIANTS.md),
+[historical Muon variant comparison](replication/MUON_VARIANTS.md),
+[ordinary FP8/Gefen experiment](replication/FP8_GEFEN.md),
 [training profile measurements](replication/results/rtx5090_training_profile.json) and
 [backend qualification](replication/EXPERT_BACKENDS.md) describe their tested
 workloads and limits. They are experiments, not guarantees for a new model size.
