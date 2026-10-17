@@ -50,6 +50,12 @@ host RAM. Only resident histories remain on the GPU. Missing projection
 gradients and empty slots are skipped; resident zero gradients still count
 as updates. Topology changes and writable checkpoints are rejected.
 
+The AdamW control retains the trainer's existing slab-global bias-correction
+clock; Gefen uses its qualified per-expert counters. The Muon-family matrix
+rules have no Adam-style bias correction, and their momentum/row statistics
+pause while evicted. This comparison includes those integration semantics,
+rather than claiming to isolate only the published optimizer equations.
+
 Its lossless `state_dict` is an experimental optimizer snapshot, not a
 production directory checkpoint: model weights and pager contents must be
 copied separately. There is deliberately no new trainer or expert-file
@@ -63,20 +69,34 @@ architecture is hidden 512, expert width 2048, 32 resident experts, fixed
 depth 6, context 512, and gradient clipping at norm 1. All touched experts
 remain cached in host RAM. No learned checkpoint is written.
 
-The locally available TinyStories validation text provides disjoint token
+The locally available TinyStories validation text provides disjoint byte/character-token
 ranges: adaptation `[0,262144)`, tuning from 262144, and test from 524288.
 Evaluation uses sixteen 512-token windows. Training windows are sampled
-without replacement in a seeded permutation. Original checkpoint/data
+without replacement in a seeded permutation. Each seed controls both window
+order and the model's stochastic routing; these are training-seed replicates,
+not data-order-only changes. Original checkpoint/data
 overlap is unknown; these are not canonical document-deduplicated splits.
 
 The expert learning-rate grid is `3e-6, 1e-5, 3e-5, 1e-4, 3e-4, 1e-3, 3e-3, 1e-2`,
 64 updates each, data-order seed 42. Select using tuning cross-entropy
-only. Then run every candidate for 256 updates on data-order seeds 43/44.
+only. An initial 256-update pilot uses data-order seeds 43/44.
 Check whether the grid winner lies at an edge before accepting selection.
 The two lowest positive rates and an AdamW expert-LR-zero control were added
 after the first two rates showed that smaller expert steps could help.
 The zero-rate control measures auxiliary-only adaptation; it is not a new
-optimizer. Rate selection refuses an unbracketed winner.
+optimizer. Rate selection extends a winning edge by approximately a factor
+of three before confirmation, with a bounded search; it refuses an
+unbracketed positive winner. Zero is the explicit frozen-expert boundary.
+
+The pilot showed that a 64-update winning rate need not transfer to 256
+updates. Final selection therefore retunes at the actual 256-update horizon
+on seed 42: every candidate gets `3e-6, 3e-5, 1e-4`, plus its short-screen
+winner when different, with the same adaptive bracketing rule. AdamW also
+gets the zero-expert-rate control at this horizon. Final confirmation uses
+seeds 43/44 at the new selected rates, reusing an already completed run only
+when its full configuration matches. Both selection files and every pilot
+are retained. This is an exploratory study whose design was extended after
+the pilot, not a preregistered benchmark or a convergence proof.
 
 Auxiliary pool LR is fixed at `1e-4`, trunk LR at `2e-5`, auxiliary Adam
 betas `(0.9,0.95)`, and weight decay 0.1. These rates do not change when
@@ -120,6 +140,8 @@ and candidate algorithms in one process. No system configuration changes.
 .venv/bin/python -m replication.run_muon_screen --phase grid
 .venv/bin/python -m replication.run_muon_screen --phase low-grid
 .venv/bin/python -m replication.run_muon_screen --phase confirm
+.venv/bin/python -m replication.run_muon_screen --phase long-grid
+.venv/bin/python -m replication.run_muon_screen --phase long-confirm
 .venv/bin/python -m replication.run_muon_screen --phase latency
 .venv/bin/python -m replication.run_muon_screen --phase latency-large
 ```

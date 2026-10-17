@@ -34,28 +34,36 @@ def summarize(root):
             raise AssertionError('unmatched data order')
         if r['manifest_sha256'] != reports[0]['manifest_sha256'] or r['text_sha256'] != reports[0]['text_sha256']:
             raise AssertionError('different checkpoint or data')
-    selected = json.loads((root/'selected-rates.json').read_text())
-    table, grid = {}, {}
+    long_selection = (root/'selected-rates-long.json').exists()
+    horizon = 256 if long_selection else 64
+    selected = json.loads((root/('selected-rates-long.json' if long_selection else 'selected-rates.json')).read_text())
+    table, grid, short_grid = {}, {}, {}
     for name in variants:
         short = [r for r in reports if r['configuration']['optimizer'] == name
                  and r['configuration']['steps'] == 64 and r['configuration']['seed'] == 42]
         if len(short) < 6:
             raise AssertionError(f'incomplete rate grid: {name}')
-        grid[name] = sorted([dict(lr=r['configuration']['lr'], tune_ce=r['final_tune']['mean_ce'],
+        short_grid[name] = sorted([dict(lr=r['configuration']['lr'], tune_ce=r['final_tune']['mean_ce'],
                                   test_ce=r['final_test']['mean_ce']) for r in short], key=lambda r:r['lr'])
+        selection_runs = [r for r in reports if r['configuration']['optimizer']==name
+                          and r['configuration']['steps']==horizon and r['configuration']['seed']==42]
+        grid[name] = sorted([dict(lr=r['configuration']['lr'], tune_ce=r['final_tune']['mean_ce'],
+                                 test_ce=r['final_test']['mean_ce']) for r in selection_runs],key=lambda r:r['lr'])
         winner = min(grid[name], key=lambda r:r['tune_ce'])
         if selected[name] != winner['lr']:
             raise AssertionError('rate was not selected on tuning loss')
-        if winner['lr'] in (grid[name][0]['lr'], grid[name][-1]['lr']):
+        if winner['lr'] != 0 and winner['lr'] in (grid[name][0]['lr'], grid[name][-1]['lr']):
             raise AssertionError(f'unbracketed winning rate: {name}')
         long = [r for r in reports if r['configuration']['optimizer'] == name
-                and r['configuration']['steps'] == 256]
+                and r['configuration']['steps'] == 256 and r['configuration']['seed'] in (43,44)
+                and r['configuration']['lr']==selected[name]]
         if {r['configuration']['seed'] for r in long} != {43,44} or len(long) != 2:
             raise AssertionError(f'incomplete confirmation: {name}')
         if any(r['configuration']['lr'] != selected[name] for r in long):
             raise AssertionError('confirmation rate changed')
         power = [r['external_training_power'] for r in long]
         table[name] = dict(lr=selected[name],
+                          experts_frozen=selected[name]==0,
                           mean_test_ce=statistics.mean(r['final_test']['mean_ce'] for r in long),
                           mean_tune_ce=statistics.mean(r['final_tune']['mean_ce'] for r in long),
                           seed_test_ce={r['configuration']['seed']:r['final_test']['mean_ce'] for r in long},
@@ -75,7 +83,8 @@ def summarize(root):
     frozen = [r for r in reports if r['configuration']['optimizer']=='adamw' and r['configuration']['lr']==0.]
     return dict(sources=SOURCES, learning_trial_count=len(reports),
                 manifest_sha256=reports[0]['manifest_sha256'], text_sha256=reports[0]['text_sha256'],
-                initial_tune=initial_tune, initial_test=initial_test, grid=grid, confirmation=table,
+                initial_tune=initial_tune, initial_test=initial_test, grid=grid, short_grid=short_grid,
+                selection_horizon_steps=horizon, confirmation=table,
                 isolated_latency=latency, isolated_latency_large=large,
                 auxiliary_only_control=frozen,
                 limits=['Short BF16 adaptation, not original-depth pretraining or NVFP4 qualification.',

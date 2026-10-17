@@ -45,7 +45,7 @@ def trial(out, variant, lr, seed=42, steps=64):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--out', type=Path, default=Path('runs/muon-screen'))
-    parser.add_argument('--phase', choices=('smoke', 'grid', 'low-grid', 'confirm', 'latency', 'latency-large'), required=True)
+    parser.add_argument('--phase', choices=('smoke', 'grid', 'low-grid', 'confirm', 'long-grid', 'long-confirm', 'latency', 'latency-large'), required=True)
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
     os.environ['PATH'] = str(ROOT/'.venv/bin') + os.pathsep + os.environ['PATH']
@@ -64,18 +64,41 @@ def main():
                 trial(args.out, name, lr)
         if args.phase == 'low-grid':
             trial(args.out, 'adamw', 0.)  # auxiliary-only adaptation control
-    elif args.phase == 'confirm':
+    elif args.phase == 'long-grid':
+        for rate in (3e-6, 3e-5, 1e-4):
+            for name in variants:
+                trial(args.out,name,rate,steps=256)
+        short = json.loads((args.out/'selected-rates.json').read_text())
+        for name,rate in short.items():
+            if rate not in (3e-6,3e-5,1e-4):
+                trial(args.out,name,rate,steps=256)
+        trial(args.out,'adamw',0.,steps=256)
+    elif args.phase in ('confirm','long-confirm'):
+        horizon = 256 if args.phase == 'long-confirm' else 64
         selected = {}
         for name in variants:
-            candidates = [json.loads(p.read_text()) for p in args.out.glob(f'{name}-lr*-seed42-steps64.json')]
-            if len(candidates) < 6 or any(r['status'] != 'passed' for r in candidates):
+            candidates = [json.loads(p.read_text()) for p in args.out.glob(f'{name}-lr*-seed42-steps{horizon}.json')]
+            if len(candidates) < (3 if horizon==256 else 6) or any(r['status'] != 'passed' for r in candidates):
                 raise RuntimeError(f'incomplete grid for {name}')
-            best = min(candidates, key=lambda r:r['final_tune']['mean_ce'])
-            tested = sorted(r['configuration']['lr'] for r in candidates)
-            if best['configuration']['lr'] in (tested[0], tested[-1]):
-                raise RuntimeError(f'unbracketed best LR for {name}; extend the grid before confirmation')
+            for attempt in range(7):
+                best = min(candidates, key=lambda r:r['final_tune']['mean_ce'])
+                rate = best['configuration']['lr']
+                tested = sorted(r['configuration']['lr'] for r in candidates)
+                if rate == 0 or rate not in (tested[0], tested[-1]):
+                    break
+                if rate == tested[0] and rate > 1e-8:
+                    extra_rate = float(f'{rate/3:.1g}')
+                elif rate == tested[-1] and rate < .1:
+                    extra_rate = float(f'{rate*3:.1g}')
+                else:
+                    raise RuntimeError(f'unbracketed best LR for {name}; further tuning required')
+                print(json.dumps({'extending_edge':name,'lr':extra_rate}),flush=True)
+                candidates.append(trial(args.out,name,extra_rate,steps=horizon))
+            else:
+                raise RuntimeError(f'could not bracket learning rate for {name}')
             selected[name] = best['configuration']['lr']
-        (args.out/'selected-rates.json').write_text(json.dumps(selected, indent=2)+'\n')
+        selection_file = 'selected-rates-long.json' if horizon==256 else 'selected-rates.json'
+        (args.out/selection_file).write_text(json.dumps(selected, indent=2)+'\n')
         # No test loss is consulted for selection. All candidates get both
         # confirmation data orders, including those that lost the short grid.
         for seed in (43, 44):

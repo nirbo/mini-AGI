@@ -22,6 +22,9 @@ class MuonCandidateTests(unittest.TestCase):
 
     def setUp(self):
         torch.set_num_threads(4)
+        limit = torch._dynamo.config.recompile_limit
+        torch._dynamo.config.recompile_limit = 64
+        self.addCleanup(setattr, torch._dynamo.config, 'recompile_limit', limit)
         torch.manual_seed(72)
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
@@ -224,6 +227,21 @@ class MuonCandidateTests(unittest.TestCase):
                     for key,value in state.items():
                         if torch.is_tensor(value):
                             torch.testing.assert_close(opt._matrix.state[p][key],value,rtol=0,atol=0)
+
+    def test_optimizer_preserves_model_routing_random_stream(self):
+        # begin_text samples its routing seed from Torch's CPU RNG. Optimizer
+        # initialization/compilation must not change the model's random stream.
+        for variant in VARIANTS:
+            with self.subTest(variant=variant):
+                p = torch.nn.Parameter(torch.randn(16,32,device=self.device))
+                p.grad = torch.ones_like(p)*.001
+                cpu_before = torch.get_rng_state().clone()
+                gpu_before = torch.cuda.get_rng_state().clone() if self.device == 'cuda' else None
+                opt = matrix_optimizer(variant,[p],.001)
+                opt.step()
+                self.assertTrue(torch.equal(torch.get_rng_state(),cpu_before))
+                if gpu_before is not None:
+                    self.assertTrue(torch.equal(torch.cuda.get_rng_state(),gpu_before))
 
 
 if __name__ == '__main__':
