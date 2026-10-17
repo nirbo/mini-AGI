@@ -20,6 +20,10 @@ compiler has a separate cache identity. The adapter is for isolated serial
 research processes, with research kernels initialized before other GEMM JITs;
 it is not a thread-safe production backend.
 
+PyTorch's `allow_fp16_accumulation` flag controls its cuBLAS path; it does not
+override QuACK's explicitly selected MMA accumulator. Changing that flag alone
+would not test the accumulator choice in the Sonic/QuACK expert kernels.
+
 The existing `SplitKMode.SEPARATE` path provides the two-stage candidate:
 shorter FP16 partial sums are stored in FP32, then combined by the existing
 FP32 reduction. This is four scheduled K splits, not a promise of an exact
