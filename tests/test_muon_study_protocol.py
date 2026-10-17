@@ -72,6 +72,16 @@ class StudyProtocolTests(unittest.TestCase):
                 with self.assertRaisesRegex(AssertionError,'incomplete training prefix'):
                     protocol.validate_learning_protocol(report,False)
 
+    def test_cached_trial_must_match_requested_configuration(self):
+        path=self.root/'muon-lr3e-05-seed42-steps256.json'
+        for field,value in (('optimizer','normuon'),('lr',1e-5),('seed',43),('steps',64)):
+            with self.subTest(field=field):
+                report=copy.deepcopy(self.report)
+                report['configuration'][field]=value
+                path.write_text(json.dumps(report))
+                with self.assertRaisesRegex(RuntimeError,'cached trial configuration differs'):
+                    protocol.trial(self.root,'muon',3e-5,steps=256)
+
 
 if __name__=='__main__':
     unittest.main()

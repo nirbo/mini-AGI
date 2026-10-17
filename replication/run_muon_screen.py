@@ -46,6 +46,9 @@ def trial(out, variant, lr, seed=42, steps=64, fingerprint=False):
     if path.exists():
         report = json.loads(path.read_text())
         if report.get('status') == 'passed' and 'external_training_power' in report:
+            expected=dict(optimizer=variant,lr=lr,seed=seed,steps=steps)
+            if any(report['configuration'].get(k)!=v for k,v in expected.items()):
+                raise RuntimeError(f'cached trial configuration differs: {path}')
             validate_learning_protocol(report,fingerprint)
             return report
         raise RuntimeError(f'failed/incomplete trial already exists: {path}')
@@ -132,6 +135,8 @@ def main():
             candidates = [json.loads(p.read_text()) for p in args.out.glob(f'{name}-lr*-seed42-steps{horizon}.json')]
             if len(candidates) < (3 if horizon==256 else 6) or any(r['status'] != 'passed' for r in candidates):
                 raise RuntimeError(f'incomplete grid for {name}')
+            for report in candidates:
+                validate_learning_protocol(report,False)
             for attempt in range(7):
                 best = min(candidates, key=lambda r:r['final_tune']['mean_ce'])
                 rate = best['configuration']['lr']
@@ -156,6 +161,9 @@ def main():
         for seed in (43, 44):
             for name in variants:
                 trial(args.out, name, selected[name], seed=seed, steps=256)
+        if args.phase=='long-confirm':
+            for seed in (43,44):
+                trial(args.out,'adamw',0.,seed=seed,steps=256)
     else:
         for name in variants:
             prefix = 'latency-large' if args.phase == 'latency-large' else 'latency'

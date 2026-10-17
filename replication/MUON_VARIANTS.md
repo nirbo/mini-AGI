@@ -36,6 +36,12 @@ The pinned, unmodified sources and hashes are recorded in
 no Python package is installed or upgraded. Research tests skip on a clean
 clone until these optional sources are fetched.
 
+Source revisions: [Microsoft Dion](https://github.com/microsoft/dion/tree/7692479288f928a3d61d1cc58137b4dbe4f71000),
+[MuonPlus](https://github.com/K1seki221/MuonPlus/tree/8a9ace123afedaab8ba75ea0b19315594ae1da7c),
+and [NorMuon](https://github.com/zichongli5/NorMuon/tree/c6989a8354730695d9f5a9faa6c55eeb24865209).
+NorMuon's original source was inspected; this screen executes Microsoft's
+batched implementation of the algorithm.
+
 ## Ownership and scope
 
 All candidates change independent expert W1/W3/W2 matrices only. The expert
@@ -87,6 +93,8 @@ adaptation. Zero is an explicit boundary, not a new optimizer. Selection uses
 only tuning cross-entropy. Confirmation then runs each selected rate for 256
 updates on seeds 43/44. Two data-order seeds cannot establish a general quality
 ranking or statistical equivalence.
+The auxiliary-only zero-expert-rate control also runs on both confirmation
+seeds, without participating in another rate-selection round.
 
 ### Reproducibility qualification
 
@@ -164,6 +172,10 @@ and candidate algorithms in one process. No system configuration changes.
 .venv/bin/python -m replication.run_muon_screen --phase latency-large
 .venv/bin/python -m replication.summarize_muon_screen
 ```
+
+`long-confirm` includes both matched auxiliary-only controls. Repeating the
+learning phases reuses only results that still pass the source/protocol
+checks; timing phases require a fresh output location.
 
 The runner monitors every GPU subprocess externally. To repeat the standalone
 fixed-reduction qualification:
